@@ -11,7 +11,7 @@ jobs:
     - name: Bandit Setup
       uses: ./
       with:
-        python_version: 3.10
+        python_version: '3.10'
         project_path: ./app/
         ignore_failure: true
 

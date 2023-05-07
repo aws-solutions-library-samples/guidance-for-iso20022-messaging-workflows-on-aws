@@ -23,8 +23,8 @@ jobs:
           framework: terraform
           soft_fail: true
           download_external_modules: true
-          # output_format: cli,sarif
-          # output_file_path: console,results.sarif
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
 
       # - name: Upload Artifact
       #   uses: github/codeql-action/upload-sarif@master

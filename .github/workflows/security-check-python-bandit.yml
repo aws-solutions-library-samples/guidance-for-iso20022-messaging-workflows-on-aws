@@ -5,22 +5,30 @@ on: [pull_request, push]
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      # security-events: write
+
     steps:
-    - uses: actions/checkout@v2
+      - name: Setup GitHub Actions
+        uses: actions/checkout@master
 
-    - name: Bandit Setup
-      uses: ./
-      with:
-        python_version: '3.10'
-        project_path: ./app/
-        ignore_failure: true
+      - name: Install Python
+        uses: actions/setup-python@master
+        with:
+          python-version: 3.10
 
-    - name: Python Version
-      run: python -c "import sys; print(sys.version)"
-  
-    - name: Bandit Report
-      uses: actions/upload-artifact@v1
-      # if: failure()
-      with:
-        name: Security Report
-        path: output/security_report.txt
+      - name: Install Bandit
+        run: pip3 install bandit
+
+      - name: Run Bandit
+        run: bandit -r -o ./security_report.txt ./app/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@master
+        # if: failure()
+        with:
+          name: Security Report
+          path: ./security_report.txt

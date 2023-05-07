@@ -27,7 +27,7 @@ jobs:
           # output_file_path: console,results.sarif
 
       # - name: Upload Artifact
-      #   uses: github/codeql-action/upload-sarif@v2
+      #   uses: github/codeql-action/upload-sarif@master
         
       #   if: success() || failure()
       #   with:

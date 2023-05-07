@@ -26,9 +26,9 @@ jobs:
       - name: Run Bandit
         run: bandit -r ./app/
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@master
-        # if: failure()
-        with:
-          name: Security Report
-          path: output/security_report.txt
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@master
+      #   # if: failure()
+      #   with:
+      #     name: Security Report
+      #     path: output/security_report.txt

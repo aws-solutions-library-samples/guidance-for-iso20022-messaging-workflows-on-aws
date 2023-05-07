@@ -24,11 +24,11 @@ jobs:
         run: pip3 install bandit
 
       - name: Run Bandit
-        run: bandit -r -o ./security_report.txt ./app/
+        run: bandit -r ./app/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@master
         # if: failure()
         with:
           name: Security Report
-          path: ./security_report.txt
+          path: output/security_report.txt

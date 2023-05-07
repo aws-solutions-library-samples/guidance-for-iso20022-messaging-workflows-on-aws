@@ -3,7 +3,7 @@ name: Security Check - Bandit for Python
 on: [pull_request, push]
 
 jobs:
-  build:
+  bandit:
     runs-on: ubuntu-latest
 
     permissions:

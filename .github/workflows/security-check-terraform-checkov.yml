@@ -3,7 +3,7 @@ name: Security Check - Checkov for Terraform
 on: [pull_request, push]
 
 jobs:
-  build:
+  checkov:
     runs-on: ubuntu-latest
 
     permissions:

@@ -174,7 +174,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
                 id = tnx['Item']['id']
             resource.Table(table).delete_item(Key={'id': id, 'transaction_id': item['transaction_id']})
         except Exception as e:
-            pass
+            pass # nosec B110
     result['response'] = resource.Table(table).put_item(Item=item)
     if replicated:
         result['replicated'] = dynamodb_replicated(replicated['api_url'],

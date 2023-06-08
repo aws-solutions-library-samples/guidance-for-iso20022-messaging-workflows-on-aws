@@ -2,7 +2,8 @@ data "aws_region" "this" {}
 data "aws_caller_identity" "this" {}
 
 provider "aws" {
-  allowed_account_ids = try(split(",", var.account), null)
+  allowed_account_ids    = try(split(",", var.account), null)
+  skip_region_validation = true
 
   default_tags {
     tags = {

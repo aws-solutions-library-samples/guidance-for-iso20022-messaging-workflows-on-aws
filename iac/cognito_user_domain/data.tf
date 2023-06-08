@@ -16,4 +16,6 @@ data "aws_acm_certificate" "this" {
 provider "aws" {
   alias  = "glob"
   region = "us-east-1"
+
+  skip_region_validation = true
 }

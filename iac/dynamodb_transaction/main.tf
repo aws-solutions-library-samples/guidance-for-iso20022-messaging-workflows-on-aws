@@ -66,4 +66,6 @@ resource "aws_dynamodb_table_replica" "this" {
 provider "aws" {
   alias = "glob"
   region = element(keys(var.backend_bucket), 1)
+
+  skip_region_validation = true
 }

@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 import os, uuid, logging
 from datetime import datetime, timezone
 from env import Variables
@@ -86,12 +88,11 @@ def lambda_handler(event, context):
     # step 4: get dynamodb item
     if not('headers' in event and event['headers'] and 'X-DynamoDB-Skip' in event['headers']):
         try:
-            item = {'created_at': TIME}
             if 'headers' in event and event['headers'] and 'X-Transaction-Status' in event['headers'] and event['headers']['X-Transaction-Status']:
                 item['transaction_status'] = event['headers']['X-Transaction-Status']
             response = dynamodb_get_by_item(region, table, item)
             LOGGER.info(f'got response: {response}')
-            metadata['DynamodbCount'] = response['Count']
+            metadata['DynamodbCount'] = response['Count'] if 'Count' in response else 0
         except Exception as e:
             error['dynamodb'] = str(e)
 

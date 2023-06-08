@@ -1,0 +1,83 @@
+resource "aws_api_gateway_rest_api" "this" {
+  name              = var.q.name
+  put_rest_api_mode = var.q.mode
+
+  body = templatefile(var.q.file, {
+    title         = var.q.name
+    version       = var.q.version
+    region        = data.aws_region.this.name
+    api_url       = format("https://api-%s.%s", data.aws_region.this.name, var.custom_domain)
+    failover_url  = format("https://api-%s.%s", data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0), var.custom_domain)
+    lambda_health = data.terraform_remote_state.lambda_health.outputs.invoke_arn
+    cognito_arn   = data.terraform_remote_state.cognito.outputs.arn
+  })
+
+  endpoint_configuration {
+    types = var.types
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_deployment" "this" {
+  rest_api_id = aws_api_gateway_rest_api.this.id
+
+  triggers = {
+    redeployment = sha1(jsonencode(aws_api_gateway_rest_api.this.body))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_stage" "this" {
+  #checkov:skip=CKV_AWS_73:XRay not needed -- API Gateway performs better without tracing enabled
+  #checkov:skip=CKV_AWS_120:Caching not needed -- API Gateway payloads are short lived
+  #checkov:skip=CKV2_AWS_29:WAF not needed -- restricted to get health.txt object
+  #checkov:skip=CKV2_AWS_51:Client certs not needed -- OAuth 2.0 is implemented instead
+
+  deployment_id = aws_api_gateway_deployment.this.id
+  rest_api_id   = aws_api_gateway_rest_api.this.id
+  stage_name    = var.q.stage
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.this.arn
+    format          = var.q.cloudwatch_log_format
+  }
+}
+
+resource "aws_api_gateway_method_settings" "this" {
+  #checkov:skip=CKV_AWS_225:Caching not needed -- API Gateway payloads are short lived
+  #checkov:skip=CKV_AWS_308:Caching not needed -- API Gateway payloads are short lived
+
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  stage_name  = aws_api_gateway_stage.this.stage_name
+  method_path = "*/*"
+
+  settings {
+    metrics_enabled = true
+    logging_level   = "ERROR"
+  }
+}
+
+resource "aws_api_gateway_account" "this" {
+  cloudwatch_role_arn = data.terraform_remote_state.iam_logs.outputs.arn
+}
+
+resource "aws_cloudwatch_log_group" "this" {
+  #checkov:skip=CKV_AWS_158:Checkov issue -- cannot read value from default.tfvars
+
+  name              = format(var.q.cloudwatch_group_name, aws_api_gateway_rest_api.this.id, var.q.stage)
+  retention_in_days = var.q.retention_in_days
+  skip_destroy      = var.q.skip_destroy
+}
+
+resource "aws_lambda_permission" "health" {
+  principal     = "apigateway.amazonaws.com"
+  action        = "lambda:InvokeFunction"
+  function_name = data.terraform_remote_state.lambda_health.outputs.function_name
+  source_arn    = format("%s/*", aws_api_gateway_rest_api.this.execution_arn)
+}

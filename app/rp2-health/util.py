@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 import boto3, uuid, re, json, base64, requests, ssl, pika
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta, timezone
@@ -79,10 +81,10 @@ def s3_move_object(region, bucket, old_key, new_key):
         'object': obj.get()['Body'].read().decode('utf-8'),
     }
 
-def sns_publish_message(region, account, name, message, attributes=None):
+def sns_publish_message(region, topic, account, message, attributes=None):
     sns = boto3.client("sns", region_name=region)
     kwargs = {
-        'TopicArn': f'arn:aws:sns:{region}:{account}:{name}',
+        'TopicArn': f'arn:aws:sns:{region}:{account}:{topic}',
         'Message': message,
     }
     if attributes:
@@ -95,6 +97,27 @@ def sns_publish_message(region, account, name, message, attributes=None):
         kwargs['MessageAttributes'] = att_dict
     response = sns.publish(**kwargs)
     return response['MessageId']
+
+def sqs_send_message(region, queue, account, message, group_id=None, deduplication_id=None, attributes=None):
+    sqs = boto3.client("sqs", region_name=region)
+    kwargs = {
+        'QueueUrl': f'https://sqs.{region}.amazonaws.com/{account}/{queue}',
+        'MessageBody': message,
+    }
+    if group_id:
+        kwargs['MessageGroupId'] = group_id
+    if deduplication_id:
+        kwargs['MessageDeduplicationId'] = deduplication_id
+    if attributes:
+        att_dict = {}
+        for key, value in attributes.items():
+            if isinstance(value, str):
+                att_dict[key] = {'DataType': 'String', 'StringValue': value}
+            elif isinstance(value, bytes):
+                att_dict[key] = {'DataType': 'Binary', 'BinaryValue': value}
+        kwargs['MessageAttributes'] = att_dict
+    response = sqs.send_message(**kwargs)
+    return response.get("Messages", [])
 
 def sqs_receive_message(region, queue, account, num=1, wait=1):
     sqs = boto3.client("sqs", region_name=region)
@@ -339,26 +362,3 @@ def auth2token(url, client_id, client_secret):
     }
     response = requests.post(f'{url}/oauth2/token', params=payload, headers=headers, timeout=15)
     return response.json() if response.status_code == 200 else response.text
-
-def connect2rmq(host, port, user, pwd):
-    credentials = pika.PlainCredentials(user, pwd)
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    parameters = pika.ConnectionParameters(
-        host=host, port=port, credentials=credentials,
-        ssl_options=pika.SSLOptions(context), virtual_host='/')
-    return pika.BlockingConnection(parameters)
-
-def publish2rmq(connection, data, count, exchange, routing_key):
-    main_channel = connection.channel()
-    properties = pika.BasicProperties(
-        app_id='default_application',
-        content_type='application/json',
-        headers={u'X-Message-Type': u'pacs.008'}
-    )
-    iter = 0
-    while iter < count:
-        main_channel.basic_publish(
-            exchange=exchange,
-            routing_key=routing_key,
-            body=data, properties=properties)
-        iter += 1

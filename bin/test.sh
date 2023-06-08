@@ -4,9 +4,10 @@ help()
 {
   echo "Test API endpoint for specific AWS region"
   echo
-  echo "Syntax: test.sh [-q|r|i|s]"
+  echo "Syntax: test.sh [-q|r|d|i|s]"
   echo "Options:"
   echo "q     Specify custom domain (e.g. example.com)"
+  echo "d     Specify unique id (e.g. 1dbc8790)"
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "i     Specify AWS Cognito client id"
   echo "s     Specify AWS Cognito client secret"
@@ -15,18 +16,21 @@ help()
 
 set -o pipefail
 
+RP2_ID=""
 RP2_DOMAIN=""
 RP2_REGION=""
 RP2_AUTH_CLIENT_ID=""
 RP2_AUTH_CLIENT_SECRET=""
 
-while getopts "h:q:r:i:s:" option; do
+while getopts "h:q:d:r:i:s:" option; do
   case $option in
     h)
       help
       exit;;
     q)
       RP2_DOMAIN=$OPTARG;;
+    d)
+      RP2_ID=$OPTARG;;
     r)
       RP2_REGION=$OPTARG;;
     i)
@@ -59,13 +63,17 @@ if [ -z "${RP2_REGION}" ]; then
 fi
 
 if [ -z "${RP2_AUTH_CLIENT_ID}" ] || [ -z "${RP2_AUTH_CLIENT_SECRET}" ]; then
-  RP2_SECRET=$(aws secretsmanager get-secret-value --secret-id auth-${RP2_REGION}.${RP2_DOMAIN})
-
-  if [ -z "${RP2_SECRET}" ] || [ -z "${RP2_SECRET##*error*}" ]; then
-    echo "[ERROR] RP2_SECRET request failed..."; exit 1;
+  if [ -z "${RP2_ID}" ]; then
+    echo "[ERROR] RP2_ID is missing..."; exit 1;
   fi
 
-  RP2_SECRET=$(echo ${RP2_SECRET} | jq .SecretString | jq -r)
+  RP2_RESULT=$(aws secretsmanager get-secret-value --secret-id rp2-client-api-${RP2_REGION}-${RP2_ID})
+
+  if [ -z "${RP2_RESULT}" ] || [ -z "${RP2_RESULT##*error*}" ]; then
+    echo "[ERROR] RP2_RESULT request failed..."; exit 1;
+  fi
+
+  RP2_SECRET=$(echo ${RP2_RESULT} | jq .SecretString | jq -r)
   RP2_AUTH_CLIENT_ID=$(echo ${RP2_SECRET} | jq .client_id)
   RP2_AUTH_CLIENT_ID=${RP2_AUTH_CLIENT_ID//\"/}
   RP2_AUTH_CLIENT_SECRET=$(echo ${RP2_SECRET} | jq .client_secret)

@@ -1,12 +1,3 @@
-data "terraform_remote_state" "lambda" {
-  backend = "s3"
-  config = {
-    region = data.aws_region.this.name
-    bucket = var.backend_bucket[data.aws_region.this.name]
-    key    = format(var.backend_pattern, "lambda_release")
-  }
-}
-
 data "aws_iam_policy_document" "this" {
   statement {
     effect    = "Allow"
@@ -29,5 +20,16 @@ data "aws_iam_policy_document" "this" {
       variable = "aws:SourceArn"
       values   = [data.terraform_remote_state.lambda.outputs.arn]
     }
+  }
+}
+
+data "terraform_remote_state" "lambda" {
+  backend = "s3"
+  config = {
+    skip_region_validation = true
+
+    region = data.aws_region.this.name
+    bucket = var.backend_bucket[data.aws_region.this.name]
+    key    = format(var.backend_pattern, "lambda_release")
   }
 }

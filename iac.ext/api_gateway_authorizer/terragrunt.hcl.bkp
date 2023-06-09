@@ -1,9 +1,0 @@
-dependency "agw" {
-  config_path  = "../api_gateway_rest"
-  skip_outputs = true
-}
-
-dependency "cognito" {
-  config_path  = "../cognito_user_pool"
-  skip_outputs = true
-}

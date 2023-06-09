@@ -18,3 +18,16 @@ q = {
   # minimum_version  = "TLSv1.2_2018"
   logging_prefix   = "cloudfront"
 }
+
+r = [
+  "af-south-1",
+  "ap-east-1",
+  "ap-south-2",
+  "ap-southeast-3",
+  "ap-southeast-4",
+  "eu-south-1",
+  "eu-south-2",
+  "eu-central-2",
+  "me-south-1",
+  "me-central-1"
+]

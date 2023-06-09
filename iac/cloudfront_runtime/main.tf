@@ -75,9 +75,12 @@ resource "aws_cloudfront_distribution" "this" {
     response_headers_policy_id = aws_cloudfront_response_headers_policy.this.id
   }
 
-  logging_config {
-    bucket = data.terraform_remote_state.s3.outputs.domain
-    prefix = var.q.logging_prefix
+  dynamic "logging_config" {
+    for_each = local.logging_config
+    content {
+      bucket = logging_config.value.bucket
+      prefix = logging_config.value.prefix
+    }
   }
 
   restrictions {

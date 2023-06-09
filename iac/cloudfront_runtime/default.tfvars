@@ -19,6 +19,8 @@ q = {
   logging_prefix   = "cloudfront"
 }
 
+# Not Supported Regions for CF logs to S3
+# https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html#access-logs-choosing-s3-bucket
 r = [
   "af-south-1",
   "ap-east-1",

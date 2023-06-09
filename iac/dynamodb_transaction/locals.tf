@@ -17,7 +17,7 @@ locals {
     #   type = "S"
     # },
   ]
-  gsi = [
+  global_secondary_indexes = [
     # {
     #   name               = "transaction_id-transaction_status-index"
     #   hash_key           = "transaction_id"
@@ -33,4 +33,8 @@ locals {
     #   non_key_attributes = ["id", "created_by", "transaction_id"]
     # },
   ]
+  global_table = (
+    !contains(var.r, element(keys(var.backend_bucket), 0)) &&
+    !contains(var.r, element(keys(var.backend_bucket), 1))
+  )
 }

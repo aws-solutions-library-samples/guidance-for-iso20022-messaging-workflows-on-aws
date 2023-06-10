@@ -57,15 +57,8 @@ def lambda_handler(event, context):
     check_ddb = int(VARIABLES.get_rp2_check_ddb())
     if check_ddb > 0:
         region2 = VARIABLES.get_rp2_check_region()
-        replicated = {
-            'api_url': VARIABLES.get_rp2_api_url().replace(region, region2),
-            'auth': {
-                'auth_url': VARIABLES.get_rp2_auth_url().replace(region, region2),
-                'client_id': VARIABLES.get_rp2_check_client_id(),
-                'client_secret': VARIABLES.get_rp2_check_client_secret(),
-            },
-            'count': check_ddb
-        }
+        replicated = {'region': region, 'region2': region2, 'count': check_ddb, 'identity': identity}
+    LOGGER.debug(f'computed replicated: {replicated}')
     item = {
         'created_at': TIME,
         'created_by': identity,
@@ -86,10 +79,12 @@ def lambda_handler(event, context):
     # step 2: validate event
     response = lambda_validate(event, request_id)
     if response:
-        LOGGER.warning(f'got validate: {response}')
+        msg = 'lambda validation failed'
+        LOGGER.warning(f'{msg}: {response}')
         item['transaction_code'] = 'TECH'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
         return response
 
@@ -119,32 +114,35 @@ def lambda_handler(event, context):
         LOGGER.warning(f'attempted to save object: {body}')
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
     # step 5: check previous transaction statuses
     try:
-        LOGGER.debug(f'sent request: ACCP {item}')
-        response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'ACCP'})
-        LOGGER.debug(f'got response: {response}')
-        if 'Item' not in response or not response['Item']:
-            metadata['ErrorMessage'] = 'initiated transaction is missing'
+        LOGGER.debug(f'dynamodb_get_by_item: {item}')
+        response = dynamodb_get_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        if response['Statuses'] != ['FLAG', 'ACCP']:
+            metadata['ErrorMessage'] = 'transaction statuses are out of order'
             LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
             item['transaction_code'] = 'FF02'
             response = dynamodb_put_item(region, table, item, replicated)
-            LOGGER.debug(f'got response: {response}')
+            LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
+            LOGGER.debug(f'dynamodb_put_item response: {response}')
             sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
             return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
         else:
-            item['created_by'] = response['Item']['created_by']
+            item['created_by'] = response['Items'][0]['created_by']
 
     except Exception as e:
         msg = 'retrieving item from dynamodb failed'
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
@@ -160,7 +158,8 @@ def lambda_handler(event, context):
     #     msg = f'parsing {object_ext} failed'
     #     LOGGER.error(f'{msg}: {str(e)}')
     #     response = dynamodb_put_item(region, table, item, replicated)
-    #     LOGGER.debug(f'got response: {response}')
+    #     LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+    #     LOGGER.debug(f'dynamodb_put_item response: {response}')
     #     sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
     #     metadata['ErrorMessage'] = str(e)
     #     return lambda_response(400, msg, metadata, TIME)
@@ -170,10 +169,11 @@ def lambda_handler(event, context):
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
 
     except Exception as e:
-        msg = 'invoking lambda function failed'
+        msg = 'sending sqs message failed'
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
@@ -181,16 +181,19 @@ def lambda_handler(event, context):
     # step 8: save item into dynamodb
     try:
         del item['transaction_code']
+        msg = 'transaction received successfully'
         item['transaction_status'] = 'ACTC'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
 
     except Exception as e:
         msg = 'saving item to dynamodb failed'
         LOGGER.warning(f'attempted to save item: {item}')
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, msg, id)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
@@ -204,7 +207,6 @@ def lambda_handler(event, context):
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']
-    msg = 'transaction received successfully'
     LOGGER.info(f'{msg}: {item}')
     return lambda_response(201, msg, metadata, TIME)
 

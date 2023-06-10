@@ -1,10 +1,20 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import boto3, uuid, re, json, base64, requests, ssl, pika
+import boto3, uuid, re, json, base64, requests
 from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta, timezone
 from math import floor
+
+import logging, os
+from env import Variables
+LOGGER: str = logging.getLogger(__name__)
+DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
+VARIABLES: str = Variables(DOTENV)
+if logging.getLogger().hasHandlers():
+    logging.getLogger().setLevel(VARIABLES.get_rp2_logging())
+else:
+    logging.basicConfig(level=VARIABLES.get_rp2_logging())
 
 def get_iso20022_mapping(msg):
     if msg is None:
@@ -34,22 +44,24 @@ def get_request_arn(arn):
         result['request_resource'] = arn[6]
     return result
 
-def get_uuid5(item):
-    # @TODO: distribute even further by tenant_id, worker_id, etc
+def get_partition_key(item):
+    # @TODO: distribute partitioning even further by tenant_id, worker_id, etc
     result = ""
     if 'created_at' in item and item['created_at']:
         result += get_timestamp(item['created_at'])
+    # if 'created_by' in item and item['created_by']:
+    #     result += item['created_by']
     if 'request_region' in item and item['request_region']:
         result += item['request_region']
     # if 'request_resource' in item and item['request_resource']:
     #     result += item['request_resource']
-    # if 'created_by' in item and item['created_by']:
-    #     result += item['created_by']
-    # if 'message_id' in item and item['message_id']:
-    #     result += item['message_id']
-    if 'transaction_status' in item and item['transaction_status']:
-        result += item['transaction_status']
+    # if 'transaction_status' in item and item['transaction_status']:
+    #     result += item['transaction_status']
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, result + '.com'))
+
+def get_sort_key(item):
+    time = str(item["created_at"]).replace(" ", "+")
+    return f'{item["transaction_id"]}|{time}|{item["transaction_status"]}'
 
 def s3_get_object(region, bucket, key):
     s3 = boto3.resource('s3', region_name=region)
@@ -117,7 +129,7 @@ def sqs_send_message(region, queue, account, message, group_id=None, deduplicati
                 att_dict[key] = {'DataType': 'Binary', 'BinaryValue': value}
         kwargs['MessageAttributes'] = att_dict
     response = sqs.send_message(**kwargs)
-    return response.get("Messages", [])
+    return response['MessageId']
 
 def sqs_receive_message(region, queue, account, num=1, wait=1):
     sqs = boto3.client("sqs", region_name=region)
@@ -162,21 +174,36 @@ def dynamodb_item(attributes):
             item['storage_path'] = str(attributes['storage_path'])
         if 'storage_type' in attributes and attributes['storage_type']:
             item['storage_type'] = str(attributes['storage_type'])
-    item['id'] = get_uuid5(item)
+    item['id'] = get_partition_key(item)
+    item['sk'] = get_sort_key(item)
     return item
 
 def dynamodb_get_by_item(region, table, item, range=60):
     resource = boto3.resource('dynamodb', region_name=region)
-    response = resource.Table(table).get_item(Key={'id': get_uuid5(item), 'transaction_id': str(item['transaction_id'])})
-    if 'Item' in response and response['Item'] and 'id' in response['Item']:
-        return response
+    LOGGER.debug(f'dynamodb_query_item item: {item}')
+    response = resource.Table(table).query(
+        KeyConditionExpression=Key('id').eq(get_partition_key(item)) & Key('sk').begins_with(str(item['transaction_id'])),
+        ScanIndexForward=False
+    )
+    LOGGER.debug(f'dynamodb_query_item response: {response}')
     time = item['created_at'] if isinstance(item['created_at'], datetime) else datetime.fromisoformat(str(item['created_at']))
     item2 = {**item, 'created_at': time - timedelta(minutes=range)}
-    return resource.Table(table).get_item(Key={'id': get_uuid5(item2), 'transaction_id': str(item2['transaction_id'])})
+    LOGGER.debug(f'dynamodb_query_item item2: {item2}')
+    response2 = resource.Table(table).query(
+        KeyConditionExpression=Key('id').eq(get_partition_key(item2)) & Key('sk').begins_with(str(item2['transaction_id'])),
+        ScanIndexForward=False
+    )
+    LOGGER.debug(f'dynamodb_query_item response2: {response2}')
+    result = {
+        'Count': int(response['Count']) + int(response2['Count']),
+        'Items': response['Items'] + response2['Items'],
+    }
+    result['Statuses'] = [d['transaction_status'] for d in result['Items'] if 'transaction_status' in d]
+    return result
 
 def dynamodb_query_by_item(region, table, item, key=None, range=60):
     resource = boto3.resource('dynamodb', region_name=region)
-    kwargs = {'KeyConditionExpression': Key('id').eq(get_uuid5(item))}
+    kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item))}
     if key:
         kwargs['ExclusiveStartKey'] = key
     return resource.Table(table).query(**kwargs)
@@ -184,30 +211,38 @@ def dynamodb_query_by_item(region, table, item, key=None, range=60):
 def dynamodb_put_item(region, table, attributes, replicated=None):
     resource = boto3.resource('dynamodb', region_name=region)
     item = dynamodb_item(attributes)
+    status = 'FLAG'
     result = {'item': item}
     if item['transaction_status'] in ['ACCP']:
-        id = get_uuid5({**item, 'transaction_status': 'FLAG'})
-        resource.Table(table).put_item(Item={**item, 'id': id, 'transaction_status': 'FLAG'})
+        item2 = {**item, 'transaction_status': status}
+        item2['created_at'] = str(item['created_at']
+            if isinstance(item['created_at'], datetime)
+            else datetime.fromisoformat(str(item['created_at']))
+            + timedelta(microseconds=1))
+        item2['id'] = get_partition_key(item2)
+        item2['sk'] = get_sort_key(item2)
+        resource.Table(table).put_item(Item=item2)
     elif item['transaction_status'] in ['ACSC', 'RJCT', 'CANC', 'FAIL']:
         try:
             if item['transaction_status'] == 'CANC' and attributes['id']:
                 id = attributes['id']
             else:
-                tnx = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'FLAG'})
-                id = tnx['Item']['id']
+                tnx = dynamodb_get_by_item(region, table, {**item, 'transaction_status': status})
+                id = tnx['Items'][0]['id']
             resource.Table(table).delete_item(Key={'id': id, 'transaction_id': item['transaction_id']})
         except Exception as e:
             pass # nosec B110
     result['response'] = resource.Table(table).put_item(Item=item)
     if replicated:
-        result['replicated'] = dynamodb_replicated(replicated['api_url'],
-            replicated['auth'], replicated['count'], item['id'], item['transaction_status'])
+        result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],
+            replicated['count'], item['id'], item['transaction_status'], replicated['identity'])
+    LOGGER.debug(f'dynamodb put item result: {result}')
     return result
 
-def dynamodb_recover_cross_region(region, table, item, region2):
+def dynamodb_recover_cross_region(region, region2, table, item):
     result = []
-    flag = True
     key = None
+    flag = True
     while flag:
         item2 = {**item, 'request_region': region2, 'transaction_status': 'FLAG'}
         response = dynamodb_query_by_item(region, table, item2, key)
@@ -224,55 +259,60 @@ def dynamodb_recover_cross_region(region, table, item, region2):
             flag = False
     return result
 
-def dynamodb_replicated(api_url, auth_url, client_id, client_secret, req_count=5, id=None, status=None):
-    # @TODO: exponential back-off
-    iter = 0
-    auth = {
-        'auth_url': auth_url,
-        'client_id': client_id,
-        'client_secret': client_secret
-    }
-    health_check = request_health_check(api_url, auth, id, status, s3_skip=1, sqs_skip=1)
-    while iter < req_count:
-        response = health_check['health_check']
-        if not(hasattr(response, 'status_code') and response.status_code == 200):
-            return False
-        elif int(response.json()['dynamodb_count']) == 0:
-            iter += 1
-            token = {'access_token': health_check['access_token']}
-            health_check = request_health_check(api_url, token, id, status, s3_skip=1, sqs_skip=1)
-        else:
-            return True
-    return False
-
-def request_health_check(api_url, auth=None, id=None, status=None, ddb_skip=None, s3_skip=None, sqs_skip=None):
-    if not api_url.startswith('http'):
-        api_url = f'https://{api_url}'
-    token = None
-    headers = {'Content-Type': 'application/json'}
-    if auth:
-        if 'auth_url' in auth and 'client_id' in auth and 'client_secret' in auth:
-            token = auth2token(auth['auth_url'], auth['client_id'], auth['client_secret'])
-            if 'access_token' in token and token['access_token']:
-                token = token['access_token']
-        elif 'access_token' in auth:
-            token = auth['access_token']
-    if token:
-        headers['Authorization'] = f'Bearer {token}'
+def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, identity=None):
+    headers = {'X-S3-Skip': 1, 'X-SNS-Skip': 1, 'X-SQS-Skip': 1, 'X-Transaction-Region': region}
     if id:
         headers['X-Transaction-Id'] = id
     if status:
         headers['X-Transaction-Status'] = status
-    if ddb_skip:
-        headers['X-DynamoDB-Skip'] = ddb_skip
-    if s3_skip:
-        headers['X-S3-Skip'] = s3_skip
-    if sqs_skip:
-        headers['X-SQS-Skip'] = sqs_skip
-    return {
-        'access_token': token,
-        'health_check': requests.get(api_url, headers=headers, timeout=15)
-    }
+    payload = {'identity': identity}
+
+    iter = 0
+    response = lambda_health_check(region2, headers, payload)
+    LOGGER.debug(f'lambda health check response: {response}')
+    # @TODO: exponential back-off
+    while iter < req_count:
+        if not('StatusCode' in response and response['StatusCode'] == 200):
+            return False
+        else:
+            payload = json.loads(response['Payload'].read())
+            LOGGER.debug(f'lambda health check payload: {payload}')
+            body = json.loads(payload['body'])
+            LOGGER.debug(f'lambda health check body: {body}')
+            if int(body['dynamodb_count']) == 0:
+                iter += 1
+                response = lambda_health_check(region2, headers, payload)
+                LOGGER.debug(f'lambda health check response {iter}: {response}')
+            else:
+                return True
+    return False
+
+def lambda_health_check(region, headers=None, payload=None, function="rp2-health"):
+    lambd = boto3.client('lambda', region_name=region)
+    _payload = {}
+    if headers:
+        _headers = {'Content-Type': 'application/json'}
+        if 'X-DynamoDB-Skip' in headers:
+            _headers['X-DynamoDB-Skip'] = headers['X-DynamoDB-Skip']
+        if 'X-S3-Skip' in headers:
+            _headers['X-S3-Skip'] = headers['X-S3-Skip']
+        if 'X-SNS-Skip' in headers:
+            _headers['X-SNS-Skip'] = headers['X-SNS-Skip']
+        if 'X-SQS-Skip' in headers:
+            _headers['X-SQS-Skip'] = headers['X-SQS-Skip']
+        if 'X-Transaction-Id' in headers:
+            _headers['X-Transaction-Id'] = headers['X-Transaction-Id']
+        if 'X-Transaction-Status' in headers:
+            _headers['X-Transaction-Status'] = headers['X-Transaction-Status']
+        if 'X-Transaction-Region' in headers:
+            _headers['X-Transaction-Region'] = headers['X-Transaction-Region']
+        _payload['headers'] = _headers
+    if payload:
+        if 'identity' in payload:
+            _payload['identity'] = payload['identity']
+    return lambd.invoke(
+        FunctionName=function, InvocationType='RequestResponse',
+        Payload=json.dumps(_payload))
 
 def lambda_validate(event, id):
     if 'body' in event and event['body'] and 'Records' in event['body']:
@@ -323,29 +363,6 @@ def lambda_response(code=200, message='OK', metadata=None, start=None):
         'body': json.dumps(body),
         'headers': {'Content-Type': 'application/json'}
     }
-
-def lambda_invoke(region, name, headers=None, payload=None):
-    lambd = boto3.client('lambda', region_name=region)
-    _payload = {}
-    if headers:
-        _headers = {}
-        if 'Content-Type' in headers:
-            _headers['Content-Type'] = headers['Content-Type']
-        if 'X-Message-Type' in headers:
-            _headers['X-Message-Type'] = headers['X-Message-Type']
-        if 'X-Transaction-Id' in headers:
-            _headers['X-Transaction-Id'] = headers['X-Transaction-Id']
-        _payload['headers'] = _headers
-    if payload:
-        if 'identity' in payload:
-            _payload['identity'] = payload['identity']
-        if 'method' in payload:
-            _payload['method'] = payload['method']
-        if 'body' in payload:
-            _payload['body'] = payload['body']
-    return lambd.invoke(
-        FunctionName=name, InvocationType='Event',
-        Payload=json.dumps(_payload))
 
 def auth2token(url, client_id, client_secret):
     if not url.startswith('http'):

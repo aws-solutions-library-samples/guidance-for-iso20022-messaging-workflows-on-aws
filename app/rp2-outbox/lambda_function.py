@@ -54,15 +54,8 @@ def lambda_handler(event, context):
     check_ddb = int(VARIABLES.get_rp2_check_ddb())
     if check_ddb > 0:
         region2 = VARIABLES.get_rp2_check_region()
-        replicated = {
-            'api_url': VARIABLES.get_rp2_api_url().replace(region, region2),
-            'auth': {
-                'auth_url': VARIABLES.get_rp2_auth_url().replace(region, region2),
-                'client_id': VARIABLES.get_rp2_check_client_id(),
-                'client_secret': VARIABLES.get_rp2_check_client_secret(),
-            },
-            'count': check_ddb
-        }
+        replicated = {'region': region, 'region2': region2, 'count': check_ddb, 'identity': identity}
+    LOGGER.debug(f'computed replicated: {replicated}')
     item = {
         'created_at': TIME,
         'created_by': identity,
@@ -77,10 +70,12 @@ def lambda_handler(event, context):
     # step 2: validate event
     response = lambda_validate(event, request_id)
     if response:
-        LOGGER.warning(f'got validate: {response}')
+        msg = 'lambda validation failed'
+        LOGGER.warning(f'{msg}: {response}')
         item['transaction_code'] = 'TECH'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         return response
 
     # step 3: initialize variables
@@ -92,20 +87,26 @@ def lambda_handler(event, context):
     }
 
     try:
-        LOGGER.debug(f'sent request: ACSC {id}')
-        response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'ACSC'})
-        LOGGER.debug(f'response: {response}')
-        if 'Item' in response and response['Item'] and 'storage_path' in response['Item']:
-            object = response['Item']['storage_path']
-            item['transaction_id'] = response['Item']['transaction_id']
-            item['message_id'] = response['Item']['message_id']
+        LOGGER.debug(f'dynamodb_get_by_item: {item}')
+        response = dynamodb_get_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_get_by_item: {response}')
 
-        else:
+        flag = True
+        for iter in response['Items']:
+            if response['Items'][iter]['transaction_status'] == 'ACSC':
+                object = response['Items'][iter]['storage_path']
+                item['transaction_id'] = response['Items'][iter]['transaction_id']
+                item['message_id'] = response['Items'][iter]['message_id']
+                flag = False
+                break
+
+        if flag:
             item['transaction_status'] = 'MISS'
-            response = dynamodb_put_item(region, table, item, replicated)
-            LOGGER.error(f'got response: {response}')
-            metadata['ErrorCode'] = 'MISS'
+            metadata['ErrorCode'] = item['transaction_status']
             metadata['ErrorMessage'] = 'missing object in s3'
+            response = dynamodb_put_item(region, table, item, replicated)
+            LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
+            LOGGER.debug(f'dynamodb_put_item response: {response}')
             return lambda_response(400, msg, metadata, TIME)
 
     except Exception as e:
@@ -118,10 +119,12 @@ def lambda_handler(event, context):
         del item['transaction_code']
         item['transaction_status'] = 'RCVD'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
 
         response = s3_get_object(region, bucket, object)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f's3_get_object msg: {msg}')
+        LOGGER.debug(f's3_get_object response: {response}')
 
     except Exception as e:
         msg = 'retrieving message from s3 failed'
@@ -129,7 +132,8 @@ def lambda_handler(event, context):
         LOGGER.warning(f'attempted to retrieve object: {object}')
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -137,6 +141,7 @@ def lambda_handler(event, context):
     LOGGER.info(f'successful execution: {item}')
     return {
         'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
         'body': response['object'],
         # @TODO: Refactor response to include duration time
         # 'body': {
@@ -144,9 +149,6 @@ def lambda_handler(event, context):
         #     'message': response['object'],
         #     'request_duration': (datetime.now(timezone.utc)-TIME).total_seconds()
         # },
-        'headers': {
-            'Content-Type': 'application/json'
-        }
     }
 
 if __name__ == '__main__':

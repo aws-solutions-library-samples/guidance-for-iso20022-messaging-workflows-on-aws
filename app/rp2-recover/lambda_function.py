@@ -94,9 +94,9 @@ def lambda_handler(event, context):
     # step 4: continue to recover, cancel in-flight payments from affected region
     result = []
     item = {**request_arn, 'created_at': TIME - timedelta(minutes=60), 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
-    result += dynamodb_recover_cross_region(region, table, item, region2)
+    result += dynamodb_recover_cross_region(region, region2, table, item)
     item = {**request_arn, 'created_at': TIME, 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
-    result += dynamodb_recover_cross_region(region, table, item, region2)
+    result += dynamodb_recover_cross_region(region, region2, table, item)
 
     # step 5: trigger response
     msg = f'successful recover of {len(result)} transactions'

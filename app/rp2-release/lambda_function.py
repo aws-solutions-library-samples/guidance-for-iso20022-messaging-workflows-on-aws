@@ -4,7 +4,7 @@
 import os, logging, json, xmltodict
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, get_iso20022_mapping, dynamodb_put_item, dynamodb_get_by_item, lambda_validate, lambda_response, sns_publish_message, s3_put_object
+from util import get_request_arn, dynamodb_put_item, dynamodb_get_by_item, lambda_validate, lambda_response, sns_publish_message, s3_put_object
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -57,19 +57,12 @@ def lambda_handler(event, context):
     check_ddb = int(VARIABLES.get_rp2_check_ddb())
     if check_ddb > 0:
         region2 = VARIABLES.get_rp2_check_region()
-        replicated = {
-            'api_url': VARIABLES.get_rp2_api_url().replace(region, region2),
-            'auth': {
-                'auth_url': VARIABLES.get_rp2_auth_url().replace(region, region2),
-                'client_id': VARIABLES.get_rp2_check_client_id(),
-                'client_secret': VARIABLES.get_rp2_check_client_secret(),
-            },
-            'count': check_ddb
-        }
+        replicated = {'region': region, 'region2': region2, 'count': check_ddb, 'identity': identity}
+    LOGGER.debug(f'computed replicated: {replicated}')
     item = {
         'created_at': TIME,
         'created_by': identity,
-        'message_id': get_iso20022_mapping(msg),
+        'message_id': msg,
         'transaction_id': id,
         'transaction_status': 'RJCT',
         'transaction_code': 'NARR',
@@ -86,10 +79,12 @@ def lambda_handler(event, context):
     # step 2: validate event
     response = lambda_validate(event, request_id)
     if response:
-        LOGGER.warning(f'got validate: {response}')
+        msg = 'lambda validation failed'
+        LOGGER.warning(f'{msg}: {response}')
         item['transaction_code'] = 'TECH'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         return response
 
     # step 3: initialize variables
@@ -102,61 +97,29 @@ def lambda_handler(event, context):
 
     object_name = str(id) if item['message_id'] == None else str(id) + '-' + item['message_id']
     object_ext = 'json'
-    checked = False
 
     # step 4: check previous transaction statuses
     try:
-        if not checked:
-            LOGGER.debug(f'sent request: RJCT {item}')
-            response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'RJCT'})
-            LOGGER.debug(f'got response: {response}')
-            if 'Item' in response and response['Item']:
-                metadata['ErrorMessage'] = 'released transaction is rejected'
-                LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
-                item['transaction_code'] = response['Item']['transaction_code']
-                object_ext = 'xml'
-                checked = True
-
-        if not checked:
-            LOGGER.debug(f'sent request: CANC {item}')
-            response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'CANC'})
-            LOGGER.debug(f'got response: {response}')
-            if 'Item' in response and response['Item']:
-                metadata['ErrorMessage'] = 'released transaction is canceled'
-                LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
-                item['transaction_code'] = 'TECH'
-                object_ext = 'xml'
-                checked = True
-
-        if not checked:
-            LOGGER.debug(f'sent request: ACSP {item}')
-            response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'ACSP'})
-            LOGGER.debug(f'got response: {response}')
-            if 'Item' not in response or not response['Item']:
-                metadata['ErrorMessage'] = 'processed transaction is missing'
-                LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
-                item['transaction_code'] = 'FF08'
-                object_ext = 'xml'
-                checked = True
-            else:
-                item['created_by'] = response['Item']['created_by']
-
-        if not checked:
-            LOGGER.debug(f'sent request: ACSC {item}')
-            response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'ACSC'})
-            LOGGER.debug(f'got response: {response}')
-            if 'Item' in response and response['Item']:
-                metadata['ErrorMessage'] = 'released transaction is duplicate'
-                LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
-                item['transaction_code'] = 'DUPL'
-                object_ext = 'xml'
-                checked = True
+        LOGGER.debug(f'dynamodb_get_by_item: {item}')
+        response = dynamodb_get_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        if response['Statuses'] != ['ACSP', 'ACTC', 'FLAG', 'ACCP']:
+            metadata['ErrorMessage'] = 'transaction statuses are out of order'
+            LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
+            item['transaction_code'] = 'FF02'
+            response = dynamodb_put_item(region, table, item, replicated)
+            LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
+            LOGGER.debug(f'dynamodb_put_item response: {response}')
+            return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
+        else:
+            item['created_by'] = response['Items'][0]['created_by']
 
     except Exception as e:
         msg = 'retrieving item from dynamodb failed'
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -171,7 +134,8 @@ def lambda_handler(event, context):
         msg = 'unparsing xml failed'
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -187,7 +151,8 @@ def lambda_handler(event, context):
         LOGGER.warning(f'attempted to save object: {body}')
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -202,9 +167,9 @@ def lambda_handler(event, context):
 
     # step 8: save item into dynamodb
     try:
-        if not checked:
-            del item['transaction_code']
-            item['transaction_status'] = 'ACSC'
+        del item['transaction_code']
+        msg = 'transaction released successfully'
+        item['transaction_status'] = 'ACSC'
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'got response: {response}')
 
@@ -213,7 +178,8 @@ def lambda_handler(event, context):
         LOGGER.warning(f'attempted to save item: {item}')
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -226,7 +192,6 @@ def lambda_handler(event, context):
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']
-    msg = 'transaction released successfully'
     LOGGER.info(f'{msg}: {item}')
     return lambda_response(201, msg, metadata, TIME)
 

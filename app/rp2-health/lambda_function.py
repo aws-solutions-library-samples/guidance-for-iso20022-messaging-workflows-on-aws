@@ -90,6 +90,8 @@ def lambda_handler(event, context):
         try:
             if 'headers' in event and event['headers'] and 'X-Transaction-Status' in event['headers'] and event['headers']['X-Transaction-Status']:
                 item['transaction_status'] = event['headers']['X-Transaction-Status']
+            if 'headers' in event and event['headers'] and 'X-Transaction-Region' in event['headers'] and event['headers']['X-Transaction-Region']:
+                item['request_region'] = event['headers']['X-Transaction-Region']
             response = dynamodb_get_by_item(region, table, item)
             LOGGER.info(f'got response: {response}')
             metadata['DynamodbCount'] = response['Count'] if 'Count' in response else 0

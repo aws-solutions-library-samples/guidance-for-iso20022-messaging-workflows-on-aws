@@ -49,15 +49,8 @@ def lambda_handler(event, context):
     check_ddb = int(VARIABLES.get_rp2_check_ddb())
     if check_ddb > 0:
         region2 = VARIABLES.get_rp2_check_region()
-        replicated = {
-            'api_url': VARIABLES.get_rp2_api_url().replace(region, region2),
-            'auth': {
-                'auth_url': VARIABLES.get_rp2_auth_url().replace(region, region2),
-                'client_id': VARIABLES.get_rp2_check_client_id(),
-                'client_secret': VARIABLES.get_rp2_check_client_secret(),
-            },
-            'count': check_ddb
-        }
+        replicated = {'region': region, 'region2': region2, 'count': check_ddb, 'identity': identity}
+    LOGGER.debug(f'computed replicated: {replicated}')
     item = {
         'created_at': TIME,
         'created_by': identity,
@@ -76,17 +69,18 @@ def lambda_handler(event, context):
 
     # step 3: create and validate transaction_id
     count = 0
-    while True:
+    limit = 3
+    while count < limit:
         count += 1
         item['transaction_id'] = str(uuid.uuid4())
         response = dynamodb_get_by_item(region, table, item)
         LOGGER.debug(f'got response: {response}')
-        if count > 3 or response is None or 'Item' not in response:
-            if count > 3:
-                msg = 'transaction initialization failed'
-                LOGGER.error(f'{msg}: {request_id}')
-                return lambda_response(500, msg, metadata, TIME)
-            break
+        if int(response['Count']) == 0:
+            count = limit
+        elif count > limit:
+            msg = 'transaction initialization failed'
+            LOGGER.error(f'{msg}: {request_id}')
+            return lambda_response(500, msg, metadata, TIME)
 
     # step 4: save item into dynamodb
     try:

@@ -71,7 +71,7 @@ def lambda_handler(event, context):
     if not ('headers' in event and event['headers'] and 'X-SQS-Skip' in event['headers']):
         try:
             response = sqs_receive_message(region, queue, account)
-            LOGGER.info(f'got response: {response}')
+            LOGGER.debug(f'sqs_receive_message: {response}')
             metadata['SqsCount'] = len(response)
         except Exception as e:
             error['sqs'] = str(e)
@@ -80,7 +80,7 @@ def lambda_handler(event, context):
     if not ('headers' in event and event['headers'] and 'X-S3-Skip' in event['headers']):
         try:
             response = s3_get_object(region, bucket, key)
-            LOGGER.info(f'got response: {response}')
+            LOGGER.debug(f's3_get_object: {response}')
             metadata['S3Count'] = int(response['path'] == key)
         except Exception as e:
             error['s3'] = str(e)
@@ -93,7 +93,7 @@ def lambda_handler(event, context):
             if 'headers' in event and event['headers'] and 'X-Transaction-Region' in event['headers'] and event['headers']['X-Transaction-Region']:
                 item['request_region'] = event['headers']['X-Transaction-Region']
             response = dynamodb_get_by_item(region, table, item)
-            LOGGER.info(f'got response: {response}')
+            LOGGER.debug(f'dynamodb_get_by_item: {response}')
             metadata['DynamodbCount'] = response['Count'] if 'Count' in response else 0
         except Exception as e:
             error['dynamodb'] = str(e)

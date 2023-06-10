@@ -168,10 +168,11 @@ def lambda_handler(event, context):
     # step 8: save item into dynamodb
     try:
         del item['transaction_code']
-        msg = 'transaction released successfully'
         item['transaction_status'] = 'ACSC'
+        msg = 'transaction released successfully'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
 
     except Exception as e:
         msg = 'saving item to dynamodb failed'

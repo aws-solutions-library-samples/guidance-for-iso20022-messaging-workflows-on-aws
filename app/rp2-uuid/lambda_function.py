@@ -73,8 +73,9 @@ def lambda_handler(event, context):
     while count < limit:
         count += 1
         item['transaction_id'] = str(uuid.uuid4())
+        LOGGER.debug(f'dynamodb_get_by_item item: {item}')
         response = dynamodb_get_by_item(region, table, item)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_get_by_item response: {response}')
         if int(response['Count']) == 0:
             count = limit
         elif count > limit:
@@ -85,7 +86,9 @@ def lambda_handler(event, context):
     # step 4: save item into dynamodb
     try:
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.info(f'got response: {response}')
+        msg = 'transaction initialized successfully'
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
 
     except Exception as e:
         msg = 'saving item to dynamodb failed'
@@ -94,7 +97,8 @@ def lambda_handler(event, context):
         item['transaction_status'] = 'FAIL'
         item['transaction_code'] = 'NARR'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'got response: {response}')
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -107,7 +111,6 @@ def lambda_handler(event, context):
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']
-    msg = 'transaction initialized successfully'
     LOGGER.info(f'{msg}: {item}')
     return lambda_response(200, msg, metadata, TIME)
 

@@ -170,8 +170,8 @@ def lambda_handler(event, context):
     # step 7: save item into dynamodb
     try:
         del item['transaction_code']
-        msg = 'transaction processed successfully'
         item['transaction_status'] = 'ACSP'
+        msg = 'transaction processed successfully'
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')

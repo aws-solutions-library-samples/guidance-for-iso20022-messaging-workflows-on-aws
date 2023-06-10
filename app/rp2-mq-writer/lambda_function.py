@@ -82,7 +82,7 @@ def lambda_handler(event, context):
             # # @TODO: query multiple transaction statuses
             # item = {'transaction_id': id, 'transaction_status': 'ACSC'}
             # response = dynamodb_get_by_item(VARIABLES.get_rp2_region(), VARIABLES.get_rp2_ddb_tnx(), item)
-            # LOGGER.debug(f'got response: {response}')
+            # LOGGER.debug(f'got dynamodb_get_by_item: {response}')
             # if 'Item' in response and response['Item']:
             #     # @TODO: use identity as check point
             #     if 'created_by' not in response['Item'] or response['Item']['created_by'] != 'api':

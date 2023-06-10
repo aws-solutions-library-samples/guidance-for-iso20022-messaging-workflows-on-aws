@@ -31,6 +31,7 @@ resource "aws_lambda_function" "this" {
       RP2_ACCOUNT             = data.aws_caller_identity.this.account_id
       RP2_REGION              = data.aws_region.this.name
       RP2_LOGGING             = var.q.logging
+      # RP2_CHECK_DDB           = 2
     }
   }
 

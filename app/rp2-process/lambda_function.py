@@ -153,21 +153,7 @@ def lambda_handler(event, context):
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
-    # step 6: send the message to next sqs queue
-    try:
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
-
-    except Exception as e:
-        msg = 'sending sqs message failed'
-        LOGGER.error(f'{msg}: {str(e)}')
-        response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
-        LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
-        metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
-
-    # step 7: save item into dynamodb
+    # step 6: save item into dynamodb
     try:
         del item['transaction_code']
         item['transaction_status'] = 'ACSP'
@@ -179,6 +165,20 @@ def lambda_handler(event, context):
     except Exception as e:
         msg = 'saving item to dynamodb failed'
         LOGGER.warning(f'attempted to save item: {item}')
+        LOGGER.error(f'{msg}: {str(e)}')
+        response = dynamodb_put_item(region, table, item, replicated)
+        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
+        LOGGER.debug(f'dynamodb_put_item response: {response}')
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        metadata['ErrorMessage'] = str(e)
+        return lambda_response(500, msg, metadata, TIME)
+
+    # step 7: send the message to next sqs queue
+    try:
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+
+    except Exception as e:
+        msg = 'sending sqs message failed'
         LOGGER.error(f'{msg}: {str(e)}')
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')

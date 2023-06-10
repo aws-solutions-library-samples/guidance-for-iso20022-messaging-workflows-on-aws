@@ -156,16 +156,7 @@ def lambda_handler(event, context):
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
-    # step 7: notify distribution topic
-    try:
-        sns_publish_message(region, 'rp2-release', item['request_account'], item['transaction_id'], {'identity': item['created_by']})
-
-    except Exception as e:
-        LOGGER.warning(f'attempted to notify item: {item}')
-        LOGGER.error(f'sns notification failed: {str(e)}')
-        pass
-
-    # step 8: save item into dynamodb
+    # step 7: save item into dynamodb
     try:
         del item['transaction_code']
         item['transaction_status'] = 'ACSC'
@@ -183,6 +174,15 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
+
+    # step 8: notify distribution topic
+    try:
+        sns_publish_message(region, 'rp2-release', item['request_account'], item['transaction_id'], {'identity': item['created_by']})
+
+    except Exception as e:
+        LOGGER.warning(f'attempted to notify item: {item}')
+        LOGGER.error(f'sns notification failed: {str(e)}')
+        pass
 
     # step 9: trigger response
     metadata = {

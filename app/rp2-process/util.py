@@ -223,16 +223,16 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
     elif item['transaction_status'] in ['ACSC', 'RJCT', 'CANC', 'FAIL']:
         response = dynamodb_get_by_item(region, table, item)
         LOGGER.debug(f'dynamodb_get_by_item ACSC, RJCT, CANC, FAIL: {response}')
-        for k in response['Items']:
-            if response['Items'][k]['transaction_status'] == status:
-                try:
+        try:
+            for k in response['Items']:
+                if response['Items'][k]['transaction_status'] == status:
                     resource.Table(table).delete_item(Key={
                         'id': response['Items'][k]['id'],
                         'sk': response['Items'][k]['sk'],
                     })
-                except Exception as e:
-                    pass # nosec B110
-                break
+                    break
+        except Exception as e:
+            pass # nosec B110
     result['response'] = resource.Table(table).put_item(Item=item)
     LOGGER.debug(f'dynamodb_get_by_item {item["transaction_status"]}: {result["response"]}')
     if replicated:

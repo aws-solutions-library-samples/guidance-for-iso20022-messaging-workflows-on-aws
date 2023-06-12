@@ -28,12 +28,12 @@ def lambda_handler(event, context):
     elif 'headers' in event and event['headers'] and 'X-Transaction-Id' in event['headers'] and event['headers']['X-Transaction-Id']:
         id = event['headers']['X-Transaction-Id']
     LOGGER.debug(f'computed id: {id}')
-    msg = None
+    type = None
     if 'Records' in event and 'attributes' in event['Records'][0] and 'MessageGroupId' in event['Records'][0]['attributes']:
-        msg = event['Records'][0]['attributes']['MessageGroupId']
+        type = event['Records'][0]['attributes']['MessageGroupId']
     elif 'headers' in event and event['headers'] and 'X-Message-Type' in event['headers'] and event['headers']['X-Message-Type']:
-        msg = event['headers']['X-Message-Type']
-    LOGGER.debug(f'computed msg: {msg}')
+        type = event['headers']['X-Message-Type']
+    LOGGER.debug(f'computed type: {type}')
     request_id = None
     if context and context.aws_request_id:
         request_id = context.aws_request_id
@@ -62,7 +62,7 @@ def lambda_handler(event, context):
     item = {
         'created_at': TIME,
         'created_by': identity,
-        'message_id': msg[:8] if msg else None,
+        'message_id': type[:8] if type else None,
         'transaction_id': id,
         'transaction_status': 'RJCT',
         'transaction_code': 'NARR',
@@ -78,8 +78,8 @@ def lambda_handler(event, context):
 
     # step 2: outgoing response from incoming request
     try:
-        msg = get_iso20022_mapping(msg)
-        with open(f'{msg}.xml', 'r', encoding='utf8') as fp:
+        type = get_iso20022_mapping(type)
+        with open(f'{type}.xml', 'r', encoding='utf8') as fp:
             body = xmltodict.parse(fp.read())
             body = json.dumps(body)
 
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -102,7 +102,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         return response
 
     # step 4: initialize variables
@@ -125,7 +125,7 @@ def lambda_handler(event, context):
             response = dynamodb_put_item(region, table, item, replicated)
             LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
-            sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+            sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
             return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
         else:
             item['created_by'] = response['Items'][0]['created_by']
@@ -140,7 +140,7 @@ def lambda_handler(event, context):
         #     response = dynamodb_put_item(region, table, item, replicated)
         #     LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
         #     LOGGER.debug(f'dynamodb_put_item response: {response}')
-        #     sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        #     sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         #     return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
 
     except Exception as e:
@@ -149,7 +149,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
@@ -169,13 +169,13 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 
     # step 7: send the message to next sqs queue
     try:
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
 
     except Exception as e:
         msg = 'sending sqs message failed'
@@ -183,7 +183,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, msg, id)
+        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata, TIME)
 

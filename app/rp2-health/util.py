@@ -106,7 +106,7 @@ def sns_publish_message(region, topic, account, message, attributes=None):
     response = sns.publish(**kwargs)
     return response['MessageId']
 
-def sqs_send_message(region, queue, account, message, group_id=None, deduplication_id=None, attributes=None):
+def sqs_send_message(region, queue, account, message, deduplication_id=None, group_id=None, attributes=None):
     sqs = boto3.client("sqs", region_name=region)
     kwargs = {
         'QueueUrl': f'https://sqs.{region}.amazonaws.com/{account}/{queue}',

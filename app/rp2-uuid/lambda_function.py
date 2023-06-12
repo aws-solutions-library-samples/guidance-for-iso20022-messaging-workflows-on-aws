@@ -22,10 +22,10 @@ def lambda_handler(event, context):
     LOGGER.debug(f'got context: {context}')
 
     # step 1: get headers and context
-    msg = None
+    type = None
     if 'headers' in event and event['headers'] and 'X-Message-Type' in event['headers'] and event['headers']['X-Message-Type']:
-        msg = event['headers']['X-Message-Type']
-    LOGGER.debug(f'computed msg: {msg}')
+        type = event['headers']['X-Message-Type']
+    LOGGER.debug(f'computed type: {type}')
     request_id = None
     if context and context.aws_request_id:
         request_id = context.aws_request_id
@@ -54,7 +54,7 @@ def lambda_handler(event, context):
     item = {
         'created_at': TIME,
         'created_by': identity,
-        'message_id': msg[:8] if msg else None,
+        'message_id': type[:8] if type else None,
         'transaction_status': 'ACCP',
     }
     item = {**item, **request_arn}

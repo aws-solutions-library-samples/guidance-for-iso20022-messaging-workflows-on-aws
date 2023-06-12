@@ -217,17 +217,19 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
             + timedelta(microseconds=1))
         item2['id'] = get_partition_key(item2)
         item2['sk'] = get_sort_key(item2)
-        resource.Table(table).put_item(Item=item2)
+        result['response'] = resource.Table(table).put_item(Item=item2)
     elif item['transaction_status'] in ['ACSC', 'RJCT', 'CANC', 'FAIL']:
-        try:
-            if item['transaction_status'] == 'CANC' and attributes['id']:
-                id = attributes['id']
-            else:
-                tnx = dynamodb_get_by_item(region, table, {**item, 'transaction_status': status})
-                id = tnx['Items'][0]['id']
-            resource.Table(table).delete_item(Key={'id': id, 'transaction_id': item['transaction_id']})
-        except Exception as e:
-            pass # nosec B110
+        response = dynamodb_get_by_item(region, table, item)
+        for k in response['Items']:
+            if response['Items'][k]['transaction_status'] == status:
+                try:
+                    resource.Table(table).delete_item(Key={
+                        'id': response['Items'][k]['id'],
+                        'sk': response['Items'][k]['sk'],
+                    })
+                except Exception as e:
+                    pass # nosec B110
+                break
     result['response'] = resource.Table(table).put_item(Item=item)
     if replicated:
         result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],

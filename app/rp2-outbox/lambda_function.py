@@ -92,11 +92,11 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_get_by_item: {response}')
 
         flag = True
-        for iter in response['Items']:
-            if response['Items'][iter]['transaction_status'] == 'ACSC':
-                object = response['Items'][iter]['storage_path']
-                item['transaction_id'] = response['Items'][iter]['transaction_id']
-                item['message_id'] = response['Items'][iter]['message_id']
+        for i in response['Items']:
+            if i['transaction_status'] == 'ACSC':
+                object = i['storage_path']
+                item['transaction_id'] = i['transaction_id']
+                item['message_id'] = i['message_id']
                 flag = False
                 break
 

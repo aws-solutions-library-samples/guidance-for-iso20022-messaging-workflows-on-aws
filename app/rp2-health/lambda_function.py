@@ -70,8 +70,9 @@ def lambda_handler(event, context):
     # step 2: get sqs message
     if not ('headers' in event and event['headers'] and 'X-SQS-Skip' in event['headers']):
         try:
+            LOGGER.debug(f'sqs_receive_message: {account}')
             response = sqs_receive_message(region, queue, account)
-            LOGGER.debug(f'sqs_receive_message: {response}')
+            LOGGER.debug(f'sqs_receive_message response: {response}')
             metadata['SqsCount'] = len(response)
         except Exception as e:
             error['sqs'] = str(e)
@@ -79,8 +80,9 @@ def lambda_handler(event, context):
     # step 3: get s3 object
     if not ('headers' in event and event['headers'] and 'X-S3-Skip' in event['headers']):
         try:
+            LOGGER.debug(f's3_get_object: {key}')
             response = s3_get_object(region, bucket, key)
-            LOGGER.debug(f's3_get_object: {response}')
+            LOGGER.debug(f's3_get_object response: {response}')
             metadata['S3Count'] = int(response['path'] == key)
         except Exception as e:
             error['s3'] = str(e)
@@ -92,8 +94,9 @@ def lambda_handler(event, context):
                 item['transaction_status'] = event['headers']['X-Transaction-Status']
             if 'headers' in event and event['headers'] and 'X-Transaction-Region' in event['headers'] and event['headers']['X-Transaction-Region']:
                 item['request_region'] = event['headers']['X-Transaction-Region']
+            LOGGER.debug(f'dynamodb_get_by_item: {item}')
             response = dynamodb_get_by_item(region, table, item)
-            LOGGER.debug(f'dynamodb_get_by_item: {response}')
+            LOGGER.debug(f'dynamodb_get_by_item response: {response}')
             metadata['DynamodbCount'] = response['Count'] if 'Count' in response else 0
         except Exception as e:
             error['dynamodb'] = str(e)

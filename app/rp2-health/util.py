@@ -234,7 +234,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
     LOGGER.debug(f'dynamodb_get_by_item {item["transaction_status"]}: {result["response"]}')
     if replicated:
         result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],
-            replicated['count'], item['id'], item['transaction_status'], replicated['identity'])
+            replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
     LOGGER.debug(f'dynamodb put item result: {result}')
     return result
 

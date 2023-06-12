@@ -267,10 +267,10 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
     payload = {'identity': identity}
 
     iter = 0
-    response = lambda_health_check(region2, headers, payload)
-    LOGGER.debug(f'lambda health check response: {response}')
     # @TODO: exponential back-off
     while iter < req_count:
+        response = lambda_health_check(region2, headers, payload)
+        LOGGER.debug(f'lambda health check response {iter}: {response}')
         if not('StatusCode' in response and response['StatusCode'] == 200):
             return False
         else:
@@ -280,8 +280,6 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
             LOGGER.debug(f'lambda health check body: {body}')
             if int(body['dynamodb_count']) == 0:
                 iter += 1
-                response = lambda_health_check(region2, headers, payload)
-                LOGGER.debug(f'lambda health check response {iter}: {response}')
             else:
                 return True
     return False

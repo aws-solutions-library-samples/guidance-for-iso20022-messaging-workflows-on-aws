@@ -102,10 +102,11 @@ def lambda_handler(event, context):
 
         if flag:
             item['transaction_status'] = 'MISS'
+            msg = 'missing object in s3'
             metadata['ErrorCode'] = item['transaction_status']
-            metadata['ErrorMessage'] = 'missing object in s3'
+            metadata['ErrorMessage'] = msg
             response = dynamodb_put_item(region, table, item, replicated)
-            LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
+            LOGGER.debug(f'dynamodb_put_item msg: {msg}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
             return lambda_response(400, msg, metadata, TIME)
 
@@ -119,11 +120,9 @@ def lambda_handler(event, context):
         del item['transaction_code']
         item['transaction_status'] = 'RCVD'
         response = dynamodb_put_item(region, table, item, replicated)
-        LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
 
         response = s3_get_object(region, bucket, object)
-        LOGGER.debug(f's3_get_object msg: {msg}')
         LOGGER.debug(f's3_get_object response: {response}')
 
     except Exception as e:

@@ -53,10 +53,6 @@ def get_partition_key(item):
     #     result += item['created_by']
     if 'request_region' in item and item['request_region']:
         result += item['request_region']
-    # if 'request_resource' in item and item['request_resource']:
-    #     result += item['request_resource']
-    # if 'transaction_status' in item and item['transaction_status']:
-    #     result += item['transaction_status']
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, result + '.com'))
 
 def get_sort_key(item):

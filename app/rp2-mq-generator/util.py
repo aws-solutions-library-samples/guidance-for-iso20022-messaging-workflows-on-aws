@@ -209,6 +209,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
     item = dynamodb_item(attributes)
     status = 'FLAG'
     result = {'item': item}
+    LOGGER.debug(f'dynamodb_put_item: {item}')
     if item['transaction_status'] in ['ACCP']:
         item2 = {**item, 'transaction_status': status}
         item2['created_at'] = str(item['created_at']
@@ -218,8 +219,10 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
         item2['id'] = get_partition_key(item2)
         item2['sk'] = get_sort_key(item2)
         result['response'] = resource.Table(table).put_item(Item=item2)
+        LOGGER.debug(f'dynamodb_get_by_item ACCP: {result["response"]}')
     elif item['transaction_status'] in ['ACSC', 'RJCT', 'CANC', 'FAIL']:
         response = dynamodb_get_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_get_by_item ACSC, RJCT, CANC, FAIL: {response}')
         for k in response['Items']:
             if response['Items'][k]['transaction_status'] == status:
                 try:
@@ -231,6 +234,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
                     pass # nosec B110
                 break
     result['response'] = resource.Table(table).put_item(Item=item)
+    LOGGER.debug(f'dynamodb_get_by_item {item["transaction_status"]}: {result["response"]}')
     if replicated:
         result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],
             replicated['count'], item['id'], item['transaction_status'], replicated['identity'])

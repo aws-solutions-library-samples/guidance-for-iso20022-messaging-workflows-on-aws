@@ -79,6 +79,7 @@ def lambda_handler(event, context):
         return response
 
     # step 3: initialize variables
+    object = ''
     metadata = {
         'ErrorCode': 'NARR',
         'ErrorMessage': 'rejected (see narrative reason)',
@@ -92,6 +93,8 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_get_by_item: {response}')
         statuses = []
         for i in range(len(response['Statuses'])):
+            LOGGER.debug(f'Statuses {i}: {response["Statuses"][i]}')
+            LOGGER.debug(f'Items {i}: {response["Items"][i]}')
             if response['Statuses'][i] not in ['FLAG', 'MISS']:
                 statuses.append(response['Statuses'][i])
                 if response['Statuses'][i] == 'ASCS':
@@ -120,7 +123,6 @@ def lambda_handler(event, context):
         item['transaction_status'] = 'RCVD'
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-
         response = s3_get_object(region, bucket, object)
         LOGGER.debug(f's3_get_object response: {response}')
 

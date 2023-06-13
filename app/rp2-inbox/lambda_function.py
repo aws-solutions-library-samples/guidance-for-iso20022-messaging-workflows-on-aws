@@ -125,7 +125,11 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_get_by_item: {item}')
         response = dynamodb_get_by_item(region, table, item)
         LOGGER.debug(f'dynamodb_get_by_item: {response}')
-        if response['Statuses'] != ['FLAG', 'ACCP']:
+        statuses = []
+        for k in response['Statuses']:
+            if k not in ['FLAG', 'MISS']:
+                statuses.append(k)
+        if k != ['ACCP']:
             metadata['ErrorMessage'] = 'transaction statuses are out of order'
             LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
             item['transaction_code'] = 'FF02'

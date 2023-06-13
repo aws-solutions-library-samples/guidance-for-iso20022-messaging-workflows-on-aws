@@ -90,17 +90,16 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_get_by_item: {item}')
         response = dynamodb_get_by_item(region, table, item)
         LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        statuses = []
+        for k in response['Statuses']:
+            if k not in ['FLAG', 'MISS']:
+                statuses.append(k)
+                if k == 'ASCS':
+                    object = i['storage_path']
+                    item['transaction_id'] = i['transaction_id']
+                    item['message_id'] = i['message_id']
 
-        flag = True
-        for i in response['Items']:
-            if i['transaction_status'] == 'ACSC':
-                object = i['storage_path']
-                item['transaction_id'] = i['transaction_id']
-                item['message_id'] = i['message_id']
-                flag = False
-                break
-
-        if flag:
+        if statuses != ['ACSC', 'ACSP', 'ACTC', 'ACCP']:
             item['transaction_status'] = 'MISS'
             msg = 'missing object in s3'
             metadata['ErrorCode'] = item['transaction_status']

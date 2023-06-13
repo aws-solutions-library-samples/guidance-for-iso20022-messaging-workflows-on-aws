@@ -97,7 +97,7 @@ def lambda_handler(event, context):
             LOGGER.debug(f'dynamodb_get_by_item: {item}')
             response = dynamodb_get_by_item(region, table, item)
             LOGGER.debug(f'dynamodb_get_by_item response: {response}')
-            metadata['DynamodbCount'] = response['Count'] if 'Count' in response else 0
+            metadata['DynamodbCount'] = 1 if item['transaction_status'] in response['Statuses'] else 0
         except Exception as e:
             error['dynamodb'] = str(e)
 

@@ -6,16 +6,6 @@ from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta, timezone
 from math import floor
 
-import logging, os
-from env import Variables
-LOGGER: str = logging.getLogger(__name__)
-DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
-VARIABLES: str = Variables(DOTENV)
-if logging.getLogger().hasHandlers():
-    logging.getLogger().setLevel(VARIABLES.get_rp2_logging())
-else:
-    logging.basicConfig(level=VARIABLES.get_rp2_logging())
-
 def get_iso20022_mapping(msg):
     if msg is None:
         return None
@@ -176,20 +166,16 @@ def dynamodb_item(attributes):
 
 def dynamodb_get_by_item(region, table, item, range=60):
     resource = boto3.resource('dynamodb', region_name=region)
-    LOGGER.debug(f'dynamodb_query_item item: {item}')
     response = resource.Table(table).query(
         KeyConditionExpression=Key('id').eq(get_partition_key(item)) & Key('sk').begins_with(str(item['transaction_id'])),
         ScanIndexForward=False
     )
-    LOGGER.debug(f'dynamodb_query_item response: {response}')
     time = item['created_at'] if isinstance(item['created_at'], datetime) else datetime.fromisoformat(str(item['created_at']))
     item2 = {**item, 'created_at': time - timedelta(minutes=range)}
-    LOGGER.debug(f'dynamodb_query_item item2: {item2}')
     response2 = resource.Table(table).query(
         KeyConditionExpression=Key('id').eq(get_partition_key(item2)) & Key('sk').begins_with(str(item2['transaction_id'])),
         ScanIndexForward=False
     )
-    LOGGER.debug(f'dynamodb_query_item response2: {response2}')
     result = {
         'Count': int(response['Count']) + int(response2['Count']),
         'Items': response['Items'] + response2['Items'],
@@ -209,7 +195,6 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
     item = dynamodb_item(attributes)
     status = 'FLAG'
     result = {'item': item}
-    LOGGER.debug(f'dynamodb_put_item: {item}')
     if item['transaction_status'] in ['ACCP']:
         item2 = {**item, 'transaction_status': status}
         item2['created_at'] = str(item['created_at']
@@ -219,10 +204,8 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
         item2['id'] = get_partition_key(item2)
         item2['sk'] = get_sort_key(item2)
         result['response'] = resource.Table(table).put_item(Item=item2)
-        LOGGER.debug(f'dynamodb_get_by_item ACCP: {result["response"]}')
     elif item['transaction_status'] in ['ACSC', 'RJCT', 'CANC', 'FAIL']:
         response = dynamodb_get_by_item(region, table, item)
-        LOGGER.debug(f'dynamodb_get_by_item ACSC, RJCT, CANC, FAIL: {response}')
         for i in response['Items']:
             if i['transaction_status'] == status:
                 try:
@@ -231,11 +214,9 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
                     pass # nosec B110
                 break
     result['response'] = resource.Table(table).put_item(Item=item)
-    LOGGER.debug(f'dynamodb_get_by_item {item["transaction_status"]}: {result["response"]}')
     if replicated:
         result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],
             replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
-    LOGGER.debug(f'dynamodb put item result: {result}')
     return result
 
 def dynamodb_recover_cross_region(region, region2, table, item):
@@ -270,14 +251,11 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
     # @TODO: exponential back-off
     while iter < req_count:
         response = lambda_health_check(region2, headers, payload)
-        LOGGER.debug(f'lambda health check response {iter}: {response}')
         if not('StatusCode' in response and response['StatusCode'] == 200):
             return False
         else:
             payload = json.loads(response['Payload'].read())
-            LOGGER.debug(f'lambda health check payload: {payload}')
             body = json.loads(payload['body'])
-            LOGGER.debug(f'lambda health check body: {body}')
             if int(body['dynamodb_count']) == 0:
                 iter += 1
             else:

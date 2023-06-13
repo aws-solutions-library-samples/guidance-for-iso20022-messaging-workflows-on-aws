@@ -216,7 +216,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
     result['response'] = resource.Table(table).put_item(Item=item)
     if replicated:
         result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],
-            replicated['count'], item['id'], item['transaction_status'], replicated['identity'])
+            replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
     return result
 
 def dynamodb_recover_cross_region(region, region2, table, item):
@@ -248,9 +248,9 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
     payload = {'identity': identity}
 
     iter = 0
-    response = lambda_health_check(region2, headers, payload)
     # @TODO: exponential back-off
     while iter < req_count:
+        response = lambda_health_check(region2, headers, payload)
         if not('StatusCode' in response and response['StatusCode'] == 200):
             return False
         else:
@@ -258,7 +258,6 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
             body = json.loads(payload['body'])
             if int(body['dynamodb_count']) == 0:
                 iter += 1
-                response = lambda_health_check(region2, headers, payload)
             else:
                 return True
     return False

@@ -9,32 +9,25 @@ resource "aws_s3_bucket" "this" {
 
   bucket              = format("%s-%s-%s", var.q.bucket, data.aws_region.this.name, local.rp2_id)
   force_destroy       = var.q.force_destroy
-  object_lock_enabled = var.q.object_lock_enabled
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-resource "random_id" "this" {
-  byte_length = 4
-
-  keepers = {
-    custom_domain = var.custom_domain
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+# resource "aws_s3_object" "this" {
+#   bucket  = aws_s3_bucket.this.id
+#   key     = var.q.object_name
+#   content = tostring(var.q.object_lock_enabled)
+# }
 
 resource "aws_s3_bucket_public_access_block" "this" {
   bucket = aws_s3_bucket.this.id
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
 
 resource "aws_s3_bucket_ownership_controls" "this" {
@@ -52,4 +45,17 @@ resource "aws_s3_bucket_acl" "this" {
   acl    = var.q.acl
 
   depends_on = [aws_s3_bucket_ownership_controls.this]
+}
+
+resource "aws_s3_bucket_policy" "this" {
+  bucket = aws_s3_bucket.this.id
+  policy = data.aws_iam_policy_document.this.json
+
+  depends_on = [aws_s3_bucket_acl.this]
+}
+
+resource "aws_s3_bucket_logging" "this" {
+  bucket        = aws_s3_bucket.this.id
+  target_bucket = data.terraform_remote_state.s3.outputs.id
+  target_prefix = var.q.logs_prefix
 }

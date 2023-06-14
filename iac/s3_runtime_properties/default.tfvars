@@ -4,5 +4,5 @@ q = {
   object_lock_mode  = "COMPLIANCE"
   object_lock_days  = 36500
   object_ownership  = "BucketOwnerPreferred"
-  target_prefix     = "s3_logs"
+  logs_prefix       = "s3_runtime_logs"
 }

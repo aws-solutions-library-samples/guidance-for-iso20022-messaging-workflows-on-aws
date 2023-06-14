@@ -9,5 +9,7 @@ locals {
         element(keys(var.backend_bucket), 1), element(keys(var.backend_bucket), 0)
     )
   )
-  path = data.terraform_remote_state.s3.outputs.object_name
+  path = (startswith(data.terraform_remote_state.s3.outputs.object_name, "/")
+    ? data.terraform_remote_state.s3.outputs.object_name
+    : format("/%s", data.terraform_remote_state.s3.outputs.object_name))
 }

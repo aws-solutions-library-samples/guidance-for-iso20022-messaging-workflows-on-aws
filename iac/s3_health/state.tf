@@ -21,3 +21,7 @@ output "hosted_zone_id" {
 output "region" {
   value = aws_s3_bucket.this.region
 }
+
+output "object_name" {
+  value = var.q.object_name
+}

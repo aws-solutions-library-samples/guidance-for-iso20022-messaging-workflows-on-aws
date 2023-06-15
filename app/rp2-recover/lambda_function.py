@@ -4,7 +4,7 @@
 import os, logging
 from datetime import datetime, timedelta, timezone
 from env import Variables
-from util import get_request_arn, request_health_check, s3_move_object, dynamodb_recover_cross_region, lambda_response
+from util import get_request_arn, request_health_check, s3_move_object, dynamodb_recover_items, lambda_response
 
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
@@ -40,6 +40,7 @@ def lambda_handler(event, context):
     LOGGER.debug(f'computed identity: {identity}')
     region = VARIABLES.get_rp2_region()
     table = VARIABLES.get_rp2_ddb_tnx()
+    range = VARIABLES.get_rp2_timestamp_partition()
     region2 = VARIABLES.get_rp2_check_region()
     api_url = VARIABLES.get_rp2_api_url().replace(region, region2)
     auth = {
@@ -92,11 +93,8 @@ def lambda_handler(event, context):
         # return lambda_response(500, msg, metadata, TIME)
 
     # step 4: continue to recover, cancel in-flight payments from affected region
-    result = []
-    item = {**request_arn, 'created_at': TIME - timedelta(minutes=60), 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
-    result += dynamodb_recover_cross_region(region, region2, table, item)
     item = {**request_arn, 'created_at': TIME, 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
-    result += dynamodb_recover_cross_region(region, region2, table, item)
+    result = dynamodb_recover_items(region, region2, table, item, range)
 
     # step 5: trigger response
     msg = f'successful recover of {len(result)} transactions'

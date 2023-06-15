@@ -4,7 +4,7 @@
 import os, logging, json, xmltodict
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, get_iso20022_mapping, dynamodb_put_item, dynamodb_get_by_item, lambda_validate, lambda_response, sqs_send_message
+from util import get_request_arn, get_iso20022_mapping, dynamodb_put_item, dynamodb_query_by_item, lambda_validate, lambda_response, sqs_send_message
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -115,9 +115,9 @@ def lambda_handler(event, context):
 
     # step 5: check previous transaction statuses
     try:
-        LOGGER.debug(f'dynamodb_get_by_item: {item}')
-        response = dynamodb_get_by_item(region, table, item)
-        LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        LOGGER.debug(f'dynamodb_query_by_item: {item}')
+        response = dynamodb_query_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_query_by_item: {response}')
         statuses = []
         for k in response['Statuses']:
             if k not in ['FLAG', 'MISS']:
@@ -134,9 +134,9 @@ def lambda_handler(event, context):
         else:
             item['created_by'] = response['Items'][0]['created_by']
 
-        # LOGGER.debug(f'dynamodb_get_by_item: {item}')
-        # response = dynamodb_get_by_item(region, table, {**item, 'transaction_status': 'ACSP'})
-        # LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        # LOGGER.debug(f'dynamodb_query_by_item: {item}')
+        # response = dynamodb_query_by_item(region, table, {**item, 'transaction_status': 'ACSP'})
+        # LOGGER.debug(f'dynamodb_query_by_item: {response}')
         # if 'Item' in response and response['Item']:
         #     metadata['ErrorMessage'] = 'processed transaction is duplicate'
         #     LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')

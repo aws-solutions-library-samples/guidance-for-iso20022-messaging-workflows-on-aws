@@ -4,7 +4,7 @@
 import os, logging, json, re, requests
 from datetime import datetime, timezone
 from env import Variables
-from util import auth2token, connect2rmq, publish2rmq, dynamodb_get_by_item
+from util import auth2token, connect2rmq, publish2rmq, dynamodb_query_by_item
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -81,8 +81,8 @@ def lambda_handler(event, context):
             # LOGGER.debug(f'sent request: {id}')
             # # @TODO: query multiple transaction statuses
             # item = {'transaction_id': id, 'transaction_status': 'ACSC'}
-            # response = dynamodb_get_by_item(VARIABLES.get_rp2_region(), VARIABLES.get_rp2_ddb_tnx(), item)
-            # LOGGER.debug(f'got dynamodb_get_by_item: {response}')
+            # response = dynamodb_query_by_item(VARIABLES.get_rp2_region(), VARIABLES.get_rp2_ddb_tnx(), item)
+            # LOGGER.debug(f'got dynamodb_query_by_item: {response}')
             # if 'Item' in response and response['Item']:
             #     # @TODO: use identity as check point
             #     if 'created_by' not in response['Item'] or response['Item']['created_by'] != 'api':

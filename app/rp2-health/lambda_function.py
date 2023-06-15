@@ -4,7 +4,7 @@
 import os, uuid, logging
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_get_by_item, s3_get_object, sqs_receive_message, lambda_response
+from util import get_request_arn, dynamodb_query_by_item, s3_get_object, sqs_receive_message, lambda_response
 
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
@@ -94,9 +94,9 @@ def lambda_handler(event, context):
                 item['transaction_status'] = event['headers']['X-Transaction-Status']
             if 'headers' in event and event['headers'] and 'X-Transaction-Region' in event['headers'] and event['headers']['X-Transaction-Region']:
                 item['request_region'] = event['headers']['X-Transaction-Region']
-            LOGGER.debug(f'dynamodb_get_by_item: {item}')
-            response = dynamodb_get_by_item(region, table, item)
-            LOGGER.debug(f'dynamodb_get_by_item response: {response}')
+            LOGGER.debug(f'dynamodb_query_by_item: {item}')
+            response = dynamodb_query_by_item(region, table, item)
+            LOGGER.debug(f'dynamodb_query_by_item response: {response}')
             metadata['DynamodbCount'] = 1 if item['transaction_status'] in response['Statuses'] else 0
         except Exception as e:
             error['dynamodb'] = str(e)

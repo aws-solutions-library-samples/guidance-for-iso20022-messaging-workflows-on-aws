@@ -4,7 +4,7 @@
 import os, uuid, logging
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_get_by_item, dynamodb_put_item, lambda_response
+from util import get_request_arn, dynamodb_query_by_item, dynamodb_put_item, lambda_response
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -73,9 +73,9 @@ def lambda_handler(event, context):
     while count < limit:
         count += 1
         item['transaction_id'] = str(uuid.uuid4())
-        LOGGER.debug(f'dynamodb_get_by_item item: {item}')
-        response = dynamodb_get_by_item(region, table, item)
-        LOGGER.debug(f'dynamodb_get_by_item response: {response}')
+        LOGGER.debug(f'dynamodb_query_by_item item: {item}')
+        response = dynamodb_query_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_query_by_item response: {response}')
         if int(response['Count']) == 0:
             count = limit
         elif count > limit:

@@ -4,7 +4,7 @@
 import os, logging
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_put_item, dynamodb_get_by_item, s3_get_object, lambda_validate, lambda_response
+from util import get_request_arn, dynamodb_put_item, dynamodb_query_by_item, s3_get_object, lambda_validate, lambda_response
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -88,9 +88,9 @@ def lambda_handler(event, context):
     }
 
     try:
-        LOGGER.debug(f'dynamodb_get_by_item: {item}')
-        response = dynamodb_get_by_item(region, table, item)
-        LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        LOGGER.debug(f'dynamodb_query_by_item: {item}')
+        response = dynamodb_query_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_query_by_item: {response}')
         statuses = []
         for i in range(len(response['Statuses'])):
             if response['Statuses'][i] not in ['FLAG', 'MISS']:

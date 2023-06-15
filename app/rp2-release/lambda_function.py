@@ -4,7 +4,7 @@
 import os, logging, json, xmltodict
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_put_item, dynamodb_get_by_item, lambda_validate, lambda_response, sns_publish_message, s3_put_object
+from util import get_request_arn, dynamodb_put_item, dynamodb_query_by_item, lambda_validate, lambda_response, sns_publish_message, s3_put_object
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -100,9 +100,9 @@ def lambda_handler(event, context):
 
     # step 4: check previous transaction statuses
     try:
-        LOGGER.debug(f'dynamodb_get_by_item: {item}')
-        response = dynamodb_get_by_item(region, table, item)
-        LOGGER.debug(f'dynamodb_get_by_item: {response}')
+        LOGGER.debug(f'dynamodb_query_by_item: {item}')
+        response = dynamodb_query_by_item(region, table, item)
+        LOGGER.debug(f'dynamodb_query_by_item: {response}')
         statuses = []
         for k in response['Statuses']:
             if k not in ['FLAG', 'MISS']:

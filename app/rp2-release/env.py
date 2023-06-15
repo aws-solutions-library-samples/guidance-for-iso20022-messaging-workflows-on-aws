@@ -8,9 +8,12 @@ class Variables:
     def __init__(self, DOTENV):
         self.env = load_dotenv(DOTENV)
         self.RP2_LOGGING = self.get_rp2_logging()
+        self.RP2_ID = self.get_rp2_id()
         self.RP2_ACCOUNT = self.get_rp2_account()
         self.RP2_REGION = self.get_rp2_region()
         self.RP2_BUCKET = self.get_rp2_bucket()
+        self.RP2_RUNTIME = self.get_rp2_runtime()
+        self.RP2_HEALTH = self.get_rp2_health()
         self.RP2_API_URL = self.get_rp2_api_url()
         self.RP2_API_UUID = self.get_rp2_api_uuid()
         self.RP2_API_INBOX = self.get_rp2_api_inbox()
@@ -27,6 +30,8 @@ class Variables:
         self.RP2_CHECK_SQS = self.get_rp2_check_sqs()
         self.RP2_DDB_TNX = self.get_rp2_ddb_tnx()
         self.RP2_DDB_LIQ = self.get_rp2_ddb_liq()
+        self.RP2_TIMESTAMP_PARTITION = self.get_rp2_timestamp_partition()
+        self.RP2_TIMEOUT_TRANSACTION = self.get_rp2_timeout_transaction()
 
     def get_rp2_logging(self) -> str:
         result = ''
@@ -47,6 +52,14 @@ class Variables:
             return logging.CRITICAL
         else:
             return logging.NOTSET
+
+    def get_rp2_id(self) -> str:
+        if os.getenv('RP2_ID') is not None:
+            return os.getenv('RP2_ID')
+        elif self.env.get_rp2_id() is not None:
+            return self.env.get_rp2_id()
+        else:
+            return 'abcd1234'
 
     def get_rp2_account(self) -> str:
         if os.getenv('RP2_ACCOUNT') is not None:
@@ -71,6 +84,22 @@ class Variables:
             return self.env.get_rp2_bucket()
         else:
             return 'rp2-runtime-us-east-1'
+
+    def get_rp2_runtime(self) -> str:
+        if os.getenv('RP2_RUNTIME') is not None:
+            return os.getenv('RP2_RUNTIME')
+        elif self.env.get_rp2_runtime() is not None:
+            return self.env.get_rp2_runtime()
+        else:
+            return 'rp2-runtime'
+
+    def get_rp2_health(self) -> str:
+        if os.getenv('RP2_HEALTH') is not None:
+            return os.getenv('RP2_HEALTH')
+        elif self.env.get_rp2_health() is not None:
+            return self.env.get_rp2_health()
+        else:
+            return 'rp2-health'
 
     def get_rp2_api_url(self) -> str:
         if os.getenv('RP2_API_URL') is not None:
@@ -199,3 +228,19 @@ class Variables:
             return self.env.get_rp2_ddb_liq()
         else:
             return None
+
+    def get_rp2_timestamp_partition(self) -> str:
+        if os.getenv('RP2_TIMESTAMP_PARTITION') is not None:
+            return os.getenv('RP2_TIMESTAMP_PARTITION')
+        elif self.env.get_rp2_timestamp_partition() is not None:
+            return self.env.get_rp2_timestamp_partition()
+        else:
+            return 0
+
+    def get_rp2_timeout_transaction(self) -> str:
+        if os.getenv('RP2_TIMEOUT_TRANSACTION') is not None:
+            return os.getenv('RP2_TIMEOUT_TRANSACTION')
+        elif self.env.get_rp2_timeout_transaction() is not None:
+            return self.env.get_rp2_timeout_transaction()
+        else:
+            return 0

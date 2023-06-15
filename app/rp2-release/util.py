@@ -181,6 +181,9 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         else:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                 & Key('sk').begins_with(str(item['transaction_id'])))
+    else:
+        kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
+            & Key('sk').begins_with(str(item['transaction_id'])))
     if key1:
         kwargs['ExclusiveStartKey'] = key1
     response = resource.Table(table).query(**kwargs)
@@ -206,6 +209,9 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
             else:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                     & Key('sk').begins_with(str(item2['transaction_id'])))
+        else:
+            kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
+                & Key('sk').begins_with(str(item2['transaction_id'])))
         if key2:
             kwargs['ExclusiveStartKey'] = key2
         response2 = resource.Table(table).query(**kwargs)

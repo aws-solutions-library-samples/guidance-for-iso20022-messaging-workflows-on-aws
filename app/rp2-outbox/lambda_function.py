@@ -51,10 +51,10 @@ def lambda_handler(event, context):
     bucket = f'{VARIABLES.get_rp2_runtime()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
     table = VARIABLES.get_rp2_ddb_tnx()
     replicated = None
-    check_ddb = int(VARIABLES.get_rp2_check_ddb())
-    if check_ddb > 0:
+    ddb_retry = int(VARIABLES.get_rp2_ddb_retry())
+    if ddb_retry > 0:
         region2 = VARIABLES.get_rp2_check_region()
-        replicated = {'region': region, 'region2': region2, 'count': check_ddb, 'identity': identity}
+        replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {
         'created_at': TIME,

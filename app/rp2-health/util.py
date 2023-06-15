@@ -250,7 +250,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
             replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
     return result
 
-def dynamodb_timeout_items(region, table, range=3600):
+def dynamodb_timeout_items(region, table, timeout, range=3600):
     result = []
     return result
 
@@ -258,9 +258,9 @@ def dynamodb_recover_items(region, region2, table, item, range=3600):
     result = []
     key1 = None
     key2 = None
-    flag = True
+    enabled = True
     filter = {'transaction_status': 'FLAG'}
-    while flag:
+    while enabled:
         item2 = {**item, 'request_region': region2}
         response = dynamodb_query_by_item(region, table, item2, filter, key1, key2, range)
         if response:
@@ -273,9 +273,9 @@ def dynamodb_recover_items(region, region2, table, item, range=3600):
             elif 'LastEvaluatedKey2' in response:
                 key2 = response['LastEvaluatedKey2']
             else:
-                flag = False
+                enabled = False
         else:
-            flag = False
+            enabled = False
     return result
 
 def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, identity=None):

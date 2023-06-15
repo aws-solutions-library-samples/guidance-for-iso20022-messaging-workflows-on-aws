@@ -24,9 +24,7 @@ class Variables:
         self.RP2_CHECK_REGION = self.get_rp2_check_region()
         self.RP2_CHECK_CLIENT_ID = self.get_rp2_check_client_id()
         self.RP2_CHECK_CLIENT_SECRET = self.get_rp2_check_client_secret()
-        self.RP2_CHECK_DDB = self.get_rp2_check_ddb()
-        self.RP2_CHECK_S3 = self.get_rp2_check_s3()
-        self.RP2_CHECK_SQS = self.get_rp2_check_sqs()
+        self.RP2_DDB_RETRY = self.get_rp2_ddb_retry()
         self.RP2_DDB_TNX = self.get_rp2_ddb_tnx()
         self.RP2_DDB_LIQ = self.get_rp2_ddb_liq()
         self.RP2_TIMESTAMP_PARTITION = self.get_rp2_timestamp_partition()
@@ -180,29 +178,13 @@ class Variables:
         else:
             return 'rp2_check_client_secret'
 
-    def get_rp2_check_ddb(self) -> str:
-        if os.getenv('RP2_CHECK_DDB') is not None:
-            return os.getenv('RP2_CHECK_DDB')
-        elif self.env.get_rp2_check_ddb() is not None:
-            return self.env.get_rp2_check_ddb()
+    def get_rp2_ddb_retry(self) -> str:
+        if os.getenv('RP2_DDB_RETRY') is not None:
+            return os.getenv('RP2_DDB_RETRY')
+        elif self.env.get_rp2_ddb_retry() is not None:
+            return self.env.get_rp2_ddb_retry()
         else:
             return 0
-
-    def get_rp2_check_s3(self) -> str:
-        if os.getenv('RP2_CHECK_S3') is not None:
-            return os.getenv('RP2_CHECK_S3')
-        elif self.env.get_rp2_check_s3() is not None:
-            return self.env.get_rp2_check_s3()
-        else:
-            return 'health.txt'
-
-    def get_rp2_check_sqs(self) -> str:
-        if os.getenv('RP2_CHECK_SQS') is not None:
-            return os.getenv('RP2_CHECK_SQS')
-        elif self.env.get_rp2_check_sqs() is not None:
-            return self.env.get_rp2_check_sqs()
-        else:
-            return 'rp2-check.fifo'
 
     def get_rp2_ddb_tnx(self) -> str:
         if os.getenv('RP2_DDB_TNX') is not None:

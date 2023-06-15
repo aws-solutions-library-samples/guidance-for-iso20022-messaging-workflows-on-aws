@@ -28,6 +28,7 @@ def lambda_handler(event, context):
     LOGGER.debug(f'computed request_id: {request_id}')
     region = VARIABLES.get_rp2_region()
     table = VARIABLES.get_rp2_ddb_tnx()
+    timeout = VARIABLES.get_rp2_timeout_transaction()
     range = VARIABLES.get_rp2_timestamp_partition()
 
     # step 2: initialize variables
@@ -38,7 +39,7 @@ def lambda_handler(event, context):
     }
 
     # step 3: continue to timeout in-flight payments
-    result = dynamodb_timeout_items(region, table, range)
+    result = dynamodb_timeout_items(region, table, timeout, range)
 
     # step 4: trigger response
     msg = f'successful timeout of {len(result)} transactions'

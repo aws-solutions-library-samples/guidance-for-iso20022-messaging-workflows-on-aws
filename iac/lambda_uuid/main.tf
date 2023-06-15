@@ -32,7 +32,7 @@ resource "aws_lambda_function" "this" {
       RP2_AUTH_CLIENT_SECRET  = try(local.cognito["client_secret"], null)
       # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)
       # RP2_CHECK_CLIENT_SECRET = try(local.cognito2["client_secret"], null)
-      RP2_CHECK_DDB           = 3
+      RP2_DDB_RETRY           = 3
     }
   }
 

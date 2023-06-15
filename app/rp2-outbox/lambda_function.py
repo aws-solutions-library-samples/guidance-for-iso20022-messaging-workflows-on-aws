@@ -48,7 +48,7 @@ def lambda_handler(event, context):
         identity = event['identity']
     LOGGER.debug(f'computed identity: {identity}')
     region = VARIABLES.get_rp2_region()
-    bucket = VARIABLES.get_rp2_bucket()
+    bucket = f'{VARIABLES.get_rp2_runtime()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
     table = VARIABLES.get_rp2_ddb_tnx()
     replicated = None
     check_ddb = int(VARIABLES.get_rp2_check_ddb())

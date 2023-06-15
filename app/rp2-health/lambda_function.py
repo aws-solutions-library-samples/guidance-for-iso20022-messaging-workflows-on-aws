@@ -62,7 +62,7 @@ def lambda_handler(event, context):
 
     account = VARIABLES.get_rp2_account()
     region = VARIABLES.get_rp2_region()
-    bucket = VARIABLES.get_rp2_bucket()
+    bucket = f'{VARIABLES.get_rp2_runtime()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
     key = VARIABLES.get_rp2_check_s3()
     queue = VARIABLES.get_rp2_check_sqs()
     table = VARIABLES.get_rp2_ddb_tnx()

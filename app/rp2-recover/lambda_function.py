@@ -81,7 +81,7 @@ def lambda_handler(event, context):
 
     # step 3: initiate recover, force route53 failover
     try:
-        bucket = VARIABLES.get_rp2_bucket()
+        bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
         old_key = VARIABLES.get_rp2_check_s3()
         new_key = f'{region}/{old_key}'
         response = s3_move_object(region2, bucket, old_key, new_key)

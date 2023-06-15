@@ -104,7 +104,7 @@ def lambda_handler(event, context):
 
     # step 4: backup message to s3
     try:
-        bucket = VARIABLES.get_rp2_bucket()
+        bucket = f'{VARIABLES.get_rp2_runtime()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
         response = s3_put_object(region, bucket, 'inbox', object_name, object_ext, body, TIME)
         item['storage_path'] = response['path']
         item['storage_type'] = object_ext

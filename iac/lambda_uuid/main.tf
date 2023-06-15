@@ -22,15 +22,16 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
+      RP2_LOGGING             = var.q.logging
+      RP2_ID                  = data.terraform_remote_state.s3.outputs.rp2_id
+      RP2_ACCOUNT             = data.aws_caller_identity.this.account_id
+      RP2_REGION              = data.aws_region.this.name
       RP2_API_URL             = format("api-%s", local.domain)
       RP2_AUTH_URL            = format("auth-%s", local.domain)
       RP2_AUTH_CLIENT_ID      = try(local.cognito["client_id"], null)
       RP2_AUTH_CLIENT_SECRET  = try(local.cognito["client_secret"], null)
       # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)
       # RP2_CHECK_CLIENT_SECRET = try(local.cognito2["client_secret"], null)
-      RP2_ACCOUNT             = data.aws_caller_identity.this.account_id
-      RP2_REGION              = data.aws_region.this.name
-      RP2_LOGGING             = var.q.logging
       RP2_CHECK_DDB           = 3
     }
   }

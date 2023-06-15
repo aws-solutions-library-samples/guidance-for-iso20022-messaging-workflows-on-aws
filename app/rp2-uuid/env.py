@@ -11,7 +11,6 @@ class Variables:
         self.RP2_ID = self.get_rp2_id()
         self.RP2_ACCOUNT = self.get_rp2_account()
         self.RP2_REGION = self.get_rp2_region()
-        self.RP2_BUCKET = self.get_rp2_bucket()
         self.RP2_RUNTIME = self.get_rp2_runtime()
         self.RP2_HEALTH = self.get_rp2_health()
         self.RP2_API_URL = self.get_rp2_api_url()
@@ -76,14 +75,6 @@ class Variables:
             return self.env.get_rp2_region()
         else:
             return 'us-east-1'
-
-    def get_rp2_bucket(self) -> str:
-        if os.getenv('RP2_BUCKET') is not None:
-            return os.getenv('RP2_BUCKET')
-        elif self.env.get_rp2_bucket() is not None:
-            return self.env.get_rp2_bucket()
-        else:
-            return 'rp2-runtime-us-east-1'
 
     def get_rp2_runtime(self) -> str:
         if os.getenv('RP2_RUNTIME') is not None:

@@ -8,6 +8,6 @@ resource "aws_route53_health_check" "this" {
   request_interval  = var.q.request_interval
 
   tags = {
-    "Name" = format("%s-%s", var.q.name, data.aws_region.this.name)
+    "Name" = data.terraform_remote_state.s3.outputs.object_name
   }
 }

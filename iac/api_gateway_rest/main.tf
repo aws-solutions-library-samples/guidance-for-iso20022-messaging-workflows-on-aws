@@ -40,7 +40,7 @@ resource "aws_api_gateway_deployment" "this" {
 resource "aws_api_gateway_stage" "this" {
   #checkov:skip=CKV_AWS_73:XRay not needed -- API Gateway performs better without tracing enabled
   #checkov:skip=CKV_AWS_120:Caching not needed -- API Gateway payloads are short lived
-  #checkov:skip=CKV2_AWS_29:WAF not needed -- restricted to get health.txt object
+  #checkov:skip=CKV2_AWS_29:WAF not needed -- restricted to get rp2-health object
   #checkov:skip=CKV2_AWS_51:Client certs not needed -- OAuth 2.0 is implemented instead
 
   deployment_id = aws_api_gateway_deployment.this.id

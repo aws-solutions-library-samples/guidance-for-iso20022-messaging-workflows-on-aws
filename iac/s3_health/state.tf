@@ -23,5 +23,5 @@ output "region" {
 }
 
 output "object_name" {
-  value = var.q.object_name
+  value = local.object_name
 }

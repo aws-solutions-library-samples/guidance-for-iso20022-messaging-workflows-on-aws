@@ -24,7 +24,7 @@ def get_timestamp_shift(timestamp, range=3600):
     minute = floor(time.minute / range) * range if range > 0 else time.minute
     range = floor(range / 60)
     hour = floor(time.hour / range) * range if range > 0 else time.hour
-    return datetime(time.year, time.month, time.day,
+    return datetime(year=time.year, month=time.month, day=time.day,
         hour=hour, minute=minute, second=second, tzinfo=time.tzinfo)
 
 def get_request_arn(arn):
@@ -38,11 +38,11 @@ def get_request_arn(arn):
         result['request_resource'] = arn[6]
     return result
 
-def get_partition_key(item):
+def get_partition_key(item, range=3600):
     # @TODO: distribute partitioning even further by tenant_id, worker_id, etc
     result = ""
     if 'created_at' in item and item['created_at']:
-        result += str(get_timestamp_shift(item['created_at']).timestamp())
+        result += str(get_timestamp_shift(item['created_at'], range).timestamp())
     # if 'created_by' in item and item['created_by']:
     #     result += item['created_by']
     if 'request_region' in item and item['request_region']:
@@ -204,7 +204,7 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         response['LastEvaluatedKey1'] = response['LastEvaluatedKey']
 
     if int(range) > 0:
-        item2 = {**item, 'created_at': get_timestamp_shift(item['created_at'], range)}
+        item2 = {**item, 'created_at': item['created_at'] - timedelta(seconds=int(range))}
         kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2)), 'ScanIndexForward': False}
         if filter:
             if 'created_at' in filter and 'transaction_status' in filter:
@@ -239,8 +239,8 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
 def dynamodb_put_item(region, table, attributes, replicated=None):
     resource = boto3.resource('dynamodb', region_name=region)
     item = dynamodb_prep_item(attributes)
-    status = 'FLAG'
     result = {'item': item}
+    status = 'FLAG'
     if item['transaction_status'] in ['ACCP']:
         item2 = {**item, 'transaction_status': status}
         item2['created_at'] = str(item['created_at']

@@ -4,7 +4,7 @@
 import os, logging
 from datetime import datetime, timedelta, timezone
 from env import Variables
-from util import get_request_arn, lambda_health_check, s3_move_object, dynamodb_filter_items, lambda_response
+from util import get_request_arn, lambda_health_check, s3_move_object, dynamodb_batch_items, lambda_response
 
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
@@ -85,7 +85,7 @@ def lambda_handler(event, context):
     # step 5: continue to recover, cancel in-flight payments from affected region
     item = {**request_arn, 'created_at': TIME, 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
     filter = {'request_region': region2, 'transaction_status': 'FLAG'}
-    result = dynamodb_filter_items(region, table, item, filter, range)
+    result = dynamodb_batch_items(region, table, item, filter, range)
 
     # step 5: trigger response
     msg = f'successful recover of {len(result)} transactions'

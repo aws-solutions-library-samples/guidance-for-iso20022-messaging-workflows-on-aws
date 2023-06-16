@@ -266,7 +266,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
             replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
     return result
 
-def dynamodb_filter_items(region, table, item, filter, range=3600):
+def dynamodb_batch_items(region, table, item, filter, range=3600):
     result = []
     key1 = None
     key2 = None

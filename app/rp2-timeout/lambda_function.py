@@ -4,7 +4,7 @@
 import os, logging
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, get_timestamp_shift, dynamodb_filter_items, lambda_response
+from util import get_request_arn, get_timestamp_shift, dynamodb_batch_items, lambda_response
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -45,7 +45,7 @@ def lambda_handler(event, context):
     # step 3: continue to timeout in-flight payments
     item = {**request_arn, 'created_at': TIME, 'transaction_status': 'RJCT', 'transaction_code': 'TOUT'}
     filter = {'created_at': get_timestamp_shift(item['created_at'], timeout), 'transaction_status': 'FLAG'}
-    result = dynamodb_filter_items(region, table, item, filter, range)
+    result = dynamodb_batch_items(region, table, item, filter, range)
 
     # step 4: trigger response
     msg = f'successful timeout of {len(result)} transactions'

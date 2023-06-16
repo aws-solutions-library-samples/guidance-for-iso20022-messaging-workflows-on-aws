@@ -16,16 +16,16 @@ def get_iso20022_mapping(msg):
     else:
         return None
 
-def get_timestamp(time, range=3600):
-    if isinstance(time, str):
-        time = datetime.fromisoformat(time)
-    second = floor(time.second / range) * range if int(range) > 0 else time.second
+def get_timestamp_shift(timestamp, range=3600):
+    time = timestamp if isinstance(timestamp, datetime) else datetime.fromisoformat(str(timestamp))
+    range = int(range)
+    second = floor(time.second / range) * range if range > 0 else time.second
     range = floor(range / 60)
-    minute = floor(time.minute / range) * range if int(range) > 0 else time.minute
+    minute = floor(time.minute / range) * range if range > 0 else time.minute
     range = floor(range / 60)
-    hour = floor(time.hour / range) * range if int(range) > 0 else time.hour
-    return str(datetime(time.year, time.month, time.day,
-        hour=hour, minute=minute, second=second, tzinfo=time.tzinfo).timestamp())
+    hour = floor(time.hour / range) * range if range > 0 else time.hour
+    return datetime(time.year, time.month, time.day,
+        hour=hour, minute=minute, second=second, tzinfo=time.tzinfo)
 
 def get_request_arn(arn):
     result = {}
@@ -42,7 +42,7 @@ def get_partition_key(item):
     # @TODO: distribute partitioning even further by tenant_id, worker_id, etc
     result = ""
     if 'created_at' in item and item['created_at']:
-        result += get_timestamp(item['created_at'])
+        result += str(get_timestamp_shift(item['created_at']).timestamp())
     # if 'created_by' in item and item['created_by']:
     #     result += item['created_by']
     if 'request_region' in item and item['request_region']:
@@ -52,11 +52,10 @@ def get_partition_key(item):
 def get_sort_key(item):
     time = str(item["created_at"]).replace(" ", "+")
     return f'{item["transaction_id"]}|{time}|{item["transaction_status"]}'
-    # return f'{item["transaction_status"]}|{item["transaction_id"]}|{time}'
 
 def get_filtered_statuses(all, one=None):
     index = -1
-    result = {'filtered': [], 'index': None}
+    result = {'filtered': [], 'index': index}
     for k in all:
         index = index + 1
         if k not in ['FLAG', 'MISS']:
@@ -184,9 +183,11 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
     resource = boto3.resource('dynamodb', region_name=region)
     kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item)), 'ScanIndexForward': False}
     if filter:
-        if 'transaction_status' in filter:
-            kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
+        if 'created_at' in filter and 'transaction_status' in filter:
+            kwargs['FilterExpression'] = (Attr('created_at').lte(str(filter['created_at']))
                 & Attr('transaction_status').eq(str(filter['transaction_status'])))
+        elif 'transaction_status' in filter:
+            kwargs['FilterExpression'] = Attr('transaction_status').eq(str(filter['transaction_status']))
         elif 'transaction_id' in filter:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                 & Key('sk').begins_with(str(filter['transaction_id'])))
@@ -203,18 +204,14 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         response['LastEvaluatedKey1'] = response['LastEvaluatedKey']
 
     if int(range) > 0:
-        time = item['created_at'] if isinstance(item['created_at'], datetime) else datetime.fromisoformat(str(item['created_at']))
-        seconds = floor(time.second / range) * range if int(range) > 0 else time.second
-        range = floor(range / 60)
-        minutes = floor(time.minute / range) * range if int(range) > 0 else time.minute
-        range = floor(range / 60)
-        hours = floor(time.hour / range) * range if int(range) > 0 else time.hour
-        item2 = {**item, 'created_at': time - timedelta(hours=hours, minutes=minutes, seconds=seconds)}
+        item2 = {**item, 'created_at': get_timestamp_shift(item['created_at'], range)}
         kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2)), 'ScanIndexForward': False}
         if filter:
-            if 'transaction_status' in filter:
-                kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
+            if 'created_at' in filter and 'transaction_status' in filter:
+                kwargs['FilterExpression'] = (Attr('created_at').lte(str(filter['created_at']))
                     & Attr('transaction_status').eq(str(filter['transaction_status'])))
+            elif 'transaction_status' in filter:
+                kwargs['FilterExpression'] = Attr('transaction_status').eq(str(filter['transaction_status']))
             elif 'transaction_id' in filter:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                     & Key('sk').begins_with(str(filter['transaction_id'])))
@@ -268,23 +265,18 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
             replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
     return result
 
-def dynamodb_timeout_items(region, table, timeout, range=3600):
-    result = []
-    return result
-
-def dynamodb_recover_items(region, region2, table, item, range=3600):
+def dynamodb_filter_items(region, table, item, filter, range=3600):
     result = []
     key1 = None
     key2 = None
     enabled = True
-    filter = {'transaction_status': 'FLAG'}
     while enabled:
-        item2 = {**item, 'request_region': region2}
+        item2 = {**item, 'request_region': filter['request_region']} if 'request_region' in filter else item
         response = dynamodb_query_by_item(region, table, item2, filter, key1, key2, range)
         if response:
             if 'Items' in response:
                 for i in response['Items']:
-                    item3 = {**i, **item}
+                    item3 = {**i, **item2}
                     result += dynamodb_put_item(region, table, item3)
             if 'LastEvaluatedKey1' in response:
                 key1 = response['LastEvaluatedKey1']
@@ -310,13 +302,12 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
         response = lambda_health_check(region2, headers, payload)
         if not('StatusCode' in response and response['StatusCode'] == 200):
             return False
+        payload = json.loads(response['Payload'].read())
+        body = json.loads(payload['body'])
+        if int(body['dynamodb_count']) == 0:
+            iter += 1
         else:
-            payload = json.loads(response['Payload'].read())
-            body = json.loads(payload['body'])
-            if int(body['dynamodb_count']) == 0:
-                iter += 1
-            else:
-                return True
+            return True
     return False
 
 def lambda_health_check(region, headers=None, payload=None, function="rp2-health"):

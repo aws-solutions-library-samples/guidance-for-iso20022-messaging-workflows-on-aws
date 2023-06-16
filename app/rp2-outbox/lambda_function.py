@@ -92,15 +92,6 @@ def lambda_handler(event, context):
         response = dynamodb_query_by_item(region, table, item)
         LOGGER.debug(f'dynamodb_query_by_item: {response}')
 
-        # statuses = []
-        # for i in range(len(response['Statuses'])):
-        #     if response['Statuses'][i] not in ['FLAG', 'MISS']:
-        #         statuses.append(response['Statuses'][i])
-        #         if response['Statuses'][i] == 'ACSC':
-        #             object = response['Items'][i]['storage_path']
-        #             item['transaction_id'] = response['Items'][i]['transaction_id']
-        #             item['message_id'] = response['Items'][i]['message_id']
-
         statuses = get_filtered_statuses(response['Statuses'], 'ACSC')
         if statuses['filtered'] != ['ACSC', 'ACSP', 'ACTC', 'ACCP']:
             item['transaction_status'] = 'MISS'

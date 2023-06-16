@@ -4,7 +4,7 @@
 import os, logging
 from datetime import datetime, timedelta, timezone
 from env import Variables
-from util import get_request_arn, request_health_check, s3_move_object, dynamodb_recover_items, lambda_response
+from util import get_request_arn, lambda_health_check, s3_move_object, dynamodb_filter_items, lambda_response
 
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
@@ -42,12 +42,6 @@ def lambda_handler(event, context):
     table = VARIABLES.get_rp2_ddb_tnx()
     range = VARIABLES.get_rp2_timestamp_partition()
     region2 = VARIABLES.get_rp2_check_region()
-    api_url = VARIABLES.get_rp2_api_url().replace(region, region2)
-    auth = {
-        'auth_url': VARIABLES.get_rp2_auth_url().replace(region, region2),
-        'client_id': VARIABLES.get_rp2_check_client_id(),
-        'client_secret': VARIABLES.get_rp2_check_client_secret(),
-    }
 
     # step 1: initialize variables
     metadata = {
@@ -56,45 +50,42 @@ def lambda_handler(event, context):
         'ApiEndpoint': VARIABLES.get_rp2_api_url(),
     }
 
-    # step 2: check the health of the opposite region
-    req_count = int(VARIABLES.get_rp2_check_recover())
-    if req_count > 0:
-        health_check = request_health_check(api_url, auth)
-        response = health_check['health_check']
-        LOGGER.debug(f'got response: {response.status_code} {response.text}')
-        auth = {'access_token': health_check['access_token']}
-        if hasattr(response, 'status_code') and response.status_code == 200:
-            msg = 'successful health check - 1 attempt'
-            LOGGER.info(f'{msg}: {health_check["health_check"]}')
-            return lambda_response(200, msg, metadata, TIME)
+    # # step 2: check the health of the opposite region
+    # # @TODO: exponential back-off
+    # iter = 0
+    # req_count = int(VARIABLES.get_rp2_check_recover())
+    # headers = {'X-Transaction-Region': region}
+    # payload = {'identity': identity}
 
-    iter = 1
-    while iter < req_count:
-        iter += 1
-        health_check = request_health_check(api_url, auth)
-        response = health_check['health_check']
-        LOGGER.debug(f'got response: {response.status_code} {response.text}')
-        if hasattr(response, 'status_code') and response.status_code == 200:
-            msg = f'successful health check - {iter} attempts'
-            LOGGER.info(f'{msg}: {health_check["health_check"]}')
-            return lambda_response(200, msg, metadata, TIME)
+    # while iter < req_count:
+    #     iter += 1
+    #     response = lambda_health_check(region2, headers, payload)
+    #     LOGGER.debug(f'lambda_health_check response: {response}')
+    #     if 'StatusCode' in response and response['StatusCode'] == 200:
+    #         msg = f'successful health check - {iter} attempt(s)'
+    #         LOGGER.info(f'{msg}: {response}')
+    #         return lambda_response(200, msg, metadata, TIME)
 
-    # step 3: initiate recover, force route53 failover
-    try:
-        bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
-        old_key = f'{VARIABLES.get_rp2_health()}.txt'
-        new_key = f'{region}/{old_key}'
-        response = s3_move_object(region2, bucket, old_key, new_key)
-        LOGGER.debug(f'got response: {response.status_code} {response.text}')
+    # # step 3: initiate recover, force route53 failover
+    # try:
+    #     bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
+    #     old_key = f'{VARIABLES.get_rp2_health()}.txt'
+    #     new_key = f'{region}/{old_key}'
+    #     response = s3_move_object(region2, bucket, old_key, new_key)
+    #     LOGGER.debug(f'got response: {response.status_code} {response.text}')
 
-    except Exception as e:
-        msg = 'moving object in s3 failed'
-        LOGGER.error(f'{msg}: {str(e)}')
-        # return lambda_response(500, msg, metadata, TIME)
+    # except Exception as e:
+    #     msg = 'moving object in s3 failed'
+    #     LOGGER.error(f'{msg}: {str(e)}')
+    #     # return lambda_response(500, msg, metadata, TIME)
 
-    # step 4: continue to recover, cancel in-flight payments from affected region
+    # step 4: mark api gateway unhealthy in affected region
+    # @TODO: implement this
+
+    # step 5: continue to recover, cancel in-flight payments from affected region
     item = {**request_arn, 'created_at': TIME, 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
-    result = dynamodb_recover_items(region, region2, table, item, range)
+    filter = {'request_region': region2, 'transaction_status': 'FLAG'}
+    result = dynamodb_filter_items(region, table, item, filter, range)
 
     # step 5: trigger response
     msg = f'successful recover of {len(result)} transactions'

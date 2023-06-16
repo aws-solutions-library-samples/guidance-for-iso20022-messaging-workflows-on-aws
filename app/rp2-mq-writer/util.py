@@ -1,7 +1,7 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import boto3, uuid, re, json, base64, requests
+import boto3, uuid, re, json, base64, requests, ssl, pika
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime, timedelta, timezone
 from math import floor
@@ -16,16 +16,16 @@ def get_iso20022_mapping(msg):
     else:
         return None
 
-def get_timestamp(time, range=3600):
-    if isinstance(time, str):
-        time = datetime.fromisoformat(time)
-    second = floor(time.second / range) * range if int(range) > 0 else time.second
+def get_timestamp_shift(timestamp, range=3600):
+    time = timestamp if isinstance(timestamp, datetime) else datetime.fromisoformat(str(timestamp))
+    range = int(range)
+    second = floor(time.second / range) * range if range > 0 else time.second
     range = floor(range / 60)
-    minute = floor(time.minute / range) * range if int(range) > 0 else time.minute
+    minute = floor(time.minute / range) * range if range > 0 else time.minute
     range = floor(range / 60)
-    hour = floor(time.hour / range) * range if int(range) > 0 else time.hour
-    return str(datetime(time.year, time.month, time.day,
-        hour=hour, minute=minute, second=second, tzinfo=time.tzinfo).timestamp())
+    hour = floor(time.hour / range) * range if range > 0 else time.hour
+    return datetime(year=time.year, month=time.month, day=time.day,
+        hour=hour, minute=minute, second=second, tzinfo=time.tzinfo)
 
 def get_request_arn(arn):
     result = {}
@@ -38,11 +38,11 @@ def get_request_arn(arn):
         result['request_resource'] = arn[6]
     return result
 
-def get_partition_key(item):
+def get_partition_key(item, range=3600):
     # @TODO: distribute partitioning even further by tenant_id, worker_id, etc
     result = ""
     if 'created_at' in item and item['created_at']:
-        result += get_timestamp(item['created_at'])
+        result += str(get_timestamp_shift(item['created_at'], range).timestamp())
     # if 'created_by' in item and item['created_by']:
     #     result += item['created_by']
     if 'request_region' in item and item['request_region']:
@@ -52,6 +52,17 @@ def get_partition_key(item):
 def get_sort_key(item):
     time = str(item["created_at"]).replace(" ", "+")
     return f'{item["transaction_id"]}|{time}|{item["transaction_status"]}'
+
+def get_filtered_statuses(all, one=None):
+    index = -1
+    result = {'filtered': [], 'index': index}
+    for k in all:
+        index = index + 1
+        if k not in ['FLAG', 'MISS']:
+            result['filtered'].append(k)
+        if k == one:
+            result['index'] = index
+    return result
 
 def s3_get_object(region, bucket, key):
     s3 = boto3.resource('s3', region_name=region)
@@ -170,17 +181,22 @@ def dynamodb_prep_item(attributes):
 
 def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=None, range=3600):
     resource = boto3.resource('dynamodb', region_name=region)
-    kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item))}
+    kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item)), 'ScanIndexForward': False}
     if filter:
-        if 'transaction_status' in filter:
-            kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
-                & Key('sk').between('0', 'Z') & Attr('transaction_status').eq(str(filter['transaction_status'])))
+        if 'created_at' in filter and 'transaction_status' in filter:
+            kwargs['FilterExpression'] = (Attr('created_at').lte(str(filter['created_at']))
+                & Attr('transaction_status').eq(str(filter['transaction_status'])))
+        elif 'transaction_status' in filter:
+            kwargs['FilterExpression'] = Attr('transaction_status').eq(str(filter['transaction_status']))
         elif 'transaction_id' in filter:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                 & Key('sk').begins_with(str(filter['transaction_id'])))
         else:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                 & Key('sk').begins_with(str(item['transaction_id'])))
+    else:
+        kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
+            & Key('sk').begins_with(str(item['transaction_id'])))
     if key1:
         kwargs['ExclusiveStartKey'] = key1
     response = resource.Table(table).query(**kwargs)
@@ -189,23 +205,23 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
 
     if int(range) > 0:
         time = item['created_at'] if isinstance(item['created_at'], datetime) else datetime.fromisoformat(str(item['created_at']))
-        seconds = floor(time.second / range) * range if int(range) > 0 else time.second
-        range = floor(range / 60)
-        minutes = floor(time.minute / range) * range if int(range) > 0 else time.minute
-        range = floor(range / 60)
-        hours = floor(time.hour / range) * range if int(range) > 0 else time.hour
-        item2 = {**item, 'created_at': time - timedelta(hours=hours, minutes=minutes, seconds=seconds)}
-        kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2))}
+        item2 = {**item, 'created_at': time - timedelta(seconds=int(range))}
+        kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2)), 'ScanIndexForward': False}
         if filter:
-            if 'transaction_status' in filter:
-                kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
-                    & Key('sk').between('0', 'Z') & Attr('transaction_status').eq(str(filter['transaction_status'])))
+            if 'created_at' in filter and 'transaction_status' in filter:
+                kwargs['FilterExpression'] = (Attr('created_at').lte(str(filter['created_at']))
+                    & Attr('transaction_status').eq(str(filter['transaction_status'])))
+            elif 'transaction_status' in filter:
+                kwargs['FilterExpression'] = Attr('transaction_status').eq(str(filter['transaction_status']))
             elif 'transaction_id' in filter:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                     & Key('sk').begins_with(str(filter['transaction_id'])))
             else:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                     & Key('sk').begins_with(str(item2['transaction_id'])))
+        else:
+            kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
+                & Key('sk').begins_with(str(item2['transaction_id'])))
         if key2:
             kwargs['ExclusiveStartKey'] = key2
         response2 = resource.Table(table).query(**kwargs)
@@ -224,8 +240,8 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
 def dynamodb_put_item(region, table, attributes, replicated=None):
     resource = boto3.resource('dynamodb', region_name=region)
     item = dynamodb_prep_item(attributes)
-    status = 'FLAG'
     result = {'item': item}
+    status = 'FLAG'
     if item['transaction_status'] in ['ACCP']:
         item2 = {**item, 'transaction_status': status}
         item2['created_at'] = str(item['created_at']
@@ -250,32 +266,28 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
             replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
     return result
 
-def dynamodb_timeout_items(region, table, range=3600):
-    result = []
-    return result
-
-def dynamodb_recover_items(region, region2, table, item, range=3600):
+def dynamodb_batch_items(region, table, item, filter, range=3600):
     result = []
     key1 = None
     key2 = None
-    flag = True
-    filter = {'transaction_status': 'FLAG'}
-    while flag:
-        item2 = {**item, 'request_region': region2}
+    enabled = True
+    while enabled:
+        item2 = {**item, 'request_region': filter['request_region']} if 'request_region' in filter else item
         response = dynamodb_query_by_item(region, table, item2, filter, key1, key2, range)
         if response:
             if 'Items' in response:
                 for i in response['Items']:
-                    item3 = {**i, **item}
-                    result += dynamodb_put_item(region, table, item3)
+                    if i['transaction_status'] == filter['transaction_status']:
+                        item3 = {**i, **item2}
+                        result += dynamodb_put_item(region, table, item3)
             if 'LastEvaluatedKey1' in response:
                 key1 = response['LastEvaluatedKey1']
             elif 'LastEvaluatedKey2' in response:
                 key2 = response['LastEvaluatedKey2']
             else:
-                flag = False
+                enabled = False
         else:
-            flag = False
+            enabled = False
     return result
 
 def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, identity=None):
@@ -292,13 +304,12 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
         response = lambda_health_check(region2, headers, payload)
         if not('StatusCode' in response and response['StatusCode'] == 200):
             return False
+        payload = json.loads(response['Payload'].read())
+        body = json.loads(payload['body'])
+        if int(body['dynamodb_count']) == 0:
+            iter += 1
         else:
-            payload = json.loads(response['Payload'].read())
-            body = json.loads(payload['body'])
-            if int(body['dynamodb_count']) == 0:
-                iter += 1
-            else:
-                return True
+            return True
     return False
 
 def lambda_health_check(region, headers=None, payload=None, function="rp2-health"):
@@ -393,3 +404,26 @@ def auth2token(url, client_id, client_secret):
     }
     response = requests.post(f'{url}/oauth2/token', params=payload, headers=headers, timeout=15)
     return response.json() if response.status_code == 200 else response.text
+
+def connect2rmq(host, port, user, pwd):
+    credentials = pika.PlainCredentials(user, pwd)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    parameters = pika.ConnectionParameters(
+        host=host, port=port, credentials=credentials,
+        ssl_options=pika.SSLOptions(context), virtual_host='/')
+    return pika.BlockingConnection(parameters)
+
+def publish2rmq(connection, data, count, exchange, routing_key):
+    main_channel = connection.channel()
+    properties = pika.BasicProperties(
+        app_id='default_application',
+        content_type='application/json',
+        headers={u'X-Message-Type': u'pacs.008'}
+    )
+    iter = 0
+    while iter < count:
+        main_channel.basic_publish(
+            exchange=exchange,
+            routing_key=routing_key,
+            body=data, properties=properties)
+        iter += 1

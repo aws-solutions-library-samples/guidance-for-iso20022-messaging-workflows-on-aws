@@ -59,13 +59,9 @@ data "aws_ecr_image" "this" {
 }
 
 data "aws_secretsmanager_secret" "this" {
-  # count = length(keys(var.backend_bucket))
-  # name  = replace(data.terraform_remote_state.cognito.outputs.secret_name, data.aws_region.this.name, element(keys(var.backend_bucket), count.index))
   name  = data.terraform_remote_state.cognito.outputs.secret_name
 }
 
 data "aws_secretsmanager_secret_version" "this" {
-  # count     = length(try(data.aws_secretsmanager_secret.this.*.id, []))
-  # secret_id = element(try(data.aws_secretsmanager_secret.this.*.id, []), count.index)
   secret_id = data.aws_secretsmanager_secret.this.id
 }

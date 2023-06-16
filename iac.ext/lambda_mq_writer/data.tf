@@ -1,6 +1,8 @@
 data "terraform_remote_state" "cognito" {
   backend = "s3"
   config = {
+    skip_region_validation = true
+
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
     key    = format(var.backend_pattern, "cognito_user_client_mq")
@@ -10,6 +12,8 @@ data "terraform_remote_state" "cognito" {
 data "terraform_remote_state" "ecr" {
   backend = "s3"
   config = {
+    skip_region_validation = true
+
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
     key    = format(var.backend_pattern, "ecr_mq_writer")
@@ -19,6 +23,8 @@ data "terraform_remote_state" "ecr" {
 data "terraform_remote_state" "sqs" {
   backend = "s3"
   config = {
+    skip_region_validation = true
+
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
     key    = format(var.backend_pattern, "sqs_mq_writer")

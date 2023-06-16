@@ -78,23 +78,6 @@ def lambda_handler(event, context):
             if 'Message' in payload and payload['Message']:
                 id = payload['Message']
 
-            # LOGGER.debug(f'sent request: {id}')
-            # # @TODO: query multiple transaction statuses
-            # item = {'transaction_id': id, 'transaction_status': 'ACSC'}
-            # response = dynamodb_query_by_item(VARIABLES.get_rp2_region(), VARIABLES.get_rp2_ddb_tnx(), item)
-            # LOGGER.debug(f'got dynamodb_query_by_item: {response}')
-            # if 'Item' in response and response['Item']:
-            #     # @TODO: use identity as check point
-            #     if 'created_by' not in response['Item'] or response['Item']['created_by'] != 'api':
-            #         return {
-            #             'statusCode': 200,
-            #             'body': json.dumps({
-            #                 'code': 200,
-            #                 'message': 'message consumed successfully',
-            #                 'request_duration': (datetime.now(timezone.utc)-TIME).total_seconds(),
-            #             })
-            #         }
-
         if id:
             headers['X-Transaction-Id'] = id
 

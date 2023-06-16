@@ -2,7 +2,7 @@ data "aws_iam_policy_document" "this" {
   statement {
     effect    = "Allow"
     actions   = ["s3:GetObject"]
-    resources = [format("%s/%s", aws_s3_bucket.this.arn, var.q.object_name)]
+    resources = [format("%s/%s-*.%s", aws_s3_bucket.this.arn, var.q.object_name, var.q.object_ext)]
 
     principals {
       type        = "AWS"

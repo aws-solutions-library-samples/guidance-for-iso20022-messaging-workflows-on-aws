@@ -52,6 +52,18 @@ def get_partition_key(item):
 def get_sort_key(item):
     time = str(item["created_at"]).replace(" ", "+")
     return f'{item["transaction_id"]}|{time}|{item["transaction_status"]}'
+    # return f'{item["transaction_status"]}|{item["transaction_id"]}|{time}'
+
+def get_filtered_statuses(all, one=None):
+    index = -1
+    result = {'filtered': [], 'index': None}
+    for k in all:
+        index = index + 1
+        if k not in ['FLAG', 'MISS']:
+            result['filtered'].append(k)
+        if k == one:
+            result['index'] = index
+    return result
 
 def s3_get_object(region, bucket, key):
     s3 = boto3.resource('s3', region_name=region)
@@ -174,7 +186,7 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
     if filter:
         if 'transaction_status' in filter:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
-                & Key('sk').between('0', 'Z') & Attr('transaction_status').eq(str(filter['transaction_status'])))
+                & Attr('transaction_status').eq(str(filter['transaction_status'])))
         elif 'transaction_id' in filter:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                 & Key('sk').begins_with(str(filter['transaction_id'])))
@@ -202,7 +214,7 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         if filter:
             if 'transaction_status' in filter:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
-                    & Key('sk').between('0', 'Z') & Attr('transaction_status').eq(str(filter['transaction_status'])))
+                    & Attr('transaction_status').eq(str(filter['transaction_status'])))
             elif 'transaction_id' in filter:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
                     & Key('sk').begins_with(str(filter['transaction_id'])))

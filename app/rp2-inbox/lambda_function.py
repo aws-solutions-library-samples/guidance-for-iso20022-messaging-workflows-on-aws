@@ -4,7 +4,7 @@
 import os, logging, json, xmltodict
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_put_item, dynamodb_query_by_item, lambda_validate, lambda_response, s3_put_object, sqs_send_message
+from util import get_request_arn, get_filtered_statuses, dynamodb_put_item, dynamodb_query_by_item, lambda_validate, lambda_response, s3_put_object, sqs_send_message
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -125,11 +125,8 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_query_by_item: {item}')
         response = dynamodb_query_by_item(region, table, item)
         LOGGER.debug(f'dynamodb_query_by_item: {response}')
-        statuses = []
-        for k in response['Statuses']:
-            if k not in ['FLAG', 'MISS']:
-                statuses.append(k)
-        if statuses != ['ACCP']:
+        statuses = get_filtered_statuses(response['Statuses'])
+        if statuses['filtered'] != ['ACCP']:
             metadata['ErrorMessage'] = 'transaction statuses are out of order'
             LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
             item['transaction_code'] = 'FF02'

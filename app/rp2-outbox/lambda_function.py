@@ -4,7 +4,7 @@
 import os, logging
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_put_item, dynamodb_query_by_item, s3_get_object, lambda_validate, lambda_response
+from util import get_request_arn, get_filtered_statuses, dynamodb_put_item, dynamodb_query_by_item, s3_get_object, lambda_validate, lambda_response
 
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
@@ -91,16 +91,18 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_query_by_item: {item}')
         response = dynamodb_query_by_item(region, table, item)
         LOGGER.debug(f'dynamodb_query_by_item: {response}')
-        statuses = []
-        for i in range(len(response['Statuses'])):
-            if response['Statuses'][i] not in ['FLAG', 'MISS']:
-                statuses.append(response['Statuses'][i])
-                if response['Statuses'][i] == 'ACSC':
-                    object = response['Items'][i]['storage_path']
-                    item['transaction_id'] = response['Items'][i]['transaction_id']
-                    item['message_id'] = response['Items'][i]['message_id']
 
-        if statuses != ['ACSC', 'ACSP', 'ACTC', 'ACCP']:
+        # statuses = []
+        # for i in range(len(response['Statuses'])):
+        #     if response['Statuses'][i] not in ['FLAG', 'MISS']:
+        #         statuses.append(response['Statuses'][i])
+        #         if response['Statuses'][i] == 'ACSC':
+        #             object = response['Items'][i]['storage_path']
+        #             item['transaction_id'] = response['Items'][i]['transaction_id']
+        #             item['message_id'] = response['Items'][i]['message_id']
+
+        statuses = get_filtered_statuses(response['Statuses'], 'ACSC')
+        if statuses['filtered'] != ['ACSC', 'ACSP', 'ACTC', 'ACCP']:
             item['transaction_status'] = 'MISS'
             msg = 'missing object in s3'
             metadata['ErrorCode'] = item['transaction_status']
@@ -109,6 +111,11 @@ def lambda_handler(event, context):
             LOGGER.debug(f'dynamodb_put_item msg: {msg}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
             return lambda_response(400, msg, metadata, TIME)
+
+        if statuses['index'] >= 0:
+            object = response['Items'][statuses['index']]['storage_path']
+            item['transaction_id'] = response['Items'][statuses['index']]['transaction_id']
+            item['message_id'] = response['Items'][statuses['index']]['message_id']
 
     except Exception as e:
         msg = str(e)

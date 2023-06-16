@@ -170,7 +170,7 @@ def dynamodb_item(attributes):
 
 def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=None, range=3600):
     resource = boto3.resource('dynamodb', region_name=region)
-    kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item))}
+    kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item)), 'ScanIndexForward': False}
     if filter:
         if 'transaction_status' in filter:
             kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']
@@ -198,7 +198,7 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         range = floor(range / 60)
         hours = floor(time.hour / range) * range if int(range) > 0 else time.hour
         item2 = {**item, 'created_at': time - timedelta(hours=hours, minutes=minutes, seconds=seconds)}
-        kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2))}
+        kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2)), 'ScanIndexForward': False}
         if filter:
             if 'transaction_status' in filter:
                 kwargs['KeyConditionExpression'] = (kwargs['KeyConditionExpression']

@@ -66,11 +66,11 @@ def lambda_handler(event, context):
     #         LOGGER.info(f'{msg}: {response}')
     #         return lambda_response(200, msg, metadata, TIME)
 
-    # # step 3: initiate recover, force route53 failover
+    # # step 3: force route53 failover and initiate recovery in healthy region
     # try:
     #     bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
-    #     old_key = f'{VARIABLES.get_rp2_health()}.txt'
-    #     new_key = f'{region}/{old_key}'
+    #     old_key = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_check_region()}.txt'
+    #     new_key = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_check_region()}.NOT'
     #     response = s3_move_object(region2, bucket, old_key, new_key)
     #     LOGGER.debug(f'got response: {response.status_code} {response.text}')
 

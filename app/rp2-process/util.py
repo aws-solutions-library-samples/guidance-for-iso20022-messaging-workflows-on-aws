@@ -204,7 +204,8 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         response['LastEvaluatedKey1'] = response['LastEvaluatedKey']
 
     if int(range) > 0:
-        item2 = {**item, 'created_at': item['created_at'] - timedelta(seconds=int(range))}
+        time = item['created_at'] if isinstance(item['created_at'], datetime) else datetime.fromisoformat(str(item['created_at']))
+        item2 = {**item, 'created_at': time - timedelta(seconds=int(range))}
         kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2)), 'ScanIndexForward': False}
         if filter:
             if 'created_at' in filter and 'transaction_status' in filter:

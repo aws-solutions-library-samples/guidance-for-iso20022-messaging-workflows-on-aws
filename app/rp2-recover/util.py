@@ -142,7 +142,7 @@ def sqs_receive_message(region, queue, account, num=1, wait=1):
     response = sqs.receive_message(**kwargs)
     return response.get("Messages", [])
 
-def dynamodb_item(attributes):
+def dynamodb_prep_item(attributes):
     item = {'created_at': str(datetime.utcnow())}
     if attributes:
         if '_arn' in attributes and attributes['_arn']:
@@ -238,7 +238,7 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
 
 def dynamodb_put_item(region, table, attributes, replicated=None):
     resource = boto3.resource('dynamodb', region_name=region)
-    item = dynamodb_item(attributes)
+    item = dynamodb_prep_item(attributes)
     status = 'FLAG'
     result = {'item': item}
     if item['transaction_status'] in ['ACCP']:
@@ -276,8 +276,9 @@ def dynamodb_filter_items(region, table, item, filter, range=3600):
         if response:
             if 'Items' in response:
                 for i in response['Items']:
-                    item3 = {**i, **item2}
-                    result += dynamodb_put_item(region, table, item3)
+                    if i['transactions_status'] == filter['transaction_status']:
+                        item3 = {**i, **item2}
+                        result += dynamodb_put_item(region, table, item3)
             if 'LastEvaluatedKey1' in response:
                 key1 = response['LastEvaluatedKey1']
             elif 'LastEvaluatedKey2' in response:

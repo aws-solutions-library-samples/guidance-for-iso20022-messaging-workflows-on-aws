@@ -277,7 +277,7 @@ def dynamodb_filter_items(region, table, item, filter, range=3600):
         if response:
             if 'Items' in response:
                 for i in response['Items']:
-                    if i['transactions_status'] == filter['transaction_status']:
+                    if i['transaction_status'] == filter['transaction_status']:
                         item3 = {**i, **item2}
                         result += dynamodb_put_item(region, table, item3)
             if 'LastEvaluatedKey1' in response:

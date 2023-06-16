@@ -6,7 +6,7 @@ resource "aws_lambda_function" "this" {
 
   function_name = var.q.function_name
   description   = var.q.description
-  role          = format("arn:aws:iam::%s:role/%s", data.aws_caller_identity.this.account_id, var.q.role_name)
+  role          = data.terraform_remote_state.iam.outputs.arn
   package_type  = var.q.package_type
   architectures = var.arch
   image_uri     = format("%s@%s", data.terraform_remote_state.ecr.outputs.repository_url, data.aws_ecr_image.this.id)

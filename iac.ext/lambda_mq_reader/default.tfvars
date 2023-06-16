@@ -1,7 +1,6 @@
 q = {
   function_name = "rp2-mq-reader"
   description   = "RP2 MQ READER"
-  role_name     = "rp2-lambda-role"
   package_type  = "Image"
   memory_size   = 128
   timeout       = 15

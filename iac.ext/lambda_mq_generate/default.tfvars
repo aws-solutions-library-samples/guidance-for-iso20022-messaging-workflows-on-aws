@@ -1,7 +1,6 @@
 q = {
   function_name = "rp2-mq-generator"
   description   = "RP2 MQ GENERATOR"
-  role_name     = "rp2-lambda-role"
   package_type  = "Image"
   memory_size   = 128
   timeout       = 15

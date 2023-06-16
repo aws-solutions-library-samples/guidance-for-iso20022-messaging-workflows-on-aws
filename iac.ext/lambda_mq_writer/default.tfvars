@@ -1,7 +1,6 @@
 q = {
   function_name = "rp2-mq-writer"
   description   = "RP2 MQ WRITER"
-  role_name     = "rp2-lambda-role"
   package_type  = "Image"
   memory_size   = 128
   timeout       = 15

@@ -33,3 +33,7 @@ output "domain" {
 output "custom_domain" {
   value = var.custom_domain
 }
+
+output "rp2_id" {
+  value = local.rp2_id
+}

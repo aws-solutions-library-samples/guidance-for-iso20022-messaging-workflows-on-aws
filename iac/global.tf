@@ -2,7 +2,8 @@ data "aws_region" "this" {}
 data "aws_caller_identity" "this" {}
 
 provider "aws" {
-  allowed_account_ids = try(split(",", var.account), null)
+  allowed_account_ids    = try(split(",", var.account), null)
+  skip_region_validation = true
 
   default_tags {
     tags = {
@@ -14,12 +15,12 @@ provider "aws" {
 }
 
 terraform {
-  required_version = ">= 1.2.0, <1.5.0"
+  required_version = ">= 1.2.0, <1.6.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.65.0"
+      version = "5.3.0"
     }
   }
 }

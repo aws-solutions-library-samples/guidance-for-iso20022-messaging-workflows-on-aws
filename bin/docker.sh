@@ -9,7 +9,7 @@ help()
   echo "q     Specify repository name (e.g. rp2-inbox)"
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "v     Specify version number (e.g. latest)"
-  echo "p     Specify platform (e.g. linux/amd64)"
+  echo "p     Specify platform (e.g. linux/arm64)"
   echo "u     Update Lambda function (e.g. true)"
   echo
 }
@@ -19,7 +19,7 @@ set -o pipefail
 REGION="us-east-1"
 REPOSITORY="rp2-health"
 VERSION="latest"
-PLATFORM="linux/amd64"
+PLATFORM="linux/arm64"
 UPDATE=""
 
 while getopts "h:q:r:v:p:u:" option; do

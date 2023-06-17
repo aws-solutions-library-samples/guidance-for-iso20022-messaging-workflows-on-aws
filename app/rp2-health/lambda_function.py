@@ -1,8 +1,10 @@
-#!/usr/bin/env python3
+# Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 import os, uuid, logging
 from datetime import datetime, timezone
 from env import Variables
-from util import get_request_arn, dynamodb_get_by_item, s3_get_object, sqs_receive_message, lambda_response
+from util import get_request_arn, dynamodb_query_by_item, s3_get_object, sqs_receive_message, lambda_response
 
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
@@ -60,16 +62,17 @@ def lambda_handler(event, context):
 
     account = VARIABLES.get_rp2_account()
     region = VARIABLES.get_rp2_region()
-    bucket = VARIABLES.get_rp2_bucket()
-    key = VARIABLES.get_rp2_check_s3()
-    queue = VARIABLES.get_rp2_check_sqs()
+    bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
+    key = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}.txt'
+    queue = f'{VARIABLES.get_rp2_health()}.fifo'
     table = VARIABLES.get_rp2_ddb_tnx()
 
     # step 2: get sqs message
     if not ('headers' in event and event['headers'] and 'X-SQS-Skip' in event['headers']):
         try:
+            LOGGER.debug(f'sqs_receive_message: {account}')
             response = sqs_receive_message(region, queue, account)
-            LOGGER.info(f'got response: {response}')
+            LOGGER.debug(f'sqs_receive_message response: {response}')
             metadata['SqsCount'] = len(response)
         except Exception as e:
             error['sqs'] = str(e)
@@ -77,8 +80,9 @@ def lambda_handler(event, context):
     # step 3: get s3 object
     if not ('headers' in event and event['headers'] and 'X-S3-Skip' in event['headers']):
         try:
+            LOGGER.debug(f's3_get_object: {key}')
             response = s3_get_object(region, bucket, key)
-            LOGGER.info(f'got response: {response}')
+            LOGGER.debug(f's3_get_object response: {response}')
             metadata['S3Count'] = int(response['path'] == key)
         except Exception as e:
             error['s3'] = str(e)
@@ -86,12 +90,14 @@ def lambda_handler(event, context):
     # step 4: get dynamodb item
     if not('headers' in event and event['headers'] and 'X-DynamoDB-Skip' in event['headers']):
         try:
-            item = {'created_at': TIME}
             if 'headers' in event and event['headers'] and 'X-Transaction-Status' in event['headers'] and event['headers']['X-Transaction-Status']:
                 item['transaction_status'] = event['headers']['X-Transaction-Status']
-            response = dynamodb_get_by_item(region, table, item)
-            LOGGER.info(f'got response: {response}')
-            metadata['DynamodbCount'] = response['Count']
+            if 'headers' in event and event['headers'] and 'X-Transaction-Region' in event['headers'] and event['headers']['X-Transaction-Region']:
+                item['request_region'] = event['headers']['X-Transaction-Region']
+            LOGGER.debug(f'dynamodb_query_by_item: {item}')
+            response = dynamodb_query_by_item(region, table, item)
+            LOGGER.debug(f'dynamodb_query_by_item response: {response}')
+            metadata['DynamodbCount'] = 1 if 'transaction_status' in item and item['transaction_status'] in response['Statuses'] else 0
         except Exception as e:
             error['dynamodb'] = str(e)
 

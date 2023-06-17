@@ -6,7 +6,7 @@ ENV LANG=en_US.UTF-8 \
     LAMBDA_RUNTIME_DIR=/var/runtime \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100
+    PIP_DEFAULT_TIMEOUT=120
 
 ENV VIRTUAL_ENV=${LAMBDA_TASK_ROOT}/venv \
     PYTHONPATH=${PYTHONPATH}:${LAMBDA_TASK_ROOT} \
@@ -16,11 +16,16 @@ ENV PATH=${VIRTUAL_ENV}/bin:/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin
 
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-RUN python3 -m venv ${VIRTUAL_ENV}
+RUN yum update -y
 
 COPY . .
 
-RUN  pip3 install --no-cache-dir -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+RUN pip3 install --upgrade pip
+
+RUN pip3 install --no-cache-dir -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+
+# work-around: https://github.com/psf/requests/issues/6443
+RUN pip3 install --upgrade 'urllib3<2'
 
 CMD [ "lambda_function.lambda_handler" ]
 

@@ -1,10 +1,13 @@
 # ISO 20022 Payments Processing
 
 ISO 20022 Payments Processing is an AWS Solution designed to receive, process
-and release ISO 20022 payment messages across multiple AWS regions in an
-active-active architecture. You can deploy this solution as a proxy in front of
-your existing payments infrastructure, on-prem or in the cloud, or use it as
-the foundational building block to modernize existing payments systems.
+and release ISO 20022 payment messages. You can deploy this solution as a proxy
+in front of your existing payments infrastructure, on-prem or in the cloud, or
+use it as the foundational building block to modernize existing payments
+systems. This solution provides multi-region tunable consistency with decision
+making process managed by API consumer that allows for the acceptance,
+rejection, cancellation, and re-drive of data processing workflows with
+failover across AWS regions.
 
 ![Architecture Diagram](./docs/architecture.png "Event Driven Architecture")
 

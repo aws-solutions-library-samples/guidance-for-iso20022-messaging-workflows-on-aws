@@ -19,7 +19,7 @@ locals {
         data.aws_caller_identity.this.account_id, data.aws_caller_identity.this.account_id)
     },
     {
-      actions   = "kms:DescribeKey,kms:ListAliases"
+      actions   = "kms:DescribeKey,kms:ListAliases,kms:Decrypt"
       resources = format(
         "arn:aws:kms:*:%s:key/*",
         data.aws_caller_identity.this.account_id)

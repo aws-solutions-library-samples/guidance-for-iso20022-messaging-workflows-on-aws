@@ -8,7 +8,7 @@ q = {
   storage_size  = 512
   tracing_mode  = "PassThrough"
   reserved      = 20
-  logging       = "DEBUG"
+  logging       = "INFO"
 
   dlq_name                = "rp2-recover-lambda-dql"
   sqs_managed_sse_enabled = true

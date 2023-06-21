@@ -49,9 +49,11 @@ locals {
     {
       actions   = "s3:*,s3-object-lambda:*,tag:GetResources"
       resources = format(
-        "%s,%s/*",
+        "%s,%s/*,%s,%s/*",
         data.terraform_remote_state.s3.outputs.arn,
-        data.terraform_remote_state.s3.outputs.arn)
+        data.terraform_remote_state.s3.outputs.arn,
+        replace(data.terraform_remote_state.s3.outputs.arn, element(var.backend_bucket, 0), element(var.backend_bucket, 1)),
+        replace(data.terraform_remote_state.s3.outputs.arn, element(var.backend_bucket, 0), element(var.backend_bucket, 1)))
     },
     {
       actions   = "sns:*,tag:GetResources"

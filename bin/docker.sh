@@ -62,8 +62,9 @@ ENDPOINT="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
 DOCKER_CONFIG="${WORKDIR}/.docker"
 
 mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"credsStore\":\"ecr-login\"}" > ${DOCKER_CONFIG}/config.json
-# echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
-# aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo &2 "[ERROR] docker login failed. aborting..."; exit 1; }
+
+echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
+aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo &2 "[ERROR] docker login failed. aborting..."; exit 1; }
 
 echo "[INFO] docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM}"
 docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }

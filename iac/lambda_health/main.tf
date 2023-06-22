@@ -23,7 +23,7 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      RP2_SECRETS_MANAGER     = local.lambda_layer_arn == null ? null : data.aws_secretsmanager_secret.this.name
+      RP2_SECRETS             = local.lambda_layer_arn == null ? null : data.aws_secretsmanager_secret.this.name
       RP2_LOGGING             = var.q.logging
       RP2_ID                  = data.terraform_remote_state.s3.outputs.rp2_id
       RP2_ACCOUNT             = data.aws_caller_identity.this.account_id

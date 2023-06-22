@@ -23,7 +23,6 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      RP2_SECRETS             = local.lambda_layer_arn == null ? null : data.aws_secretsmanager_secret.this.name
       RP2_LOGGING             = var.q.logging
       RP2_ID                  = data.terraform_remote_state.s3.outputs.rp2_id
       RP2_ACCOUNT             = data.aws_caller_identity.this.account_id
@@ -36,6 +35,7 @@ resource "aws_lambda_function" "this" {
         ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
       # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)
       # RP2_CHECK_CLIENT_SECRET = try(local.cognito2["client_secret"], null)
+      RP2_SECRETS             = local.lambda_layer_arn == null ? null : data.aws_secretsmanager_secret.this.name
       SECRETS_MANAGER_TTL     = var.q.secrets_manager_ttl
     }
   }

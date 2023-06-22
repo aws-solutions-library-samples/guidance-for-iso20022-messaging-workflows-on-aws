@@ -13,7 +13,7 @@ resource "aws_lambda_function" "this" {
   memory_size   = var.q.memory_size
   timeout       = var.q.timeout
   publish       = var.q.publish
-  layers        = local.lambda_layer_arn == null ? null : [local.lambda_layer_arn]
+  # layers        = local.lambda_layer_arn == null ? null : [local.lambda_layer_arn]
 
   reserved_concurrent_executions = var.q.reserved
 

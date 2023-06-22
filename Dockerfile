@@ -1,10 +1,10 @@
 FROM 711153795068.dkr.ecr.us-east-1.amazonaws.com/rp2-secrets:latest AS layer
 
+FROM public.ecr.aws/lambda/python:3.10-arm64
+
 WORKDIR /opt
 COPY --from=layer /opt/ .
 # RUN pip3 install -r /opt/requirements.txt -t /opt/extensions/lib
-
-FROM public.ecr.aws/lambda/python:3.10-arm64
 
 ENV LANG=en_US.UTF-8 \
     TZ=:/etc/localtime \

@@ -67,7 +67,7 @@ echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --user
 aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo &2 "[ERROR] docker login failed. aborting..."; exit 1; }
 
 echo "[INFO] docker build -t rp2-secrets:latest -f ${WORKDIR}/Dockerfile.secrets ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM}"
-docker build -t rp2-secrets:latest -f ${WORKDIR}/Dockerfile.secrets ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
+docker build -t rp2-secrets:latest -f ${WORKDIR}/Dockerfile.secrets ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} --build-arg AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
 
 echo "[INFO] docker push ${ENDPOINT}/rp2-secrets:latest"
 docker push ${ENDPOINT}/rp2-secrets:latest || { echo &2 "[ERROR] docker push failed. aborting..."; exit 1; }

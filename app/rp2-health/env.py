@@ -32,9 +32,13 @@ class Variables:
         self.RP2_TIMEOUT_TRANSACTION = self.get_rp2_timeout_transaction()
 
     def _retrieve_from_secretsmanager(secret, port='2773'):
-        headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
-        r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
-        secret = json.loads(r.text)["SecretString"]
+        try:
+            headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
+            r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
+            response = json.loads(r.text)["SecretString"]
+        except Exception as e:
+            response = {'client_id': None, 'client_secret': None}
+        return response
 
     def get_rp2_secrets(self) -> str:
         if os.getenv('RP2_SECRETS') is not None:
@@ -153,7 +157,7 @@ class Variables:
         elif self.env.get_rp2_auth_client_id() is not None:
             return self.env.get_rp2_auth_client_id()
         else:
-            return 'rp2_auth_client_id'
+            return None
 
     def get_rp2_auth_client_secret(self) -> str:
         if self.env.get_rp2_secrets() is not None:
@@ -164,7 +168,7 @@ class Variables:
         elif self.env.get_rp2_auth_client_secret() is not None:
             return self.env.get_rp2_auth_client_secret()
         else:
-            return 'rp2_auth_client_secret'
+            return None
 
     def get_rp2_check_recover(self) -> str:
         if os.getenv('RP2_CHECK_RECOVER') is not None:

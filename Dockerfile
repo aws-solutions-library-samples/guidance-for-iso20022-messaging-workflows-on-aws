@@ -1,4 +1,4 @@
-FROM 177933569100.dkr.ecr.us-east-1.amazonaws.com/AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4 AS layer
+FROM 177933569100.dkr.ecr.us-east-1.amazonaws.com/aws-parameters-and-secrets-lambda-extension-arm64:4 AS layer
 # arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
 # arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4
 

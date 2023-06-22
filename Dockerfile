@@ -1,7 +1,5 @@
 FROM alpine:latest AS layer
 
-FROM public.ecr.aws/lambda/python:3.10-arm64
-
 ARG AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"us-east-1"}
 ARG AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-""}
 ARG AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-""}
@@ -21,6 +19,8 @@ RUN curl $(aws lambda get-layer-version-by-arn --arn arn:aws:lambda:us-east-1:17
 RUN mkdir -p /opt
 RUN unzip layer.zip -d /opt
 RUN rm layer.zip
+
+FROM public.ecr.aws/lambda/python:3.10-arm64
 
 WORKDIR /opt
 COPY --from=layer /opt/ .

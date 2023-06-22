@@ -8,6 +8,11 @@ dependency "ecr" {
   skip_outputs = true
 }
 
+dependency "iam" {
+  config_path  = "../iam_role_lambda_mq_writer"
+  skip_outputs = true
+}
+
 dependency "sqs" {
   config_path  = "../sqs_mq_writer"
   skip_outputs = true

@@ -27,7 +27,7 @@ data "terraform_remote_state" "iam" {
 
     region = element(keys(var.backend_bucket), 0)
     bucket = var.backend_bucket[element(keys(var.backend_bucket), 0)]
-    key    = format(var.backend_pattern, "iam_role_lambda")
+    key    = format(var.backend_pattern, "iam_role_lambda_inbox")
   }
 }
 

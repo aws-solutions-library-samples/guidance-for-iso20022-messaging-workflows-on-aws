@@ -9,6 +9,6 @@ dependency "ecr" {
 }
 
 dependency "iam" {
-  config_path  = "../iam_role_lambda"
+  config_path  = "../iam_role_lambda_timeout"
   skip_outputs = true
 }

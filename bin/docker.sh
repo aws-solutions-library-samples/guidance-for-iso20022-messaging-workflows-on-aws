@@ -65,8 +65,8 @@ mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"cred
 # echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
 # aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo &2 "[ERROR] docker login failed. aborting..."; exit 1; }
 
-echo "[INFO] docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM}"
-docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
+echo "[INFO] docker buildx build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM}"
+docker buildx build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
 
 echo "[INFO] docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION}"
 docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION} || { echo &2 "[ERROR] docker tag failed. aborting..."; exit 1; }

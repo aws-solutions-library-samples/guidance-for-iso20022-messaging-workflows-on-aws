@@ -36,6 +36,7 @@ resource "aws_lambda_function" "this" {
         ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
       # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)
       # RP2_CHECK_CLIENT_SECRET = try(local.cognito2["client_secret"], null)
+      SECRETS_MANAGER_TTL     = var.q.secrets_manager_ttl
     }
   }
 

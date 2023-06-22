@@ -27,7 +27,7 @@ locals {
     {
       actions   = "secretsmanager:GetSecretValue"
       resources = format(
-        "arn:aws:secretsmanager:*:%s:secret/rp2-*",
+        "arn:aws:secretsmanager:*:%s:secret:rp2-*",
         data.aws_caller_identity.this.account_id)
     },
     {

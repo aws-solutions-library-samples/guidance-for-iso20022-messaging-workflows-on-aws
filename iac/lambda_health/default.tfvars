@@ -13,4 +13,5 @@ q = {
 
   dlq_name                = "rp2-health-lambda-dql"
   sqs_managed_sse_enabled = true
+  secrets_manager_ttl     = 3600
 }

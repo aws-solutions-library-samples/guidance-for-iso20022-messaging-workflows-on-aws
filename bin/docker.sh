@@ -67,8 +67,11 @@ mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"cred
 echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
 aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo &2 "[ERROR] docker login failed. aborting..."; exit 1; }
 
+echo "[INFO] aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/rp2-cicd-assume-role --role-session-name ${ACCOUNT}"
+ASSUME_ROLE=$(aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/rp2-cicd-assume-role --role-session-name ${ACCOUNT})
+
 echo "[INFO] docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM}"
-docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
+docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/Dockerfile ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} --build-arg AWS_DEFAULT_REGION=${REGION} --build-arg AWS_ACCESS_KEY_ID=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.AccessKeyId') --build-arg AWS_SECRET_ACCESS_KEY=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SecretAccessKey') --build-arg AWS_SESSION_TOKEN=$(echo "${ASSUME_ROLE}" || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
 
 echo "[INFO] docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION}"
 docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION} || { echo &2 "[ERROR] docker tag failed. aborting..."; exit 1; }

@@ -1,6 +1,26 @@
-FROM 711153795068.dkr.ecr.us-east-1.amazonaws.com/rp2-secrets:latest AS layer
+FROM alpine:latest AS layer
 
 FROM public.ecr.aws/lambda/python:3.10-arm64
+
+ARG AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"us-east-1"}
+ARG AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-""}
+ARG AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-""}
+ARG AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-""}
+
+ENV AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ENV AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+
+RUN apk add aws-cli curl unzip
+
+# arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
+# arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4
+RUN curl $(aws lambda get-layer-version-by-arn --arn arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4 --region us-east-1 --query 'Content.Location' --output text) --output layer.zip
+
+RUN mkdir -p /opt
+RUN unzip layer.zip -d /opt
+RUN rm layer.zip
 
 WORKDIR /opt
 COPY --from=layer /opt/ .
@@ -14,13 +34,13 @@ ENV LANG=en_US.UTF-8 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=120
 
+WORKDIR ${LAMBDA_TASK_ROOT}
+
 ENV VIRTUAL_ENV=${LAMBDA_TASK_ROOT}/venv \
     PYTHONPATH=${PYTHONPATH}:${LAMBDA_TASK_ROOT} \
     LD_LIBRARY_PATH=/var/lang/lib:/lib64:/usr/lib64:/opt/lib:${LAMBDA_RUNTIME_DIR}:${LAMBDA_RUNTIME_DIR}/lib:${LAMBDA_TASK_ROOT}:${LAMBDA_TASK_ROOT}/lib
 
 ENV PATH=${VIRTUAL_ENV}/bin:/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin:${PATH}
-
-WORKDIR ${LAMBDA_TASK_ROOT}
 
 RUN yum update -y
 

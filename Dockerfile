@@ -1,4 +1,12 @@
+FROM 177933569100.dkr.ecr.us-east-1.amazonaws.com/AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4 AS layer
+# arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
+# arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4
+
 FROM public.ecr.aws/lambda/python:3.10-arm64
+
+WORKDIR /opt
+COPY --from=layer /opt/ .
+# RUN pip3 install -r /opt/requirements.txt -t /opt/extensions/lib
 
 ENV LANG=en_US.UTF-8 \
     TZ=:/etc/localtime \

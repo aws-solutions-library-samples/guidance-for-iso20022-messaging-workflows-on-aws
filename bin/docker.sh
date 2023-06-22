@@ -61,6 +61,7 @@ ACCOUNT=${ACCOUNT//\"/}
 ENDPOINT="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
 DOCKER_CONFIG="${WORKDIR}/.docker"
 
+echo "[INFO] echo {\"credsStore\":\"ecr-login\"} > ${DOCKER_CONFIG}/config.json"
 mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"credsStore\":\"ecr-login\"}" > ${DOCKER_CONFIG}/config.json
 
 echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
@@ -68,6 +69,9 @@ aws ecr get-login-password --region ${REGION} | docker login --username AWS --pa
 
 echo "[INFO] docker build -t rp2-secrets:latest -f ${WORKDIR}/Dockerfile.secrets ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM}"
 docker build -t rp2-secrets:latest -f ${WORKDIR}/Dockerfile.secrets ${WORKDIR}/app/${REPOSITORY}/ --platform ${PLATFORM} --build-arg AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} --build-arg AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN} || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
+
+echo "[INFO] docker tag rp2-secrets:latest ${ENDPOINT}/rp2-secrets:latest"
+docker tag rp2-secrets:latest ${ENDPOINT}/rp2-secrets:latest || { echo &2 "[ERROR] docker tag failed. aborting..."; exit 1; }
 
 echo "[INFO] docker push ${ENDPOINT}/rp2-secrets:latest"
 docker push ${ENDPOINT}/rp2-secrets:latest || { echo &2 "[ERROR] docker push failed. aborting..."; exit 1; }

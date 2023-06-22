@@ -25,6 +25,12 @@ locals {
         data.aws_caller_identity.this.account_id)
     },
     {
+      actions   = "secretsmanager:GetSecretValue"
+      resources = format(
+        "arn:aws:secretsmanager:*:%s:secret/rp2-*",
+        data.aws_caller_identity.this.account_id)
+    },
+    {
       actions   = "lambda:InvokeFunction,tag:GetResources"
       resources = format(
         "arn:aws:lambda:*:%s:function:rp2-*",

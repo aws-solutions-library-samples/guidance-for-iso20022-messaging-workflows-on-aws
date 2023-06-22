@@ -1,12 +1,13 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import os, logging
+import os, logging, requests, json
 from dotenv import load_dotenv
 
 class Variables:
     def __init__(self, DOTENV):
         self.env = load_dotenv(DOTENV)
+        self.RP2_SECRETS = self.get_rp2_secrets()
         self.RP2_LOGGING = self.get_rp2_logging()
         self.RP2_ID = self.get_rp2_id()
         self.RP2_ACCOUNT = self.get_rp2_account()
@@ -29,6 +30,19 @@ class Variables:
         self.RP2_DDB_LIQ = self.get_rp2_ddb_liq()
         self.RP2_TIMESTAMP_PARTITION = self.get_rp2_timestamp_partition()
         self.RP2_TIMEOUT_TRANSACTION = self.get_rp2_timeout_transaction()
+
+    def _retrieve_from_secretsmanager(secret, port='2773'):
+        headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
+        r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
+        secret = json.loads(r.text)["SecretString"]
+
+    def get_rp2_secrets(self) -> str:
+        if os.getenv('RP2_SECRETS') is not None:
+            return os.getenv('RP2_SECRETS')
+        elif self.env.get_rp2_secrets() is not None:
+            return self.env.get_rp2_secrets()
+        else:
+            return None
 
     def get_rp2_logging(self) -> str:
         result = ''
@@ -131,7 +145,10 @@ class Variables:
             return 'http://localhost/auth'
 
     def get_rp2_auth_client_id(self) -> str:
-        if os.getenv('RP2_AUTH_CLIENT_ID') is not None:
+        if self.env.get_rp2_secrets() is not None:
+            secret = self._retrieve_from_secretsmanager(self.env.get_rp2_secrets())
+            return secret['client_id']
+        elif os.getenv('RP2_AUTH_CLIENT_ID') is not None:
             return os.getenv('RP2_AUTH_CLIENT_ID')
         elif self.env.get_rp2_auth_client_id() is not None:
             return self.env.get_rp2_auth_client_id()
@@ -139,7 +156,10 @@ class Variables:
             return 'rp2_auth_client_id'
 
     def get_rp2_auth_client_secret(self) -> str:
-        if os.getenv('RP2_AUTH_CLIENT_SECRET') is not None:
+        if self.env.get_rp2_secrets() is not None:
+            secret = self._retrieve_from_secretsmanager(self.env.get_rp2_secrets())
+            return secret['client_secret']
+        elif os.getenv('RP2_AUTH_CLIENT_SECRET') is not None:
             return os.getenv('RP2_AUTH_CLIENT_SECRET')
         elif self.env.get_rp2_auth_client_secret() is not None:
             return self.env.get_rp2_auth_client_secret()

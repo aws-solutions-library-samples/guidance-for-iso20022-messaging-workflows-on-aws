@@ -8,11 +8,12 @@ resource "aws_lambda_function" "this" {
   description   = var.q.description
   role          = data.terraform_remote_state.iam.outputs.arn
   package_type  = var.q.package_type
-  architectures = var.arch
+  architectures = [var.q.architecture]
   image_uri     = format("%s@%s", data.terraform_remote_state.ecr.outputs.repository_url, data.aws_ecr_image.this.id)
   memory_size   = var.q.memory_size
   timeout       = var.q.timeout
   publish       = var.q.publish
+  layers        = local.lambda_layer_arn == null ? null : [local.lambda_layer_arn]
 
   reserved_concurrent_executions = var.q.reserved
 
@@ -22,14 +23,15 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
+      RP2_SECRETS_MANAGER     = local.lambda_layer_arn == null ? null : data.aws_secretsmanager_secret.this.name
       RP2_LOGGING             = var.q.logging
       RP2_ID                  = data.terraform_remote_state.s3.outputs.rp2_id
       RP2_ACCOUNT             = data.aws_caller_identity.this.account_id
       RP2_REGION              = data.aws_region.this.name
       RP2_API_URL             = format("api-%s", local.domain)
       RP2_AUTH_URL            = format("auth-%s", local.domain)
-      RP2_AUTH_CLIENT_ID      = try(local.cognito["client_id"], null)
-      RP2_AUTH_CLIENT_SECRET  = try(local.cognito["client_secret"], null)
+      RP2_AUTH_CLIENT_ID      = local.lambda_layer_arn == null ? try(local.cognito["client_id"], null) : null
+      RP2_AUTH_CLIENT_SECRET  = local.lambda_layer_arn == null ? try(local.cognito["client_secret"], null) : null
       RP2_CHECK_REGION        = (data.aws_region.this.name == element(keys(var.backend_bucket), 0)
         ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
       # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)

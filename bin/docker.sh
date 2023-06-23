@@ -10,7 +10,7 @@ help()
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "v     Specify version number (e.g. latest)"
   echo "p     Specify platform (e.g. linux/arm64)"
-  echo "p     Specify directory (e.g. app)"
+  echo "p     Specify directory (e.g. app.src)"
   echo "u     Update Lambda function (e.g. true)"
   echo
 }
@@ -21,7 +21,7 @@ REGION="us-east-1"
 REPOSITORY="rp2-health"
 VERSION="latest"
 PLATFORM="linux/arm64"
-DIRECTORY="app"
+DIRECTORY="app.src"
 UPDATE=""
 
 while getopts "h:q:r:v:p:d:u:" option; do

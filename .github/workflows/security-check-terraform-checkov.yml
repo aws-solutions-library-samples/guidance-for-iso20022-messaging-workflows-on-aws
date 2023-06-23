@@ -15,17 +15,26 @@ jobs:
       - name: Setup GitHub Actions
         uses: actions/checkout@master
 
-      - name: Run Checkov
-        id: checkov
+      - name: Run Checkov on Source Code
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: ./iac/
+          directory: ./iac.src/
           framework: terraform
           soft_fail: true
           download_external_modules: true
           output_format: cli,sarif
           output_file_path: console,results.sarif
 
+      - name: Run Checkov on Demo Code
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./iac.demo/
+          framework: terraform
+          soft_fail: true
+          download_external_modules: true
+          output_format: cli,sarif
+          output_file_path: console,results.sarif
+  
       # - name: Upload Artifact
       #   uses: github/codeql-action/upload-sarif@master
         

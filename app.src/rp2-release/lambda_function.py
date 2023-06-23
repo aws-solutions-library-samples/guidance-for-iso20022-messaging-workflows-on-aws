@@ -57,6 +57,7 @@ def lambda_handler(event, context):
     region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
     api_url = VARIABLES.get_rp2_env('RP2_API_URL')
     table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    runtime = VARIABLES.get_rp2_env('RP2_RUNTIME')
     replicated = None
     ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))
     if ddb_retry > 0:
@@ -145,7 +146,7 @@ def lambda_handler(event, context):
 
     # step 6: backup message to s3
     try:
-        bucket = f'{VARIABLES.get_rp2_runtime()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
+        bucket = f'{runtime}-{region}-{rp2_id}'
         response = s3_put_object(region, bucket, 'outbox', object_name, object_ext, body, TIME)
         item['storage_path'] = response['path']
         item['storage_type'] = object_ext
@@ -192,8 +193,8 @@ def lambda_handler(event, context):
     metadata = {
         'TransactionId': id,
         'RequestId': request_id,
-        'RegionId': VARIABLES.get_rp2_region(),
-        'ApiEndpoint': VARIABLES.get_rp2_api_url(),
+        'RegionId': region,
+        'ApiEndpoint': api_url,
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']

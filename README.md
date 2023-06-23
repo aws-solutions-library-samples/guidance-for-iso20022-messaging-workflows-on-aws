@@ -44,11 +44,12 @@ backend and your custom domain (or subdomain) for API and AUTH endpoints
 
 Starting at ROOT level of this repository, run the following four commands:
 
-1/ Change the current working directory to `iac/s3_runtime/`. The same approach
-can be applied to any other component / subdirectory under the `iac/` directory
+1/ Change the current working directory to `iac.src/s3_runtime/`. The same
+approach can be applied to any other component / subdirectory under the
+`iac.src/` directory
 
   ```sh
-  cd iac/s3_runtime/
+  cd iac.src/s3_runtime/
   ```
 
 2/ Execute the terraform cli from below to initialize providers, plugins and
@@ -75,19 +76,19 @@ previous step
   terraform apply -var-file default.tfvars -auto-approve
   ```
 
-Repeat the same four steps for all other subdirectories in `iac/` directory.
+Repeat the same four steps for all other subdirectories in `iac.src/` directory.
 
-As you can see, there are tens of terraform components in `iac/` directory that
-could grow to hundreds or thousands, therefore you need a better way to run
-terraform commands at scale for all these components (see Terragrunt Commands
-below)
+As you can see, there are tens of terraform components in `iac.src/` directory
+that could grow to hundreds or thousands, therefore you need a better way to
+run terraform commands at scale for all these components (see Terragrunt
+Commands below)
 
 ### Terragrunt Commands
 
 Starting at ROOT level of this repository, run the following three commands:
 
 1/ Execute the terragrunt cli from below to run corresponding `terraform init`
-for all components / subdirectories in `iac/` directory
+for all components / subdirectories in `iac.src/` directory
 
   ```sh
   terragrunt run-all init \
@@ -96,14 +97,14 @@ for all components / subdirectories in `iac/` directory
   ```
 
 2/ Execute the terragrunt cli from below to run corresponding `terraform plan`
-for all components / subdirectories in `iac/` directory
+for all components / subdirectories in `iac.src/` directory
 
   ```sh
   terragrunt run-all plan -var-file default.tfvars
   ```
 
 3/ Execute the terragrunt cli from below to run corresponding `terraform apply`
-for all components / subdirectories in `iac/` directory
+for all components / subdirectories in `iac.src/` directory
 
   ```sh
   terragrunt run-all apply -var-file default.tfvars -auto-approve

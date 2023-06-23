@@ -35,5 +35,5 @@ resource "aws_sns_topic_subscription" "this" {
   topic_arn     = format("arn:aws:sns:%s:%s:%s", data.aws_region.this.name, data.aws_caller_identity.this.account_id, var.q.sns_topic)
   endpoint      = aws_sqs_queue.this.arn
   protocol      = "sqs"
-  filter_policy = local.cognito["client_id"] != null ? jsonencode({ identity = [local.cognito["client_id"]] }) : null
+  filter_policy = local.cognito["RP2_AUTH_CLIENT_ID"] != null ? jsonencode({ identity = [local.cognito["RP2_AUTH_CLIENT_ID"]] }) : null
 }

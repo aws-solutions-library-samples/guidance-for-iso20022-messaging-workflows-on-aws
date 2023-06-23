@@ -47,7 +47,7 @@ resource "aws_secretsmanager_secret" "this" {
 resource "aws_secretsmanager_secret_version" "this" {
   secret_id = aws_secretsmanager_secret.this.id
   secret_string = jsonencode({
-    client_id     = aws_cognito_user_pool_client.this.id
-    client_secret = aws_cognito_user_pool_client.this.client_secret
+    RP2_AUTH_CLIENT_ID     = aws_cognito_user_pool_client.this.id
+    RP2_AUTH_CLIENT_SECRET = aws_cognito_user_pool_client.this.client_secret
   })
 }

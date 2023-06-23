@@ -1,4 +1,3 @@
 locals {
-  empty   = { client_id = null, client_secret = null }
-  cognito = try(jsondecode(data.aws_secretsmanager_secret_version.cognito.secret_string), local.empty)
+  cognito = try(jsondecode(data.aws_secretsmanager_secret_version.cognito.secret_string), { RP2_AUTH_CLIENT_ID = null })
 }

@@ -10,9 +10,9 @@ LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
 TOKEN: str = auth2token(
-    VARIABLES.get_rp2_auth_url(),
-    VARIABLES.get_rp2_auth_client_id(),
-    VARIABLES.get_rp2_auth_client_secret())
+    VARIABLES.get_rp2_env('RP2_AUTH_URL'),
+    VARIABLES.get_rp2_secrets('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_ID'),
+    VARIABLES.get_rp2_secrets('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_SECRET'))
 
 if logging.getLogger().hasHandlers():
     logging.getLogger().setLevel(VARIABLES.get_rp2_logging())
@@ -84,10 +84,10 @@ def lambda_handler(event, context):
     except Exception as e:
         LOGGER.warning(f'getting transaction id failed: {str(e)}')
 
-    url = VARIABLES.get_rp2_api_url()
+    url = VARIABLES.get_rp2_env('RP2_API_URL')
     if not url.startswith('http'):
         url = f'https://{url}'
-    outbox = VARIABLES.get_rp2_api_outbox()
+    outbox = VARIABLES.get_rp2_env('RP2_API_OUTBOX')
     LOGGER.debug(f'making requests to `{outbox}` api')
     LOGGER.debug(f'request headers: {headers}')
     response = requests.post(f'{url}/{outbox}', headers=headers, timeout=15)
@@ -106,15 +106,15 @@ def lambda_handler(event, context):
     data = response.text
     LOGGER.debug('opening connection...')
     connection = connect2rmq(
-        host=VARIABLES.get_rp2_rmq_host(),
-        port=VARIABLES.get_rp2_rmq_port(),
-        user=VARIABLES.get_rp2_rmq_user(),
-        pwd=VARIABLES.get_rp2_rmq_pass())
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_HOST'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_PORT'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_USER'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_PASS'))
 
     LOGGER.debug('publishing to rmq...')
     publish2rmq(connection, data, 1,
-        VARIABLES.get_rp2_rmq_exchange(),
-        VARIABLES.get_rp2_rmq_routing_key())
+        VARIABLES.get_rp2_env('RP2_RMQ_EXCHANGE'),
+        VARIABLES.get_rp2_env('RP2_RMQ_ROUTING_KEY'))
 
     LOGGER.debug('closing connection...')
     connection.close()

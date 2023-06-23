@@ -28,12 +28,8 @@ resource "aws_lambda_function" "this" {
       RP2_REGION              = data.aws_region.this.name
       RP2_API_URL             = format("api-%s", local.domain)
       RP2_AUTH_URL            = format("auth-%s", local.domain)
-      # RP2_AUTH_CLIENT_ID      = try(local.cognito["client_id"], null)
-      # RP2_AUTH_CLIENT_SECRET  = try(local.cognito["client_secret"], null)
       RP2_CHECK_REGION        = (data.aws_region.this.name == element(keys(var.backend_bucket), 0)
         ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
-      # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)
-      # RP2_CHECK_CLIENT_SECRET = try(local.cognito2["client_secret"], null)
       RP2_SECRETS             = data.aws_secretsmanager_secret.this.name
       SECRETS_MANAGER_TTL     = var.q.secrets_manager_ttl
     }

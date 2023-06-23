@@ -52,8 +52,9 @@ resource "aws_secretsmanager_secret" "this" {
 resource "aws_secretsmanager_secret_version" "this" {
   secret_id = aws_secretsmanager_secret.this.id
   secret_string = jsonencode({
-    rmq_host = replace(aws_mq_broker.this.instances.0.console_url, "https://", "")
-    rmq_user = var.q.username
-    rmq_pass = random_password.this.result
+    RP2_RMQ_HOST = replace(aws_mq_broker.this.instances.0.console_url, "https://", "")
+    RP2_RMQ_PORT = element(split(":", aws_mq_broker.this.instances.0.endpoints), 2)
+    RP2_RMQ_USER = var.q.username
+    RP2_RMQ_PASS = random_password.this.result
   })
 }

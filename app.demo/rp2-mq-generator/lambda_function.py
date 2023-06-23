@@ -26,16 +26,16 @@ def _parallel(thread=1):
 
     LOGGER.debug('opening connection...')
     connection = connect2rmq(
-        VARIABLES.get_rp2_rmq_host(),
-        VARIABLES.get_rp2_rmq_port(),
-        VARIABLES.get_rp2_rmq_user(),
-        VARIABLES.get_rp2_rmq_pass())
+        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_HOST'),
+        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_PORT'),
+        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_USER'),
+        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_PASS'))
 
     LOGGER.debug('publishing to rmq...')
     publish2rmq(connection, data,
-        VARIABLES.get_rp2_rmq_count(),
-        VARIABLES.get_rp2_rmq_exchange(),
-        VARIABLES.get_rp2_rmq_routing_key())
+        VARIABLES.get_rp2_env('RP2_RMQ_COUNT'),
+        VARIABLES.get_rp2_env('RP2_RMQ_EXCHANGE'),
+        VARIABLES.get_rp2_env('RP2_RMQ_ROUTING_KEY'))
 
     LOGGER.debug('closing connection...')
     connection.close()
@@ -46,7 +46,7 @@ def lambda_handler(event, context):
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
-    num = int(VARIABLES.get_rp2_rmq_thread())
+    num = int(VARIABLES.get_rp2_env('RP2_RMQ_THREAD'))
     Parallel(n_jobs=num)(
         delayed(_parallel)(thread) for thread in range(num)
     )

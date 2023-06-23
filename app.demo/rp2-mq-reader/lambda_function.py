@@ -11,9 +11,9 @@ LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
 TOKEN: str = auth2token(
-    VARIABLES.get_rp2_auth_url(),
-    VARIABLES.get_rp2_auth_client_id(),
-    VARIABLES.get_rp2_auth_client_secret())
+    VARIABLES.get_rp2_env('RP2_AUTH_URL'),
+    VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_ID'),
+    VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_SECRET'))
 
 if logging.getLogger().hasHandlers():
     logging.getLogger().setLevel(VARIABLES.get_rp2_logging())
@@ -23,13 +23,13 @@ else:
 def _rmq2api(channel, method_frame, header_frame, body, thread=1):
     LOGGER.debug('started executing _rmq2api()')
     LOGGER.debug(f'thread {thread} received data: {body}')
-    url = VARIABLES.get_rp2_api_url()
+    url = VARIABLES.get_rp2_env('RP2_API_URL')
     if not url.startswith('http'):
         url = f'https://{url}'
     LOGGER.debug(f'api url: {url}')
-    uuid = VARIABLES.get_rp2_api_uuid()
+    uuid = VARIABLES.get_rp2_env('RP2_API_UUID')
     LOGGER.debug(f'uuid api: {uuid}')
-    inbox = VARIABLES.get_rp2_api_inbox()
+    inbox = VARIABLES.get_rp2_env('RP2_API_INBOX')
     LOGGER.debug(f'inbox api: {inbox}')
     headers = {
         'Authorization': f'Bearer {TOKEN["access_token"]}',
@@ -52,16 +52,16 @@ def _parallel(thread=1):
     LOGGER.debug('started executing _parallel()')
     LOGGER.debug(f'received thread: {thread}')
     connection = connect2rmq(
-        VARIABLES.get_rp2_rmq_host(),
-        VARIABLES.get_rp2_rmq_port(),
-        VARIABLES.get_rp2_rmq_user(),
-        VARIABLES.get_rp2_rmq_pass())
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_HOST'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_PORT'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_USER'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_PASS'))
     LOGGER.debug(f'established rmq connection: {connection}')
     main_channel = connection.channel()
     LOGGER.debug(f'initialized channel: {main_channel}')
     main_channel.basic_qos(prefetch_count = 10)
     LOGGER.debug(f'prefetching basic qos: 10')
-    queue = VARIABLES.get_rp2_rmq_queue()
+    queue = VARIABLES.get_rp2_env('RP2_RMQ_QUEUE')
     LOGGER.debug(f'basic consuming from {queue}')
     main_channel.basic_consume(queue, _rmq2api)
     try:
@@ -91,7 +91,7 @@ def lambda_handler(event, context):
             })
         }
 
-    num = int(VARIABLES.get_rp2_rmq_thread())
+    num = int(VARIABLES.get_rp2_env('RP2_RMQ_THREAD'))
     Parallel(n_jobs=num)(
         delayed(_parallel)(thread) for thread in range(num)
     )

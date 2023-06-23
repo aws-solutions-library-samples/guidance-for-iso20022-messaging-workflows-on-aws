@@ -421,7 +421,7 @@ def publish2rmq(connection, data, count, exchange, routing_key):
         headers={u'X-Message-Type': u'pacs.008'}
     )
     iter = 0
-    while iter < count:
+    while iter < int(count):
         main_channel.basic_publish(
             exchange=exchange,
             routing_key=routing_key,

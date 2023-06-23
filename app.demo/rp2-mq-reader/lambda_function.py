@@ -1,7 +1,7 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import os, logging, json, requests
+import os, multiprocessing, logging, json, requests
 from datetime import datetime, timezone
 from env import Variables
 from joblib import Parallel, delayed
@@ -92,6 +92,8 @@ def lambda_handler(event, context):
         }
 
     num = int(VARIABLES.get_rp2_env('RP2_RMQ_THREAD'))
+    if num == 0:
+        num = multiprocessing.cpu_count()
     Parallel(n_jobs=num)(
         delayed(_parallel)(thread) for thread in range(num)
     )

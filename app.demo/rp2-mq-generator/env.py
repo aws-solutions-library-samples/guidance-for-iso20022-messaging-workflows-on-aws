@@ -32,7 +32,7 @@ class Variables:
         response = None
         if os.getenv(secret):
             response = self._retrieve_from_secretsmanager(os.getenv(secret))
-            if value in response:
+            if response and value in response:
                 return response[value]
         return self.get_rp2_env(value)
 

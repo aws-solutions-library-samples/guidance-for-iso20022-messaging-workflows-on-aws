@@ -47,9 +47,7 @@ RUN yum update -y
 COPY . .
 
 RUN pip3 install --upgrade pip
-
 RUN pip3 install --no-cache-dir -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
-
 # work-around: https://github.com/psf/requests/issues/6443
 RUN pip3 install --upgrade 'urllib3<2'
 

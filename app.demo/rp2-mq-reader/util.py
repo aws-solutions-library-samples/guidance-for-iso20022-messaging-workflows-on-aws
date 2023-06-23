@@ -390,9 +390,11 @@ def lambda_response(code=200, message='OK', metadata=None, start=None):
     }
 
 def auth2token(url, client_id, client_secret):
+    if not (client_id and client_secret):
+        return None
     if not url.startswith('http'):
         url = f'https://{url}'
-    secret_hash = base64.b64encode(f'{client_id}:{client_secret}'.encode()).decode('utf-8')
+    secret_hash = base64.b64encode(f'{client_id.strip()}:{client_secret.strip()}'.encode()).decode('utf-8')
     payload = {
         'client_id': client_id,
         'grant_type': 'client_credentials',

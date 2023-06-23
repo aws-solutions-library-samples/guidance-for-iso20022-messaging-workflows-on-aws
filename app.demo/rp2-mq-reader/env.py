@@ -4,18 +4,30 @@
 import os, logging, requests, json
 from dotenv import dotenv_values
 
+LOGGER: str = logging.getLogger(__name__)
+if logging.getLogger().hasHandlers():
+    logging.getLogger().setLevel('DEBUG')
+else:
+    logging.basicConfig(level='DEBUG')
+
 class Variables:
     def __init__(self, DOTENV):
         self.env = dotenv_values(DOTENV)
 
     def _retrieve_from_secretsmanager(self, secret, port='2773'):
+        LOGGER.debug(f'secret: {secret}')
         try:
             headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
+            LOGGER.debug(f'headers: {headers}')
             r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
+            LOGGER.debug(f'request: {r}')
             if r.status_code == 200:
-                response = json.loads(r.text)["SecretString"]
-                if response:
-                    return json.loads(response)
+                response = r.json()
+                LOGGER.debug(f'response: {response}')
+                if response and 'SecretString' in response:
+                    return json.loads(response['SecretString'])
+            else:
+                LOGGER.debug(f'response failed: {r.text}')
         except Exception as e:
             return None
         return None

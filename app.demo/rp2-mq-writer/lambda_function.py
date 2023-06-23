@@ -25,8 +25,8 @@ def lambda_handler(event, context):
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
-    if TOKEN is None:
-        LOGGER.warning('token is missing')
+    if not (TOKEN and 'access_token' in TOKEN):
+        LOGGER.error(f'access token is missing: {TOKEN}')
         return {
             'statusCode': 400,
             'body': json.dumps({

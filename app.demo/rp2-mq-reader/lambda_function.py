@@ -21,6 +21,8 @@ else:
     logging.basicConfig(level=VARIABLES.get_rp2_logging())
 
 def _rmq2api(channel, method_frame, header_frame, body, thread=1):
+    # log time, event and context
+    TIME = datetime.now(timezone.utc)
     LOGGER.debug('started executing _rmq2api()')
     LOGGER.debug(f'thread {thread} received data: {body}')
     url = VARIABLES.get_rp2_env('RP2_API_URL')
@@ -80,8 +82,8 @@ def lambda_handler(event, context):
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
-    if TOKEN is None:
-        LOGGER.warning('token is missing')
+    if not (TOKEN and 'access_token' in TOKEN):
+        LOGGER.error(f'access token is missing: {TOKEN}')
         return {
             'statusCode': 400,
             'body': json.dumps({

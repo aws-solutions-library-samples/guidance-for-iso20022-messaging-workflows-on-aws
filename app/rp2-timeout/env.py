@@ -149,8 +149,8 @@ class Variables:
             return 'http://localhost/auth'
 
     def get_rp2_auth_client_id(self) -> str:
-        if self.env.get_rp2_secrets() is not None:
-            secret = self._retrieve_from_secretsmanager(self.env.get_rp2_secrets())
+        if os.getenv('RP2_SECRETS') is not None:
+            secret = self._retrieve_from_secretsmanager(os.getenv('RP2_SECRETS'))
             return secret['client_id']
         elif os.getenv('RP2_AUTH_CLIENT_ID') is not None:
             return os.getenv('RP2_AUTH_CLIENT_ID')
@@ -160,8 +160,8 @@ class Variables:
             return None
 
     def get_rp2_auth_client_secret(self) -> str:
-        if self.env.get_rp2_secrets() is not None:
-            secret = self._retrieve_from_secretsmanager(self.env.get_rp2_secrets())
+        if os.getenv('RP2_SECRETS') is not None:
+            secret = self._retrieve_from_secretsmanager(os.getenv('RP2_SECRETS'))
             return secret['client_secret']
         elif os.getenv('RP2_AUTH_CLIENT_SECRET') is not None:
             return os.getenv('RP2_AUTH_CLIENT_SECRET')

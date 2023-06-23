@@ -1,3 +1,5 @@
+# work-around: https://aws.amazon.com/blogs/compute/working-with-lambda-layers-and-extensions-in-container-images/
+# lambda layer: https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html
 FROM public.ecr.aws/docker/library/alpine:latest AS layer
 
 ARG AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"us-east-1"}
@@ -12,10 +14,9 @@ ENV AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 
 RUN apk add aws-cli curl unzip
 
-# arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
-# arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4
+# x86_64 => arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
+# arm64  => arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4
 RUN curl $(aws lambda get-layer-version-by-arn --arn arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4 --region us-east-1 --query 'Content.Location' --output text) --output layer.zip
-
 RUN mkdir -p /opt
 RUN unzip layer.zip -d /opt
 RUN rm layer.zip

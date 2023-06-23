@@ -1,4 +1,4 @@
-dependency "s3" {
-  config_path  = "../s3_runtime"
+dependency "mq" {
+  config_path  = "../mq_broker"
   skip_outputs = true
 }

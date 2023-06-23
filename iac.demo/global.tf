@@ -1,1 +1,1 @@
-../iac/global.tf
+../iac.src/global.tf

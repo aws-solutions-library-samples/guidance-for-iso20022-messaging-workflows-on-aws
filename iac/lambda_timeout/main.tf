@@ -8,7 +8,7 @@ resource "aws_lambda_function" "this" {
   description   = var.q.description
   role          = data.terraform_remote_state.iam.outputs.arn
   package_type  = var.q.package_type
-  architectures = var.arch
+  architectures = [var.q.architecture]
   image_uri     = format("%s@%s", data.terraform_remote_state.ecr.outputs.repository_url, data.aws_ecr_image.this.id)
   memory_size   = var.q.memory_size
   timeout       = var.q.timeout
@@ -35,6 +35,8 @@ resource "aws_lambda_function" "this" {
       # RP2_CHECK_CLIENT_ID     = try(local.cognito2["client_id"], null)
       # RP2_CHECK_CLIENT_SECRET = try(local.cognito2["client_secret"], null)
       # RP2_DDB_RETRY           = 3
+      RP2_SECRETS             = data.aws_secretsmanager_secret.this.name
+      SECRETS_MANAGER_TTL     = var.q.secrets_manager_ttl
     }
   }
 

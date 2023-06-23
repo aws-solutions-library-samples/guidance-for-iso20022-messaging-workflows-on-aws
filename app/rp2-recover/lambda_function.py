@@ -38,22 +38,26 @@ def lambda_handler(event, context):
     elif 'identity' in event and event['identity']:
         identity = event['identity']
     LOGGER.debug(f'computed identity: {identity}')
-    region = VARIABLES.get_rp2_region()
-    table = VARIABLES.get_rp2_ddb_tnx()
-    range = VARIABLES.get_rp2_timestamp_partition()
-    region2 = VARIABLES.get_rp2_check_region()
+
+    rp2_id = VARIABLES.get_rp2_env('RP2_ID')
+    region = VARIABLES.get_rp2_env('RP2_REGION')
+    region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
+    api_url = VARIABLES.get_rp2_env('RP2_API_URL')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    health = VARIABLES.get_rp2_env('RP2_HEALTH')
+    range = VARIABLES.get_rp2_env('RP2_TIMESTAMP_PARTITION')
 
     # step 1: initialize variables
     metadata = {
         'RequestId': request_id,
         'RegionId': region,
-        'ApiEndpoint': VARIABLES.get_rp2_api_url(),
+        'ApiEndpoint': api_url,
     }
 
     # # step 2: check the health of the opposite region
     # # @TODO: exponential back-off
     # iter = 0
-    # req_count = int(VARIABLES.get_rp2_check_recover())
+    # req_count = int(VARIABLES.get_rp2_env('RP2_CHECK_RECOVER'))
     # headers = {'X-Transaction-Region': region}
     # payload = {'identity': identity}
 
@@ -68,9 +72,9 @@ def lambda_handler(event, context):
 
     # # step 3: force route53 failover and initiate recovery in healthy region
     # try:
-    #     bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
-    #     old_key = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_check_region()}.txt'
-    #     new_key = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_check_region()}.NOT'
+    #     bucket = f'{health}-{region}-{rp2_id}'
+    #     old_key = f'{health}-{region2}.txt'
+    #     new_key = f'{health}-{region2}.NOT'
     #     response = s3_move_object(region2, bucket, old_key, new_key)
     #     LOGGER.debug(f'got response: {response.status_code} {response.text}')
 

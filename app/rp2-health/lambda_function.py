@@ -53,19 +53,22 @@ def lambda_handler(event, context):
     item = {**item, **request_arn}
     LOGGER.debug(f'computed item: {item}')
 
+    rp2_id = VARIABLES.get_rp2_env('RP2_ID')
+    account = VARIABLES.get_rp2_env('RP2_ACCOUNT')
+    region = VARIABLES.get_rp2_env('RP2_REGION')
+    api_url = VARIABLES.get_rp2_env('api_url')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    health = VARIABLES.get_rp2_env('RP2_HEALTH')
+    bucket = f'{health}-{region}-{rp2_id}'
+    key = f'{health}-{region}.txt'
+    queue = f'{health}.fifo'
+
     metadata = {
         'TransactionId': id,
         'RequestId': request_id,
-        'RegionId': VARIABLES.get_rp2_region(),
-        'ApiEndpoint': VARIABLES.get_rp2_api_url(),
+        'RegionId': region,
+        'ApiEndpoint': api_url,
     }
-
-    account = VARIABLES.get_rp2_account()
-    region = VARIABLES.get_rp2_region()
-    bucket = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}-{VARIABLES.get_rp2_id()}'
-    key = f'{VARIABLES.get_rp2_health()}-{VARIABLES.get_rp2_region()}.txt'
-    queue = f'{VARIABLES.get_rp2_health()}.fifo'
-    table = VARIABLES.get_rp2_ddb_tnx()
 
     # step 2: get sqs message
     if not ('headers' in event and event['headers'] and 'X-SQS-Skip' in event['headers']):

@@ -30,16 +30,20 @@ def lambda_handler(event, context):
     if context and context.invoked_function_arn:
         request_arn = get_request_arn(context.invoked_function_arn)
     LOGGER.debug(f'computed request_arn: {request_arn}')
-    region = VARIABLES.get_rp2_region()
-    table = VARIABLES.get_rp2_ddb_tnx()
-    timeout = VARIABLES.get_rp2_timeout_transaction()
-    range = VARIABLES.get_rp2_timestamp_partition()
+
+    rp2_id = VARIABLES.get_rp2_env('RP2_ID')
+    region = VARIABLES.get_rp2_env('RP2_REGION')
+    region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
+    api_url = VARIABLES.get_rp2_env('RP2_API_URL')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    timeout = VARIABLES.get_rp2_env('RP2_TIMEOUT_TRANSACTION')
+    range = VARIABLES.get_rp2_env('RP2_TIMESTAMP_PARTITION')
 
     # step 2: initialize variables
     metadata = {
         'RequestId': request_id,
         'RegionId': region,
-        'ApiEndpoint': VARIABLES.get_rp2_api_url(),
+        'ApiEndpoint': api_url,
     }
 
     # step 3: continue to timeout in-flight payments

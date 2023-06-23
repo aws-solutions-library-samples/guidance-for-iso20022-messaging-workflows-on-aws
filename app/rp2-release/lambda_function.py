@@ -51,12 +51,15 @@ def lambda_handler(event, context):
     elif 'identity' in event and event['identity']:
         identity = event['identity']
     LOGGER.debug(f'computed identity: {identity}')
-    region = VARIABLES.get_rp2_region()
-    table = VARIABLES.get_rp2_ddb_tnx()
+
+    rp2_id = VARIABLES.get_rp2_env('RP2_ID')
+    region = VARIABLES.get_rp2_env('RP2_REGION')
+    region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
+    api_url = VARIABLES.get_rp2_env('RP2_API_URL')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
     replicated = None
-    ddb_retry = int(VARIABLES.get_rp2_ddb_retry())
+    ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))
     if ddb_retry > 0:
-        region2 = VARIABLES.get_rp2_check_region()
         replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {

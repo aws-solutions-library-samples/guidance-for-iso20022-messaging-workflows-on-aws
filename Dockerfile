@@ -1,4 +1,4 @@
-FROM alpine:latest AS layer
+FROM public.ecr.aws/docker/library/alpine:latest AS layer
 
 ARG AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"us-east-1"}
 ARG AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-""}

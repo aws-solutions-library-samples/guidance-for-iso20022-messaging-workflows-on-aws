@@ -11,8 +11,8 @@ DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
 TOKEN: str = auth2token(
     VARIABLES.get_rp2_env('RP2_AUTH_URL'),
-    VARIABLES.get_rp2_secrets('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_ID'),
-    VARIABLES.get_rp2_secrets('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_SECRET'))
+    VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_ID'),
+    VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_SECRET'))
 
 if logging.getLogger().hasHandlers():
     logging.getLogger().setLevel(VARIABLES.get_rp2_logging())

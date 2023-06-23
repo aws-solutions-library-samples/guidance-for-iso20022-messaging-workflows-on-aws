@@ -26,10 +26,10 @@ def _parallel(thread=1):
 
     LOGGER.debug('opening connection...')
     connection = connect2rmq(
-        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_HOST'),
-        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_PORT'),
-        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_USER'),
-        VARIABLES.get_rp2_secrets('RP2_SECRETS_MQ', 'RP2_RMQ_PASS'))
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_HOST'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_PORT'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_USER'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_MQ', 'RP2_RMQ_PASS'))
 
     LOGGER.debug('publishing to rmq...')
     publish2rmq(connection, data,

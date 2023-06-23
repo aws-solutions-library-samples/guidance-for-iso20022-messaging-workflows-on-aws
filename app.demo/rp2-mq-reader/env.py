@@ -1,7 +1,7 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import os, logging, requests, json
+import os, logging, json, requests, backoff
 from dotenv import dotenv_values
 
 LOGGER: str = logging.getLogger(__name__)
@@ -14,22 +14,21 @@ class Variables:
     def __init__(self, DOTENV):
         self.env = dotenv_values(DOTENV)
 
+    @backoff.on_exception(backoff.expo,
+        requests.exceptions.HTTPError, max_time=15)
+    @backoff.on_exception(backoff.expo,
+        requests.exceptions.Timeout, max_time=60)
     def _retrieve_from_secretsmanager(self, secret, port='2773'):
         LOGGER.debug(f'secret: {secret}')
-        try:
-            headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
-            LOGGER.debug(f'headers: {headers}')
-            r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
-            LOGGER.debug(f'request: {r}')
-            if r.status_code == 200:
-                response = r.json()
-                LOGGER.debug(f'response: {response}')
-                if response and 'SecretString' in response:
-                    return json.loads(response['SecretString'])
-            else:
-                LOGGER.debug(f'response failed: {r.text}')
-        except Exception as e:
-            return None
+        headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
+        LOGGER.debug(f'headers: {headers}')
+        r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
+        LOGGER.debug(f'request: {r}')
+        if r.status_code == 200:
+            response = r.json()
+            LOGGER.debug(f'response: {response}')
+            if response and 'SecretString' in response:
+                return json.loads(response['SecretString'])
         return None
 
     def get_rp2_env(self, value) -> str:

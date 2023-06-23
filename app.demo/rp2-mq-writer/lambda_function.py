@@ -9,10 +9,7 @@ from util import auth2token, connect2rmq, publish2rmq, dynamodb_query_by_item
 LOGGER: str = logging.getLogger(__name__)
 DOTENV: str = os.path.join(os.path.dirname(__file__), 'dotenv.txt')
 VARIABLES: str = Variables(DOTENV)
-TOKEN: str = auth2token(
-    VARIABLES.get_rp2_env('RP2_AUTH_URL'),
-    VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_ID'),
-    VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_SECRET'))
+TOKEN: dict = {}
 
 if logging.getLogger().hasHandlers():
     logging.getLogger().setLevel(VARIABLES.get_rp2_logging())
@@ -24,6 +21,12 @@ def lambda_handler(event, context):
     TIME = datetime.now(timezone.utc)
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
+
+    global TOKEN
+    TOKEN = auth2token(
+        VARIABLES.get_rp2_env('RP2_AUTH_URL'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_ID'),
+        VARIABLES.get_rp2_secret('RP2_SECRETS_API', 'RP2_AUTH_CLIENT_SECRET'))
 
     if not (TOKEN and 'access_token' in TOKEN):
         LOGGER.error(f'access token is missing: {TOKEN}')

@@ -23,8 +23,11 @@ jobs:
       - name: Install Bandit
         run: pip3 install bandit
 
-      - name: Run Bandit
-        run: bandit -r ./app/
+      - name: Run Bandit on Source Code
+        run: bandit -r ./app.src/
+
+      - name: Run Bandit on Demo Code
+        run: bandit -r ./app.demo/
 
       # - name: Upload Artifact
       #   uses: actions/upload-artifact@master

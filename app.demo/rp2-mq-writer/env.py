@@ -1,23 +1,24 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import os, logging, requests, json
+import os, logging, json, requests, backoff
 from dotenv import dotenv_values
 
 class Variables:
     def __init__(self, DOTENV):
         self.env = dotenv_values(DOTENV)
 
+    @backoff.on_exception(backoff.expo,
+        requests.exceptions.HTTPError, max_time=15)
+    @backoff.on_exception(backoff.expo,
+        requests.exceptions.Timeout, max_time=60)
     def _retrieve_from_secretsmanager(self, secret, port='2773'):
-        try:
-            headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
-            r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
-            if r.status_code == 200:
-                response = json.loads(r.text)["SecretString"]
-                if response:
-                    return json.loads(response)
-        except Exception as e:
-            return None
+        headers = {'X-Aws-Parameters-Secrets-Token': os.environ.get('AWS_SESSION_TOKEN')}
+        r = requests.get(f'http://localhost:{port}/secretsmanager/get?secretId={secret}', headers=headers, timeout=15)
+        if r.status_code == 200:
+            response = r.json()
+            if response and 'SecretString' in response:
+                return json.loads(response['SecretString'])
         return None
 
     def get_rp2_env(self, value) -> str:

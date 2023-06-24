@@ -1,4 +1,5 @@
 resource "aws_dynamodb_table" "this" {
+  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery (backup)
   #checkov:skip=CKV_AWS_119:This solution leverages KMS encryption using AWS managed keys instead of CMKs
   #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities
 
@@ -50,6 +51,7 @@ resource "aws_dynamodb_table" "this" {
 }
 
 resource "aws_dynamodb_table_replica" "this" {
+  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery (backup)
   #checkov:skip=CKV_AWS_271:This solution leverages KMS encryption using AWS managed keys instead of CMKs
   #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities
 

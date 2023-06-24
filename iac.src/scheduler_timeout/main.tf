@@ -1,4 +1,6 @@
 resource "aws_scheduler_schedule" "this" {
+  #checkov:skip=CKV_AWS_297:This solution leverages KMS encryption using AWS managed keys instead of CMKs
+
   name       = data.terraform_remote_state.lambda.outputs.function_name
   group_name = var.q.group_name
 

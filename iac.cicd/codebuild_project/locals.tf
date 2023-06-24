@@ -3,17 +3,17 @@ locals {
     {
       name  = "AWS_DEFAULT_REGION"
       type  = "PLAINTEXT"
-      value = "us-east-1"
+      value = data.aws_region.this.name
     },
     {
       name  = "AWS_REGION"
       type  = "PLAINTEXT"
-      value = "us-east-1"
+      value = data.aws_region.this.name
     },
     {
       name  = "RP2_REGION"
       type  = "PLAINTEXT"
-      value = "us-east-1"
+      value = data.aws_region.this.name
     },
     {
       name  = "RP2_DOMAIN"

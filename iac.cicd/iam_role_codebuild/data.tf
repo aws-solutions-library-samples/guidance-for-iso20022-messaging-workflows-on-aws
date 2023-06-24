@@ -30,6 +30,12 @@ data "aws_iam_policy_document" "policy" {
       variable = "aws:SourceIp"
       values   = data.terraform_remote_state.iam.outputs.ips
     }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceAccount"
+      values   = [data.aws_caller_identity.this.account_id]
+    }
   }
 }
 

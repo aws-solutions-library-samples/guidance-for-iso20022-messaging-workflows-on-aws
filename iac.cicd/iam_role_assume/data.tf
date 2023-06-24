@@ -13,6 +13,12 @@ data "aws_iam_policy_document" "role" {
       variable = "aws:SourceIp"
       values   = local.policy_ips
     }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceAccount"
+      values   = [data.aws_caller_identity.this.account_id]
+    }
   }
 }
 

@@ -22,6 +22,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.4.0"
     }
+    rabbitmq = {
+      source  = "cyrilgdn/rabbitmq"
+      version = "1.8.0"
+    }
   }
 }
 

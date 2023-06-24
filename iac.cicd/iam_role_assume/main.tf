@@ -13,5 +13,5 @@ resource "aws_iam_role" "this" {
 resource "aws_iam_role_policy_attachment" "this" {
   count      = data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? length(local.policy_arns) : 0
   role       = element(aws_iam_role.this.*.name, 0)
-  policy_arn = element(local.policy_arns, index.count)
+  policy_arn = element(local.policy_arns, count.index)
 }

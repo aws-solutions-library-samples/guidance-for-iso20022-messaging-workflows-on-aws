@@ -8,14 +8,15 @@ data "aws_iam_policy_document" "role" {
       identifiers = [format("arn:aws:iam::%s:root", data.aws_caller_identity.this.account_id)]
     }
 
-    # condition {
-    #   test     = "StringLike"
-    #   variable = "iam:PassedToService"
-
-    #   values = [
-    #     "application-autoscaling.amazonaws.com",
-    #     # "application-autoscaling.amazonaws.com.cn",
-    #   ]
-    # }
+    condition {
+      test     = "IpAddress"
+      variable = "aws:SourceIp"
+      values   = local.ips["CODEBUILD"].*.ip_prefix
+    }
   }
+}
+
+data "http" "this" {
+  # https://docs.aws.amazon.com/vpc/latest/userguide/aws-ip-ranges.html
+  url = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 }

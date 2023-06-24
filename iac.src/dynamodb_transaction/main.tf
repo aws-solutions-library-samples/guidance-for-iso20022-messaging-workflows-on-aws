@@ -51,9 +51,9 @@ resource "aws_dynamodb_table" "this" {
 }
 
 resource "aws_dynamodb_table_replica" "this" {
-  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery (backup)
-  #checkov:skip=CKV_AWS_271:This solution leverages KMS encryption using AWS managed keys instead of CMKs
-  #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities
+  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery / backup (false positive)
+  #checkov:skip=CKV_AWS_271:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+  #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities (false positive)
 
   provider = aws.glob
   count    = local.global_table && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0

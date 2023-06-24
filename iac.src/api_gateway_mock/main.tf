@@ -34,7 +34,7 @@ resource "aws_api_gateway_deployment" "this" {
 }
 
 resource "aws_api_gateway_stage" "this" {
-  #checkov:skip=CKV_AWS_73:This solution does not require XRay is production (false positive)
+  #checkov:skip=CKV_AWS_73:This solution does not require XRay in production (false positive)
   #checkov:skip=CKV_AWS_120:This solution does not require caching (false positive)
   #checkov:skip=CKV2_AWS_29:This solution does not require WAF yet (false positive)
   #checkov:skip=CKV2_AWS_51:This solution does not require client certs due to OAuth 2.0 implementation (false positive)

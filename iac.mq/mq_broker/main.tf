@@ -1,7 +1,7 @@
 resource "aws_mq_broker" "this" {
-  #checkov:skip=CKV_AWS_197:Not supported -- audit logging not supported by RabbitMQ
-  #checkov:skip=CKV_AWS_207:Checkov issue -- cannot read value from default.tfvars
-  #checkov:skip=CKV_AWS_209:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_197:This solution does not support audit logging due to RabbitMQ engine (false positive)
+  #checkov:skip=CKV_AWS_207:This solution leverages minor updates by default (false positive)
+  #checkov:skip=CKV_AWS_209:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
   broker_name                = var.q.broker_name
   engine_type                = var.q.engine_type
@@ -36,8 +36,8 @@ resource "random_password" "this" {
 }
 
 resource "aws_secretsmanager_secret" "this" {
-  #checkov:skip=CKV_AWS_149:Checkov issue -- cannot read value from default.tfvars
-  #checkov:skip=CKV2_AWS_57:Automatic rotation not needed -- cannot keep in sync with Cognito
+  #checkov:skip=CKV_AWS_149:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+  #checkov:skip=CKV2_AWS_57:This solution does not require key automatic rotation -- managed by AWS (false positive)
 
   name        = format("%s-%s-%s", var.q.secret_name, data.aws_region.this.name, local.rp2_id)
   description = var.q.description

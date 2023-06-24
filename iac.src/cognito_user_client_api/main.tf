@@ -27,8 +27,8 @@ resource "aws_cognito_user_pool_client" "this" {
 }
 
 resource "aws_secretsmanager_secret" "this" {
-  #checkov:skip=CKV_AWS_149:This solution leverages KMS encryption using AWS managed keys instead of CMKs
-  #checkov:skip=CKV2_AWS_57:This solution does not require key automatic rotation
+  #checkov:skip=CKV_AWS_149:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+  #checkov:skip=CKV2_AWS_57:This solution does not require key automatic rotation -- managed by AWS (false positive)
 
   name        = format("%s-%s-%s", var.q.secret_name, data.aws_region.this.name, local.rp2_id)
   description = var.q.description

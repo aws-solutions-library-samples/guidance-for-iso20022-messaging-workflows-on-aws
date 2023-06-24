@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "this" {
-  #checkov:skip=CKV_AWS_50:This solution does not require XRay is production (false positive)
+  #checkov:skip=CKV_AWS_50:This solution does not require XRay in production (false positive)
   #checkov:skip=CKV_AWS_117:This solution does not support VPC due to container based images (false positive)
   #checkov:skip=CKV_AWS_173:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
   #checkov:skip=CKV_AWS_272:This solution does not support code signing due to container based images (false positive)

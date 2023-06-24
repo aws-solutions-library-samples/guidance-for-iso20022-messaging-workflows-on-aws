@@ -33,13 +33,12 @@ resource "aws_codebuild_project" "this" {
 
   logs_config {
     cloudwatch_logs {
-      group_name  = format("%s/%s", var.q.group_name, var.q.name)
-      stream_name = var.q.stream_name
+      group_name = format("%s/%s", var.q.group_name_prefix, var.q.name)
     }
 
     s3_logs {
       status   = var.q.s3_logs_status
-      location = format("%s/%s", var.q.s3_logs_bucket, var.q.s3_logs_location)
+      location = format("%s/%s", var.backend_bucket[data.aws_region.this.name], var.q.s3_logs_location)
     }
   }
 }

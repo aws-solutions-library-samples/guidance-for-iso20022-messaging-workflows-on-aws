@@ -8,9 +8,7 @@ q = {
   image                       = "aws/codebuild/amazonlinux2-aarch64-standard:3.0"
   image_pull_credentials_type = "CODEBUILD"
   privileged_mode             = true
-  group_name                  = "/aws/codebuild"
-  stream_name                 = null
+  group_name_prefix           = "/aws/codebuild"
   s3_logs_status              = "ENABLED"
-  s3_logs_bucket              = "rp2-backend-us-east-1"
   s3_logs_location            = "codebuild"
 }

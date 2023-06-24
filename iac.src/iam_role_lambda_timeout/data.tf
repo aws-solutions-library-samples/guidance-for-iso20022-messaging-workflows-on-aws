@@ -11,6 +11,8 @@ data "aws_iam_policy_document" "role" {
 }
 
 data "aws_iam_policy_document" "policy" {
+  #checkov:skip=CKV_AWS_109:Defined IAM policies have constrains with conditions in place
+
   dynamic "statement" {
     for_each = local.statements
     content {

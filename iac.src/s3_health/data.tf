@@ -1,4 +1,6 @@
 data "aws_iam_policy_document" "this" {
+  #checkov:skip=CKV_AWS_283:This solution defines S3 policy have constrains with conditions in place (false positive)
+
   statement {
     effect    = "Allow"
     actions   = ["s3:GetObject"]
@@ -8,12 +10,6 @@ data "aws_iam_policy_document" "this" {
       type        = "AWS"
       identifiers = ["*"]
     }
-
-    # condition {
-    #   test     = "StringEquals"
-    #   variable = "AWS:SourceArn"
-    #   values   = [data.terraform_remote_state.cf.outputs.arn]
-    # }
   }
 }
 

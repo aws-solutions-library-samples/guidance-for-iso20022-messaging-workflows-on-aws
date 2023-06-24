@@ -1,8 +1,8 @@
 resource "aws_lambda_function" "this" {
-  #checkov:skip=CKV_AWS_50:XRay not needed -- Lambda performs better without tracing enabled
-  #checkov:skip=CKV_AWS_117:VPC not supported -- Lambda functions based on images cannot be deployed in VPC
-  #checkov:skip=CKV_AWS_173:KMS not needed -- Lambda uses default encryption
-  #checkov:skip=CKV_AWS_272:Code sign not supported -- Lambda functions based on images cannot be code signed
+  #checkov:skip=CKV_AWS_50:This solution does not require XRay in production (false positive)
+  #checkov:skip=CKV_AWS_117:This solution does not support VPC due to container based images (false positive)
+  #checkov:skip=CKV_AWS_173:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+  #checkov:skip=CKV_AWS_272:This solution does not support code signing due to container based images (false positive)
 
   function_name = var.q.function_name
   description   = var.q.description
@@ -22,17 +22,18 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      RP2_LOGGING             = var.q.logging
-      RP2_ID                  = data.terraform_remote_state.s3.outputs.rp2_id
-      RP2_ACCOUNT             = data.aws_caller_identity.this.account_id
-      RP2_REGION              = data.aws_region.this.name
-      RP2_API_URL             = format("api-%s", local.domain)
-      RP2_AUTH_URL            = format("auth-%s", local.domain)
-      RP2_CHECK_REGION        = (data.aws_region.this.name == element(keys(var.backend_bucket), 0)
-        ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
-      # RP2_DDB_RETRY           = 3
-      RP2_SECRETS             = data.aws_secretsmanager_secret.this.name
-      SECRETS_MANAGER_TTL     = var.q.secrets_manager_ttl
+      RP2_LOGGING  = var.q.logging
+      RP2_ID       = data.terraform_remote_state.s3.outputs.rp2_id
+      RP2_ACCOUNT  = data.aws_caller_identity.this.account_id
+      RP2_REGION   = data.aws_region.this.name
+      RP2_API_URL  = format("api-%s", local.domain)
+      RP2_AUTH_URL = format("auth-%s", local.domain)
+      RP2_SECRETS  = data.aws_secretsmanager_secret.this.name
+      # RP2_DDB_RETRY = 3
+
+      RP2_CHECK_REGION = (data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+      ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
+      SECRETS_MANAGER_TTL = var.q.secrets_manager_ttl
     }
   }
 
@@ -50,7 +51,7 @@ resource "aws_lambda_function" "this" {
 }
 
 resource "aws_sqs_queue" "this" {
-  #checkov:skip=CKV_AWS_27:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
   name                    = var.q.dlq_name
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled

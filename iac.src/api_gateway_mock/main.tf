@@ -34,10 +34,10 @@ resource "aws_api_gateway_deployment" "this" {
 }
 
 resource "aws_api_gateway_stage" "this" {
-  #checkov:skip=CKV_AWS_73:XRay not needed -- API Gateway performs better without tracing enabled
-  #checkov:skip=CKV_AWS_120:Caching not needed -- API Gateway payloads are short lived
-  #checkov:skip=CKV2_AWS_29:WAF not needed -- restricted to get rp2-health object
-  #checkov:skip=CKV2_AWS_51:Client certs not needed -- OAuth 2.0 is implemented instead
+  #checkov:skip=CKV_AWS_73:This solution does not require XRay in production (false positive)
+  #checkov:skip=CKV_AWS_120:This solution does not require caching (false positive)
+  #checkov:skip=CKV2_AWS_29:This solution does not require WAF yet (false positive)
+  #checkov:skip=CKV2_AWS_51:This solution does not require client certs due to OAuth 2.0 implementation (false positive)
 
   deployment_id = aws_api_gateway_deployment.this.id
   rest_api_id   = aws_api_gateway_rest_api.this.id
@@ -50,8 +50,8 @@ resource "aws_api_gateway_stage" "this" {
 }
 
 resource "aws_api_gateway_method_settings" "this" {
-  #checkov:skip=CKV_AWS_225:Caching not needed -- API Gateway payloads are short lived
-  #checkov:skip=CKV_AWS_308:Caching not needed -- API Gateway payloads are short lived
+  #checkov:skip=CKV_AWS_225:This solution does not require caching (false positive)
+  #checkov:skip=CKV_AWS_308:This solution does not require caching (false positive)
 
   rest_api_id = aws_api_gateway_rest_api.this.id
   stage_name  = aws_api_gateway_stage.this.stage_name
@@ -68,7 +68,7 @@ resource "aws_api_gateway_account" "this" {
 }
 
 resource "aws_cloudwatch_log_group" "this" {
-  #checkov:skip=CKV_AWS_158:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_158:This solution leverages CloudWatch logs (false positive)
 
   name              = format(var.q.cloudwatch_group_name, aws_api_gateway_rest_api.this.id, var.q.stage)
   retention_in_days = var.q.retention_in_days

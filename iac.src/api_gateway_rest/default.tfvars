@@ -1,7 +1,7 @@
 q = {
   name    = "rp2-agw-healthy"
   mode    = "overwrite"
-  file    = "swagger.json"
+  file    = "swagger.json.tftpl"
   version = "2023-01-30T23:30:40Z"
   stage   = "v1"
 

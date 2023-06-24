@@ -1,11 +1,10 @@
 resource "aws_dynamodb_table" "this" {
-  #checkov:skip=CKV_AWS_28:Checkov issue -- cannot read value from default.tfvars
-  #checkov:skip=CKV_AWS_119:Checkov issue -- cannot read value from default.tfvars
-  #checkov:skip=CKV2_AWS_16:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery / backup (false positive)
+  #checkov:skip=CKV_AWS_119:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+  #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities (false positive)
 
   count        = (local.global_table && data.aws_region.this.name == element(keys(var.backend_bucket), 0)) || !local.global_table ? 1 : 0
   name         = var.q.name
-  # name         = format("%s-%s", var.q.name, data.terraform_remote_state.s3.outputs.rp2_id)
   hash_key     = var.q.hash_key
   range_key    = var.q.range_key
   billing_mode = var.q.billing_mode
@@ -47,24 +46,29 @@ resource "aws_dynamodb_table" "this" {
 
   lifecycle {
     create_before_destroy = true
-    ignore_changes        = [replica]
+    ignore_changes        = [replica, read_capacity, write_capacity]
   }
 }
 
 resource "aws_dynamodb_table_replica" "this" {
-  #checkov:skip=CKV_AWS_28:Checkov issue -- cannot read value from default.tfvars
-  #checkov:skip=CKV_AWS_119:Checkov issue -- cannot read value from default.tfvars
-  #checkov:skip=CKV2_AWS_16:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery / backup (false positive)
+  #checkov:skip=CKV_AWS_271:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+  #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities (false positive)
 
   provider = aws.glob
   count    = local.global_table && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0
 
   global_table_arn       = aws_dynamodb_table.this.0.arn
   point_in_time_recovery = var.q.point_in_time_recovery
+
+  lifecycle {
+    create_before_destroy = true
+    ignore_changes        = [replica, read_capacity, write_capacity]
+  }
 }
 
 provider "aws" {
-  alias = "glob"
+  alias  = "glob"
   region = element(keys(var.backend_bucket), 1)
 
   skip_region_validation = true

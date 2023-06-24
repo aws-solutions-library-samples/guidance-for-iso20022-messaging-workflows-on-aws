@@ -48,7 +48,7 @@ data "aws_ecr_image" "this" {
 }
 
 data "aws_secretsmanager_secret" "this" {
-  name  = data.terraform_remote_state.cognito.outputs.secret_name
+  name = data.terraform_remote_state.cognito.outputs.secret_name
 }
 
 data "aws_secretsmanager_secret_version" "this" {

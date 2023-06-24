@@ -1,5 +1,5 @@
 resource "aws_api_gateway_domain_name" "this" {
-  #checkov:skip=CKV_AWS_206:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_206:This solution leverages TLS_1_2 security policy (false positive)
 
   count                    = length(local.domains)
   domain_name              = element(local.domains, count.index)

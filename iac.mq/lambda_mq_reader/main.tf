@@ -22,17 +22,18 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      RP2_LOGGING            = var.q.logging
-      RP2_ID                 = data.terraform_remote_state.mq.outputs.rp2_id
-      RP2_ACCOUNT            = data.aws_caller_identity.this.account_id
-      RP2_REGION             = data.aws_region.this.name
-      RP2_API_URL            = format("api-%s", local.domain)
-      RP2_AUTH_URL           = format("auth-%s", local.domain)
-      RP2_CHECK_REGION       = (data.aws_region.this.name == element(keys(var.backend_bucket), 0)
-        ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
-      RP2_SECRETS_API         = data.aws_secretsmanager_secret.cognito.name
-      RP2_SECRETS_MQ          = data.aws_secretsmanager_secret.mq.name
-      SECRETS_MANAGER_TTL     = var.q.secrets_manager_ttl
+      RP2_LOGGING     = var.q.logging
+      RP2_ID          = data.terraform_remote_state.mq.outputs.rp2_id
+      RP2_ACCOUNT     = data.aws_caller_identity.this.account_id
+      RP2_REGION      = data.aws_region.this.name
+      RP2_API_URL     = format("api-%s", local.domain)
+      RP2_AUTH_URL    = format("auth-%s", local.domain)
+      RP2_SECRETS_API = data.aws_secretsmanager_secret.cognito.name
+      RP2_SECRETS_MQ  = data.aws_secretsmanager_secret.mq.name
+
+      RP2_CHECK_REGION = (data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+      ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0))
+      SECRETS_MANAGER_TTL = var.q.secrets_manager_ttl
     }
   }
 

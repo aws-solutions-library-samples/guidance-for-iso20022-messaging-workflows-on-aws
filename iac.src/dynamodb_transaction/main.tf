@@ -5,7 +5,6 @@ resource "aws_dynamodb_table" "this" {
 
   count        = (local.global_table && data.aws_region.this.name == element(keys(var.backend_bucket), 0)) || !local.global_table ? 1 : 0
   name         = var.q.name
-  # name         = format("%s-%s", var.q.name, data.terraform_remote_state.s3.outputs.rp2_id)
   hash_key     = var.q.hash_key
   range_key    = var.q.range_key
   billing_mode = var.q.billing_mode
@@ -64,7 +63,7 @@ resource "aws_dynamodb_table_replica" "this" {
 }
 
 provider "aws" {
-  alias = "glob"
+  alias  = "glob"
   region = element(keys(var.backend_bucket), 1)
 
   skip_region_validation = true

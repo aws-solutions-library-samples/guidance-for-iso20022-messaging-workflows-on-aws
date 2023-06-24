@@ -7,7 +7,8 @@ resource "aws_codebuild_project" "this" {
   source {
     type            = "NO_SOURCE"
     git_clone_depth = 1
-    buildspec       = templatefile(var.q.file, {
+
+    buildspec = templatefile(var.q.file, {
       role_arn = data.terraform_remote_state.assume.outputs.arn
     })
   }

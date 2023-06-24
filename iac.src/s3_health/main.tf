@@ -7,8 +7,8 @@ resource "aws_s3_bucket" "this" {
   #checkov:skip=CKV2_AWS_61:Checkov issue -- lifecycle is implemented as separate resource
   #checkov:skip=CKV2_AWS_62:Checkov issue -- events notification is implemented as separate resource
 
-  bucket              = format("%s-%s-%s", var.q.bucket, data.aws_region.this.name, local.rp2_id)
-  force_destroy       = var.q.force_destroy
+  bucket        = format("%s-%s-%s", var.q.bucket, data.aws_region.this.name, local.rp2_id)
+  force_destroy = var.q.force_destroy
 
   lifecycle {
     create_before_destroy = true

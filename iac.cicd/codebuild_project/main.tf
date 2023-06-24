@@ -2,12 +2,14 @@ resource "aws_codebuild_project" "this" {
   name          = var.q.name
   description   = var.q.description
   build_timeout = var.q.build_timeout
-  service_role  = data.terraform_remote_state.iam.outputs.arn
+  service_role  = data.terraform_remote_state.codebuild.outputs.arn
 
   source {
     type            = "NO_SOURCE"
-    buildspec       = templatefile(var.q.file, {})
     git_clone_depth = 1
+    buildspec       = templatefile(var.q.file, {
+      role_arn = data.terraform_remote_state.assume.outputs.arn
+    })
   }
 
   artifacts {

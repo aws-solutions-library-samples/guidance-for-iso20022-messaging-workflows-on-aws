@@ -25,10 +25,10 @@ jobs:
           output_format: cli,sarif
           output_file_path: console,results.sarif
 
-      - name: Run Checkov on Demo Code
+      - name: Run Checkov on MQ Code
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: ./iac.demo/
+          directory: ./iac.mq/
           framework: terraform
           soft_fail: true
           download_external_modules: true

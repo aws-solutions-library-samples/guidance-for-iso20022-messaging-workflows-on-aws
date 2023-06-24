@@ -15,7 +15,7 @@ inputs = {
 terraform {
   after_hook "after_hook" {
     commands     = ["apply"]
-    execute      = ["${find_in_parent_folders("bin")}/docker.sh", "-q", "rp2-mq-generator", "-d", "app.demo"]
+    execute      = ["${find_in_parent_folders("bin")}/docker.sh", "-q", "rp2-mq-writer", "-d", "app.mq"]
     run_on_error = false
   }
 }

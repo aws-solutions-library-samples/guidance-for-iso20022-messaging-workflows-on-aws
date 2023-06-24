@@ -26,8 +26,8 @@ jobs:
       - name: Run Bandit on Source Code
         run: bandit -r ./app.src/
 
-      - name: Run Bandit on Demo Code
-        run: bandit -r ./app.demo/
+      - name: Run Bandit on MQ Code
+        run: bandit -r ./app.mq/
 
       # - name: Upload Artifact
       #   uses: actions/upload-artifact@master

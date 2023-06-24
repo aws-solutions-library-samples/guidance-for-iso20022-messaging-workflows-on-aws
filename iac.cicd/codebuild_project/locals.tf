@@ -25,15 +25,5 @@ locals {
       type  = "PLAINTEXT"
       value = format("{%s}", join(",", [for key, value in var.backend_bucket : "\"${key}\"=\"${value}\""]))
     },
-    {
-      name  = "RP2_GITHUB_TOKEN"
-      type  = "PLAINTEXT"
-      value = "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"
-    },
-    {
-      name  = "RP2_GITHUB_BRANCH"
-      type  = "PLAINTEXT"
-      value = "feature/pipeline"
-    },
   ]
 }

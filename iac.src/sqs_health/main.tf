@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "this" {
-  #checkov:skip=CKV_AWS_27:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
   name                        = var.q.name_queue
   fifo_queue                  = var.q.fifo_queue
@@ -19,7 +19,7 @@ resource "aws_sqs_queue_policy" "this" {
 }
 
 resource "aws_sqs_queue" "dlq" {
-  #checkov:skip=CKV_AWS_27:Checkov issue -- cannot read value from default.tfvars
+  #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
   name                    = var.q.name_dlq
   fifo_queue              = var.q.fifo_queue

@@ -1,5 +1,5 @@
 data "aws_iam_policy_document" "this" {
-  #checkov:skip=CKV_AWS_283:Defined S3 policy have constrains with conditions in place
+  #checkov:skip=CKV_AWS_283:This solution defines S3 policy have constrains with conditions in place (false positive)
 
   statement {
     effect    = "Allow"

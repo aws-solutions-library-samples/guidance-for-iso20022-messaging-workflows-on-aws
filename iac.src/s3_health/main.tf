@@ -1,11 +1,11 @@
 resource "aws_s3_bucket" "this" {
-  #checkov:skip=CKV_AWS_18:This solution does not require access logging for S3 based health checks
-  #checkov:skip=CKV_AWS_21:This solution does not require versioning for S3 based health checks
-  #checkov:skip=CKV_AWS_144:This solution does not require cross region replication for S3 based health checks
-  #checkov:skip=CKV_AWS_145:This solution does not require encryption for S3 based health checks
-  #checkov:skip=CKV2_AWS_6:This solution does require public access for S3 based health checks
-  #checkov:skip=CKV2_AWS_61:This solution does not require lifecycle for S3 based health checks
-  #checkov:skip=CKV2_AWS_62:This solution does not events notification lifecycle for S3 based health checks
+  #checkov:skip=CKV_AWS_18:This solution does not require access logging for S3 based health checks (false positive)
+  #checkov:skip=CKV_AWS_21:This solution does not require versioning for S3 based health checks (false positive)
+  #checkov:skip=CKV_AWS_144:This solution does not require cross region replication for S3 based health checks (false positive)
+  #checkov:skip=CKV_AWS_145:This solution does not require encryption for S3 based health checks (false positive)
+  #checkov:skip=CKV2_AWS_6:This solution does require public access for S3 based health checks (false positive)
+  #checkov:skip=CKV2_AWS_61:This solution does not require lifecycle for S3 based health checks (false positive)
+  #checkov:skip=CKV2_AWS_62:This solution does not events notification lifecycle for S3 based health checks (false positive)
 
   bucket        = format("%s-%s-%s", var.q.bucket, data.aws_region.this.name, local.rp2_id)
   force_destroy = var.q.force_destroy
@@ -16,10 +16,10 @@ resource "aws_s3_bucket" "this" {
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
-  #checkov:skip=CKV_AWS_53:This solution does require public access for S3 based health checks
-  #checkov:skip=CKV_AWS_54:This solution does require public access for S3 based health checks
-  #checkov:skip=CKV_AWS_55:This solution does require public access for S3 based health checks
-  #checkov:skip=CKV_AWS_56:This solution does require public access for S3 based health checks
+  #checkov:skip=CKV_AWS_53:This solution does require public access for S3 based health checks (false positive)
+  #checkov:skip=CKV_AWS_54:This solution does require public access for S3 based health checks (false positive)
+  #checkov:skip=CKV_AWS_55:This solution does require public access for S3 based health checks (false positive)
+  #checkov:skip=CKV_AWS_56:This solution does require public access for S3 based health checks (false positive)
 
   bucket = aws_s3_bucket.this.id
 

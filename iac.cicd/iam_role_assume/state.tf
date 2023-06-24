@@ -17,3 +17,7 @@ output "create_date" {
 output "name" {
   value = length(aws_iam_role.this.*.name) > 0 ? element(aws_iam_role.this.*.name, 0) : null
 }
+
+output "ips" {
+  value = local.policy_ips
+}

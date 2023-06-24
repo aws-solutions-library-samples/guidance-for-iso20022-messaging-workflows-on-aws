@@ -1,5 +1,4 @@
 locals {
-  policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
   ips = {
     for val in jsondecode(data.http.this.response_body)["prefixes"]: val["service"] => val... if (
       val["service"] == "CODEBUILD" && (
@@ -8,4 +7,6 @@ locals {
       )
     )
   }
+  policy_ips  = local.ips["CODEBUILD"].*.ip_prefix
+  policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
 }

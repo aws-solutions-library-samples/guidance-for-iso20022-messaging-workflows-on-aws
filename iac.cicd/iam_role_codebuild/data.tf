@@ -25,15 +25,11 @@ data "aws_iam_policy_document" "policy" {
     actions   = ["sts:AssumeRole"]
     resources = [data.terraform_remote_state.iam.outputs.arn]
 
-    # condition {
-    #   test     = "StringLike"
-    #   variable = "iam:PassedToService"
-
-    #   values = [
-    #     "application-autoscaling.amazonaws.com",
-    #     # "application-autoscaling.amazonaws.com.cn",
-    #   ]
-    # }
+    condition {
+      test     = "IpAddress"
+      variable = "aws:SourceIp"
+      values   = data.terraform_remote_state.iam.outputs.ips
+    }
   }
 }
 

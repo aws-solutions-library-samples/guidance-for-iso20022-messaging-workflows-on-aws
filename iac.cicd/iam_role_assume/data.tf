@@ -11,7 +11,7 @@ data "aws_iam_policy_document" "role" {
     condition {
       test     = "IpAddress"
       variable = "aws:SourceIp"
-      values   = local.ips["CODEBUILD"].*.ip_prefix
+      values   = local.policy_ips
     }
   }
 }

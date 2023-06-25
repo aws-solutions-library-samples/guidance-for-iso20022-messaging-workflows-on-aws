@@ -27,7 +27,7 @@ one at http://mozilla.org/MPL/2.0/.
 ------
 
 ** requests; version 2.29.0 -- https://github.com/psf/requests
- 
+
 
                                  Apache License
                            Version 2.0, January 2004
@@ -209,7 +209,7 @@ one at http://mozilla.org/MPL/2.0/.
 ------
 
 ** Boto3; version 2.49.0 -- https://github.com/boto/boto3/
- 
+
 Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
@@ -401,7 +401,7 @@ limitations under the License.
 ** python-dotenv; version 1.0.0 -- https://github.com/theskumar/python-dotenv
 Copyright (c) 2014, Saurabh Kumar (python-dotenv), 2013, Ted Tieken (django-
 dotenv-rw), 2013, Jacob Kaplan-Moss (django-dotenv)
- 
+
 BSD 3-Clause License
 
 Copyright (c) 2014, Saurabh Kumar (python-dotenv), 2013, Ted Tieken (django-
@@ -437,7 +437,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ** joblib; version 1.2.0 -- https://github.com/joblib/joblib/
 Copyright (c) 2008-2021, The joblib developers.
- 
+
 BSD 3-Clause License
 
 Copyright (c) 2008-2021, The joblib developers.
@@ -473,7 +473,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ** pika; version 1.3.0 -- https://github.com/pika/pika
 Copyright (c) 2009-2021, Tony Garnock-Jones, Gavin M. Roy, Pivotal Software, Inc
 and others.
- 
+
 BSD 3-Clause License
 
 Copyright (c) 2009-2021, Tony Garnock-Jones, Gavin M. Roy, Pivotal Software, Inc
@@ -624,7 +624,7 @@ SOFTWARE.
 
 ** xmltodict; version 0.13.0 -- https://pypi.python.org/pypi/xmltodict/0.13.0
 Copyright (C) 2012 Martin Blech and individual contributors.
- 
+
 Copyright (C) 2012 Martin Blech and individual contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -647,9 +647,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------
 
 ** Python; version 3.10 -- https://www.python.org/
-Copyright © 2001-2022 Python Software Foundation; All Rights
-   Reserved
- 
+Copyright © 2001-2022 Python Software Foundation; All Rights Reserved
+
 A. HISTORY OF THE SOFTWARE
 ==========================
 

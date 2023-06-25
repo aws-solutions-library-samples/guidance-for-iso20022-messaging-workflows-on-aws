@@ -63,7 +63,7 @@ resource "aws_dynamodb_table_replica" "this" {
 
   lifecycle {
     create_before_destroy = true
-    ignore_changes        = [replica, read_capacity, write_capacity]
+    ignore_changes        = [read_capacity, write_capacity]
   }
 }
 

@@ -1,5 +1,3 @@
-# work-around: https://aws.amazon.com/blogs/compute/working-with-lambda-layers-and-extensions-in-container-images/
-# lambda layer: https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html
 FROM public.ecr.aws/docker/library/alpine:latest AS layer
 
 ARG AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-"us-east-1"}
@@ -12,16 +10,20 @@ ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 ENV AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 
-RUN apk add aws-cli curl unzip
-
+# work-around: https://aws.amazon.com/blogs/compute/working-with-lambda-layers-and-extensions-in-container-images/
+# lambda layer: https://docs.aws.amazon.com/secretsmanager/latest/userguide/retrieving-secrets_lambda.html
 # x86_64 => arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension:4
 # arm64  => arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4
-RUN curl $(aws lambda get-layer-version-by-arn --arn arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4 --region us-east-1 --query 'Content.Location' --output text) --output layer.zip
+ARG LAYER_ARN=${LAYER_ARN:-"arn:aws:lambda:us-east-1:177933569100:layer:AWS-Parameters-and-Secrets-Lambda-Extension-Arm64:4"}
+ARG LAYER_REGION=${LAYER_REGION:-"us-east-1"}
+
+RUN apk add aws-cli curl unzip
+RUN curl $(aws lambda get-layer-version-by-arn --arn ${LAYER_ARN} --region ${LAYER_REGION} --query 'Content.Location' --output text) --output layer.zip
 RUN mkdir -p /opt
 RUN unzip layer.zip -d /opt
 RUN rm layer.zip
 
-FROM public.ecr.aws/lambda/python:3.10-arm64
+FROM public.ecr.aws/lambda/python:3.10-arm64 AS base
 
 WORKDIR /opt
 COPY --from=layer /opt/ .

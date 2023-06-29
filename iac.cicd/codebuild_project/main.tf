@@ -1,5 +1,5 @@
 resource "aws_codebuild_project" "this" {
-  name          = var.q.name
+  name          = format("%s-%s", var.q.name, local.rp2_id)
   description   = var.q.description
   build_timeout = var.q.build_timeout
   service_role  = data.terraform_remote_state.codebuild.outputs.arn
@@ -43,5 +43,17 @@ resource "aws_codebuild_project" "this" {
       status   = var.q.s3_logs_status
       location = format("%s/%s", var.backend_bucket[data.aws_region.this.name], var.q.s3_logs_location)
     }
+  }
+}
+
+resource "random_id" "this" {
+  byte_length = 4
+
+  keepers = {
+    custom_domain = var.custom_domain
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

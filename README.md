@@ -73,7 +73,9 @@ Once the build execution is successful, you should be able to login to AWS
 Management Console, navigate to AWS CodeBuild service and see the newly created
 project named something like *rp2-cicd-pipeline-abcd1234*.
 
-
+The suffix *abcd1234* in your AWS CodeBuild project name is the solution
+deployment id. This value can be used to test this solution, once deployed
+successfully.
 
 ### Deploy Solution
 
@@ -118,6 +120,9 @@ the public subdomain names to be updated with your DNS provider:
 *example.com* with your custom domain.
 
 ### Run Tests
+
+The suffix *abcd1234* in your AWS CodeBuild project name is the solution
+deployment id. This value can be used to test this solution, as shown below.
 
 Starting at the ROOT level of this repository, run the following command:
 

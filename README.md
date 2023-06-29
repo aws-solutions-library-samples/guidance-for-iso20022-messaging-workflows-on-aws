@@ -109,7 +109,7 @@ will return public subdomain names to be updated with your DNS provider:
 
   ```sh
   aws apigateway get-domain-names --region us-east-1 \
-      --query 'items[?contains(domainName, `octankpay.com`) == `true`].{domain: domainName, target: regionalDomainName}'
+      --query 'items[?contains(domainName, `example.com`) == `true`].{domain: domainName, target: regionalDomainName}'
   ```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and

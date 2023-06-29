@@ -69,9 +69,11 @@ Starting at the ROOT level of this repository, run the following command:
 *us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
 your S3 bucket.
 
-Once the execution is successful, you should be able to login to AWS Management
-Console, navigate to AWS CodeBuild service and see the newly created project
-named something like *rp2-cicd-pipeline-abcd1234*.
+Once the build execution is successful, you should be able to login to AWS
+Management Console, navigate to AWS CodeBuild service and see the newly created
+project named something like *rp2-cicd-pipeline-abcd1234*.
+
+
 
 ### Deploy Solution
 
@@ -95,8 +97,8 @@ in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
 
-Once your build execution finished successfully, the following two commands
-will return public subdomain names to be updated with your DNS provider:
+Once the build execution is successful, the following two commands will return
+the public subdomain names to be updated with your DNS provider:
 
   ```sh
   aws cognito-idp describe-user-pool-domain --region us-east-1 \

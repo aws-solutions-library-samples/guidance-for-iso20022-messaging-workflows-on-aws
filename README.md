@@ -75,7 +75,7 @@ named something like *rp2-cicd-pipeline-abcd1234*.
 
 ### Deploy Solution
 
-Using CI/CD Pipeline created in the previous step, run the following two commands:
+Using CI/CD pipeline created in the previous step, run the following commands:
 
   ```sh
   aws codebuild list-projects --region us-east-1 \
@@ -94,6 +94,26 @@ in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
+
+Once your build execution finished successfully, the following two commands
+will return public subdomain names to be updated with your DNS provider:
+
+  ```sh
+  aws cognito-idp describe-user-pool-domain --region us-east-1 \
+      --domain auth-us-east-1.example.com \
+      --query 'DomainDescription.{domain: Domain, target: CloudFrontDistribution}'
+  ```
+
+> REMINDER: Make sure to replace *us-east-1* with your target AWS region and
+*auth-us-east-1.example.com* with your auth subdomain.
+
+  ```sh
+  aws apigateway get-domain-names --region us-east-1 \
+      --query 'items[?contains(domainName, `octankpay.com`) == `true`].{domain: domainName, target: regionalDomainName}'
+  ```
+
+> REMINDER: Make sure to replace *us-east-1* with your target AWS region and
+*example.com* with your custom domain.
 
 ### Run Tests
 

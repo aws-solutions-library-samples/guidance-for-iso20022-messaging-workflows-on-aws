@@ -85,7 +85,7 @@ Using CI/CD Pipeline created in the previous step, run the following two command
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region.
 
 The output from the previous command should be used as the `project_name` input
-in the next command by replacing *rp2-cicd-pipeline-abcd1234*:
+in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 
   ```sh
   aws codebuild start-build --region us-east-1 \
@@ -95,7 +95,7 @@ in the next command by replacing *rp2-cicd-pipeline-abcd1234*:
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
 
-### Run Some Tests
+### Run Tests
 
 Starting at the ROOT level of this repository, run the following command:
 
@@ -105,7 +105,7 @@ Starting at the ROOT level of this repository, run the following command:
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,
 *us-east-1* with your target AWS region and *abcd1234* with your solution
-deployment ID.
+deployment id.
 
 ## Security
 

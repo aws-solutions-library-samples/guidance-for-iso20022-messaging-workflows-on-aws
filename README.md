@@ -78,7 +78,8 @@ named something like *rp2-cicd-pipeline-abcd1234*.
 Using CI/CD Pipeline created in the previous step, run the following two commands:
 
   ```sh
-  aws codebuild list-projects --query 'projects[?contains(@, `rp2-cicd-pipeline`) == `true`]' --region us-east-1
+  aws codebuild list-projects --region us-east-1 \
+      --query 'projects[?contains(@, `rp2-cicd-pipeline`) == `true`]'
   ```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region.
@@ -87,11 +88,12 @@ The output from the previous command should be used as the `project_name` input
 in the next command by replacing *rp2-cicd-pipeline-abcd1234*:
 
   ```sh
-  aws codebuild start-build --project_name rp2-cicd-pipeline-abcd1234 --region us-east-1
+  aws codebuild start-build --region us-east-1 \
+      --project_name rp2-cicd-pipeline-abcd1234
   ```
 
-> REMINDER: Make sure to replace *rp2-cicd-pipeline-abcd1234* with the value
-from the previous command and *us-east-1* with your target AWS region.
+> REMINDER: Make sure to replace *us-east-1* with your target AWS region and
+*rp2-cicd-pipeline-abcd1234* with the value from the previous command.
 
 ### Run Some Tests
 

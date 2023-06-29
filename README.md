@@ -17,27 +17,31 @@ AWS regions.
 
 ### Pre-requisites
 
-* AWS credentials or assumed AWS role
-* AWS regions (e.g. us-east-1, us-west-2)
-* S3 buckets (e.g. rp2-backend-us-east-1, rp2-backend-us-west-2)
-* Custom domain (e.g. example.com)
-* ACM certificates (e.g. example.com -> nested and *.example.com -> wildcarded)
+* an [AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html)
+* already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html),
+[Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git),
+[Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) and
+[Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
+* [AWS access keys](https://docs.aws.amazon.com/accounts/latest/reference/credentials-access-keys-best-practices.html)
+used by AWS CLI
+* allowed AWS CLI permissions to create
+[AWS Identity and Access Management (IAM) roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create.html)
+and [AWS CodeBuild project](https://docs.aws.amazon.com/codebuild/latest/userguide/planning.html) (e.g.,
+[IAMFullAccess](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/IAMFullAccess.html) and
+[AWSCodeBuildAdminAccess](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSCodeBuildAdminAccess.html))
+* an [Amazon Simple Storage Service (S3) bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
+used by Terraform remote state
+* a custom domain (e.g., example.com)
+* configured
+[AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
+(e.g., nested example.com and wildcarded *.example.com)
 
 ### Validate Pre-requisites
 
-Starting at ROOT level of this repository, run the following two commands:
-
-1/ Change the current working directory to `bin/`
+Starting at ROOT level of this repository, run the following command:
 
   ```sh
-  cd bin/
-  ```
-
-2/ Execute the validation script by passing your S3 bucket used for terraform
-backend and your custom domain (or subdomain) for API and AUTH endpoints
-
-  ```sh
-  /bin/bash validate.sh -q example.com -t rp2-backend-us-east-1
+  /bin/bash ./bin/validate.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
   ```
 
 ### Terraform Commands

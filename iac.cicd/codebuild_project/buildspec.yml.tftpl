@@ -3,10 +3,10 @@ version: 0.2
 phases:
   install:
     commands:
-      - wget https://releases.hashicorp.com/terraform/1.5.1/terraform_1.5.1_linux_arm64.zip
+      - wget https://releases.hashicorp.com/terraform/1.5.2/terraform_1.5.2_linux_arm64.zip
       - unzip terraform_*.zip
       - mv terraform /usr/local/bin/terraform
-      - wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.46.3/terragrunt_linux_arm64
+      - wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.48.0/terragrunt_linux_arm64
       - chmod 0755 terragrunt_*
       - mv terragrunt_* /usr/local/bin/terragrunt
   pre_build:

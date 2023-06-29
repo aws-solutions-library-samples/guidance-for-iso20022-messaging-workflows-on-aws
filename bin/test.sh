@@ -51,7 +51,7 @@ fi
 
 if [ -z "${RP2_REGION}" ]; then
   RP2_REGION=$(curl https://api.${RP2_DOMAIN}/ --http1.1 \
-    --location --request GET --header "X-S3-Skip: 1" --header "X-SQS-Skip: 1")
+    --location --request GET --header "X-S3-Skip: 1" --header "X-SNS-Skip: 1" --header "X-SQS-Skip: 1")
 
   if [ -z "${RP2_REGION}" ] || [ -z "${RP2_REGION##*error*}" ]; then
     echo "[ERROR] RP2_REGION request failed..."; exit 1;

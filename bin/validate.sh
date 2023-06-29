@@ -4,9 +4,10 @@ help()
 {
   echo "Validate pre-requisite requirements"
   echo
-  echo "Syntax: validate.sh [-q|t]"
+  echo "Syntax: validate.sh [-q|r|t]"
   echo "Options:"
   echo "q     Specify custom domain (e.g. example.com)"
+  echo "r     Specify AWS region (e.g. us-east-1)"
   echo "t     Specify S3 bucket (e.g. rp2-backend-us-east-1)"
   echo
 }
@@ -14,15 +15,18 @@ help()
 set -o pipefail
 
 RP2_DOMAIN=""
-RP2_BUCKET=""
+RP2_REGION="us-east-1"
+RP2_BUCKET="rp2-backend-us-east-1"
 
-while getopts "h:q:t:" option; do
+while getopts "h:q:r:t:" option; do
   case $option in
     h)
       help
       exit;;
     q)
       RP2_DOMAIN=$OPTARG;;
+    r)
+      RP2_REGION=$OPTARG;;
     t)
       RP2_BUCKET=$OPTARG;;
     \?)
@@ -40,15 +44,23 @@ if [ -z "${RP2_DOMAIN}" ]; then
   echo "[ERROR] RP2_DOMAIN is missing..."; exit 1;
 fi
 
+if [ -z "${RP2_REGION}" ]; then
+  echo "[ERROR] RP2_REGION is missing..."; exit 1;
+fi
+
 if [ -z "${RP2_BUCKET}" ]; then
   echo "[ERROR] RP2_BUCKET is missing..."; exit 1;
 fi
 
-echo "[EXEC] aws sts get-caller-identity"
-aws sts get-caller-identity
+export AWS_DEFAULT_REGION="${RP2_REGION}"
+export AWS_REGION="${RP2_REGION}"
+WORKDIR="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit 1; pwd -P )"
 
-echo "[EXEC] aws ec2 describe-availability-zones --query \"AvailabilityZones[\*].ZoneId\""
-aws ec2 describe-availability-zones --query "AvailabilityZones[*].ZoneId"
+echo "[EXEC] aws sts get-caller-identity --region ${RP2_REGION}"
+aws sts get-caller-identity --region ${RP2_REGION}
+
+echo "[EXEC] aws ec2 describe-availability-zones --query \"AvailabilityZones[\*].ZoneId\" --region ${RP2_REGION}"
+aws ec2 describe-availability-zones --query "AvailabilityZones[*].ZoneId" --region ${RP2_REGION}
 
 echo "[EXEC] aws iam create-service-linked-role --aws-service-name acm.amazonaws.com"
 aws iam create-service-linked-role --aws-service-name acm.amazonaws.com
@@ -58,6 +70,9 @@ aws iam create-service-linked-role --aws-service-name replication.dynamodb.amazo
 
 echo "[EXEC] aws iam create-service-linked-role --aws-service-name replication.ecr.amazonaws.com"
 aws iam create-service-linked-role --aws-service-name replication.ecr.amazonaws.com
+
+echo "[EXEC] cd ${WORKDIR}/bin"
+cd ${WORKDIR}/bin
 
 echo "[EXEC] terraform init -input=false -no-color"
 terraform init -input=false -no-color
@@ -79,3 +94,6 @@ terraform apply -destroy -auto-approve terraform.tfplan
 
 echo "[EXEC] rm -rf .terraform* terraform*"
 rm -rf .terraform* terraform*
+
+echo "[EXEC] cd -"
+cd -

@@ -49,8 +49,20 @@ if [ -z "${RP2_REGION}" ]; then
   echo "[ERROR] RP2_REGION is missing..."; exit 1;
 fi
 
-if [ -z "${RP2_BACKEND}" ]; then
-  echo "[ERROR] RP2_BACKEND is missing..."; exit 1;
+if [ -z "${RP2_BUCKET}" ]; then
+  echo "[ERROR] RP2_BUCKET is missing..."; exit 1;
 fi
 
 WORKDIR="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit 1; pwd -P )"
+
+echo "[EXEC] cd ${WORKDIR}/iac.cicd/"
+cd ${WORKDIR}/iac.cicd/
+
+echo "[EXEC] terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET}"
+terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET}
+
+echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
+echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}
+
+echo "[EXEC] cd -"
+cd -

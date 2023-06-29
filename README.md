@@ -36,56 +36,40 @@ used by Terraform remote state
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 (e.g., nested *example.com* and wildcarded **.example.com*)
 
+> NOTE: If you select the AWS target region something else than *us-east-1*,
+please make sure to create public certificates in both your target region
+and *us-east-1*. The reason: Amazon Cognito custom domain deploys hosted UI
+using Amazon CloudFront distribution under the hood which requires the public
+certificate to be pre-configured in *us-east-1* region.
+
 ### Validate Pre-requisites
 
-Starting at ROOT level of this repository, run the following command:
+Starting at the ROOT level of this repository, run the following command:
 
   ```sh
   /bin/bash ./bin/validate.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
   ```
 
-### Terraform Commands
+> NOTE: Make sure to replace *example.com* with your custom domain, *us-east-1*
+with your target AWS region and *rp2-backend-us-east-1* with your S3 bucket.
 
-Starting at ROOT level of this repository, run the following four commands:
+Review output logs for any potential errors and warnings before moving forward
+to the next step.
 
-1/ Change the current working directory to `iac.src/s3_runtime/`. The same
-approach can be applied to any other component / subdirectory under the
-`iac.src/` directory
+### Create CI/CD Pipeline
 
-  ```sh
-  cd iac.src/s3_runtime/
-  ```
-
-2/ Execute the terraform cli from below to initialize providers, plugins and
-backend. Use your target AWS region and region-specific S3 bucket for terraform
-remote backend
+Starting at the ROOT level of this repository, run the following command:
 
   ```sh
-  terraform init \
-    -backend-config="bucket=rp2-backend-us-east-1" \
-    -backend-config="region=us-east-1"
+  /bin/bash ./bin/cicd.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
   ```
 
-3/ Execute the terraform cli from below to review the plan of what AWS resources
-will be added, changed or destroyed
+> NOTE: Make sure to replace *example.com* with your custom domain, *us-east-1*
+with your target AWS region and *rp2-backend-us-east-1* with your S3 bucket.
 
-  ```sh
-  terraform plan -var-file default.tfvars
-  ```
-
-4/ Execute the terraform cli from below to deploy AWS resources reviewed at
-previous step
-
-  ```sh
-  terraform apply -var-file default.tfvars -auto-approve
-  ```
-
-Repeat the same four steps for all other subdirectories in `iac.src/` directory.
-
-As you can see, there are tens of terraform components in `iac.src/` directory
-that could grow to hundreds or thousands, therefore you need a better way to
-run terraform commands at scale for all these components (see Terragrunt
-Commands below)
+Once the execution is successful, you should be able to login to AWS Management
+Console, navigate to AWS CodeBuild service and see the newly created project
+named *rp2-cicd-pipeline*.
 
 ### Terragrunt Commands
 

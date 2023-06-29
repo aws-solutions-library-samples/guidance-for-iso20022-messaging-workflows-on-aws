@@ -36,11 +36,11 @@ used by Terraform remote state
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 (e.g., nested *example.com* and wildcarded **.example.com*)
 
-> REMINDER: If you select the AWS target region something else than
+> IMPORTANT: If you select the AWS target region something else than
 *us-east-1*, please make sure to create public certificates in both your target
-region and *us-east-1*. The reason: Amazon Cognito custom domain deploys hosted
-UI using Amazon CloudFront distribution under the hood which requires the
-public certificate to be pre-configured in *us-east-1* region.
+region and *us-east-1*. Amazon Cognito custom domain deploys hosted UI using
+Amazon CloudFront distribution under the hood which requires the public
+certificate to be pre-configured in *us-east-1* region.
 
 ### Validate Pre-requisites
 

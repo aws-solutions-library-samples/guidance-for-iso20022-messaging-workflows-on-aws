@@ -2,38 +2,38 @@
 
 help()
 {
-  echo "Test API endpoint for specific AWS region"
+  echo "Test API consumer flow for a specific AWS region"
   echo
-  echo "Syntax: test.sh [-q|r|d|i|s]"
+  echo "Syntax: test.sh [-q|r|i|c|s]"
   echo "Options:"
   echo "q     Specify custom domain (e.g. example.com)"
-  echo "d     Specify unique id (e.g. 1dbc8790)"
   echo "r     Specify AWS region (e.g. us-east-1)"
-  echo "i     Specify AWS Cognito client id"
-  echo "s     Specify AWS Cognito client secret"
+  echo "i     Specify unique id (e.g. abcd1234)"
+  echo "c     Specify Amazon Cognito client id"
+  echo "s     Specify Amazon Cognito client secret"
   echo
 }
 
 set -o pipefail
 
-RP2_ID=""
 RP2_DOMAIN=""
 RP2_REGION=""
+RP2_ID=""
 RP2_AUTH_CLIENT_ID=""
 RP2_AUTH_CLIENT_SECRET=""
 
-while getopts "h:q:d:r:i:s:" option; do
+while getopts "h:q:r:i:c:s:" option; do
   case $option in
     h)
       help
       exit;;
     q)
       RP2_DOMAIN=$OPTARG;;
-    d)
-      RP2_ID=$OPTARG;;
     r)
       RP2_REGION=$OPTARG;;
     i)
+      RP2_ID=$OPTARG;;
+    c)
       RP2_AUTH_CLIENT_ID=$OPTARG;;
     s)
       RP2_AUTH_CLIENT_SECRET=$OPTARG;;
@@ -44,6 +44,10 @@ while getopts "h:q:d:r:i:s:" option; do
       exit;;
   esac
 done
+
+if [ ! -z "${TF_VAR_CUSTOM_DOMAIN}" ]; then RP2_DOMAIN="${TF_VAR_CUSTOM_DOMAIN}"; fi
+if [ ! -z "${TF_VAR_RP2_REGION}" ]; then RP2_REGION="${TF_VAR_RP2_REGION}"; fi
+if [ ! -z "${TF_VAR_RP2_ID}" ]; then RP2_ID="${TF_VAR_RP2_ID}"; fi
 
 if [ -z "${RP2_DOMAIN}" ]; then
   echo "[ERROR] RP2_DOMAIN is missing..."; exit 1;

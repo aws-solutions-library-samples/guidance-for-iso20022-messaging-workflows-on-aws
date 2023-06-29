@@ -7,7 +7,7 @@ use it as the foundational building block to modernize existing payments
 systems.
 
 This solution provides multi-region tunable consistency with decision making
-process managed by the API consumer that allows for the acceptance, rejection,
+process managed by the API consumers that allows for the acceptance, rejection,
 cancellation, and re-drive of data processing workflows with failover across
 AWS regions.
 
@@ -36,11 +36,11 @@ used by Terraform remote state
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 (e.g., nested *example.com* and wildcarded **.example.com*)
 
-> NOTE: If you select the AWS target region something else than *us-east-1*,
-please make sure to create public certificates in both your target region
-and *us-east-1*. The reason: Amazon Cognito custom domain deploys hosted UI
-using Amazon CloudFront distribution under the hood which requires the public
-certificate to be pre-configured in *us-east-1* region.
+> REMINDER: If you select the AWS target region something else than
+*us-east-1*, please make sure to create public certificates in both your target
+region and *us-east-1*. The reason: Amazon Cognito custom domain deploys hosted
+UI using Amazon CloudFront distribution under the hood which requires the
+public certificate to be pre-configured in *us-east-1* region.
 
 ### Validate Pre-requisites
 
@@ -50,8 +50,9 @@ Starting at the ROOT level of this repository, run the following command:
   /bin/bash ./bin/validate.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
   ```
 
-> NOTE: Make sure to replace *example.com* with your custom domain, *us-east-1*
-with your target AWS region and *rp2-backend-us-east-1* with your S3 bucket.
+> REMINDER: Make sure to replace *example.com* with your custom domain,
+*us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
+your S3 bucket.
 
 Review output logs for any potential errors and warnings before moving forward
 to the next step.
@@ -61,75 +62,48 @@ to the next step.
 Starting at the ROOT level of this repository, run the following command:
 
   ```sh
-  /bin/bash ./bin/cicd.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
+  /bin/bash ./bin/deploy.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
   ```
 
-> NOTE: Make sure to replace *example.com* with your custom domain, *us-east-1*
-with your target AWS region and *rp2-backend-us-east-1* with your S3 bucket.
+> REMINDER: Make sure to replace *example.com* with your custom domain,
+*us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
+your S3 bucket.
 
 Once the execution is successful, you should be able to login to AWS Management
 Console, navigate to AWS CodeBuild service and see the newly created project
-named *rp2-cicd-pipeline*.
+named something like *rp2-cicd-pipeline-abcd1234*.
 
-### Terragrunt Commands
+### Deploy Solution
 
-Starting at ROOT level of this repository, run the following three commands:
-
-1/ Execute the terragrunt cli from below to run corresponding `terraform init`
-for all components / subdirectories in `iac.src/` directory
+Using CI/CD Pipeline created in the previous step, run the following two commands:
 
   ```sh
-  terragrunt run-all init \
-    -backend-config="bucket=rp2-backend-us-east-1" \
-    -backend-config="region=us-east-1"
+  aws codebuild list-projects --query 'projects[?contains(@, `rp2-cicd-pipeline`) == `true`]' --region us-east-1
   ```
 
-2/ Execute the terragrunt cli from below to run corresponding `terraform plan`
-for all components / subdirectories in `iac.src/` directory
+> REMINDER: Make sure to replace *us-east-1* with your target AWS region.
+
+The output from the previous command should be used as the `project_name` input
+in the next command by replacing *rp2-cicd-pipeline-abcd1234*:
 
   ```sh
-  terragrunt run-all plan -var-file default.tfvars
+  aws codebuild start-build --project_name rp2-cicd-pipeline-abcd1234 --region us-east-1
   ```
 
-3/ Execute the terragrunt cli from below to run corresponding `terraform apply`
-for all components / subdirectories in `iac.src/` directory
+> REMINDER: Make sure to replace *rp2-cicd-pipeline-abcd1234* with the value
+from the previous command and *us-east-1* with your target AWS region.
+
+### Run Some Tests
+
+Starting at the ROOT level of this repository, run the following command:
 
   ```sh
-  terragrunt run-all apply -var-file default.tfvars -auto-approve
+  /bin/bash ./bin/test.sh -q example.com -r us-east-1 -i abcd1234
   ```
 
-### Docker Commands
-
-Starting at ROOT level of this repository, run the following two commands:
-
-1/ Change the current working directory to `bin/`
-
-  ```sh
-  cd bin/
-  ```
-
-2/ Execute the docker script to create image from Dockerfile and push into
-container registry by passing your ECR repository name and AWS region
-
-  ```sh
-  /bin/bash docker.sh -q rp2-health -r us-east-1
-  ```
-
-### Testing Commands
-
-Starting at ROOT level of this repository, run the following three commands:
-
-1/ Change the current working directory to `bin/`
-
-  ```sh
-  cd bin/
-  ```
-
-2/ Execute the test script to run an end-to-end payment workflow
-
-  ```sh
-  /bin/bash test.sh -q example.com -r us-east-1
-  ```
+> REMINDER: Make sure to replace *example.com* with your custom domain,
+*us-east-1* with your target AWS region and *abcd1234* with your solution
+deployment ID.
 
 ## Security
 

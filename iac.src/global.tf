@@ -47,3 +47,8 @@ variable "custom_domain" {
   type    = string
   default = "example.com"
 }
+
+variable "rp2_id" {
+  type    = string
+  default = null
+}

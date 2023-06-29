@@ -31,10 +31,10 @@ and [AWS CodeBuild project](https://docs.aws.amazon.com/codebuild/latest/usergui
 [AWSCodeBuildAdminAccess](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSCodeBuildAdminAccess.html))
 * an [Amazon Simple Storage Service (S3) bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 used by Terraform remote state
-* a custom domain (e.g., example.com)
+* a custom domain (e.g., *example.com*)
 * configured
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
-(e.g., nested example.com and wildcarded *.example.com)
+(e.g., nested *example.com* and wildcarded **.example.com*)
 
 ### Validate Pre-requisites
 

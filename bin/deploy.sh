@@ -4,12 +4,13 @@ help()
 {
   echo "Deploy AWS resource using Terraform and Terragrunt"
   echo
-  echo "Syntax: cicd.sh [-q|r|t|d]"
+  echo "Syntax: deploy.sh [-q|r|t|d|c]"
   echo "Options:"
   echo "q     Specify custom domain (e.g. example.com)"
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "t     Specify S3 bucket (e.g. rp2-backend-us-east-1)"
   echo "d     Specify directory (e.g. iac.cicd)"
+  echo "c     Specify cleanup / resource removal (e.g. true)"
   echo
 }
 
@@ -19,8 +20,9 @@ RP2_DOMAIN=""
 RP2_REGION="us-east-1"
 RP2_BUCKET="rp2-backend-us-east-1"
 DIRECTORY="iac.cicd"
+CLEANUP=""
 
-while getopts "h:q:r:t:d:" option; do
+while getopts "h:q:r:t:d:c:" option; do
   case $option in
     h)
       help
@@ -33,6 +35,8 @@ while getopts "h:q:r:t:d:" option; do
       RP2_BUCKET=$OPTARG;;
     d)
       DIRECTORY=$OPTARG;;
+    d)
+      CLEANUP=$OPTARG;;
     \?)
       echo "[ERROR] invalid option"
       echo
@@ -68,8 +72,13 @@ cd ${WORKDIR}/${DIRECTORY}/
 echo "[EXEC] terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET}"
 terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET}
 
-echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
-echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}
+if [ ! -z "${CLEANUP}" -a "${CLEANUP}" == "true" ]; then
+  echo "[EXEC] terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
+  echo "Y" | terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}
+else
+  echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
+  echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}
+fi
 
 echo "[EXEC] cd -"
 cd -

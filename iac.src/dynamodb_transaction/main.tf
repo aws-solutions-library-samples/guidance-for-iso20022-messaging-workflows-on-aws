@@ -31,6 +31,13 @@ resource "aws_dynamodb_table" "this" {
     }
   }
 
+  dynamic "replica" {
+    for_each = local.replicas
+    content {
+      region = replica.value.region
+    }
+  }
+
   point_in_time_recovery {
     enabled = var.q.point_in_time_recovery
   }
@@ -50,25 +57,25 @@ resource "aws_dynamodb_table" "this" {
   }
 }
 
-resource "aws_dynamodb_table_replica" "this" {
-  #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery / backup (false positive)
-  #checkov:skip=CKV_AWS_271:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
-  #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities (false positive)
+# resource "aws_dynamodb_table_replica" "this" {
+#   #checkov:skip=CKV_AWS_28:This solution leverages DynamoDB point in time recovery / backup (false positive)
+#   #checkov:skip=CKV_AWS_271:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
+#   #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities (false positive)
 
-  provider = aws.glob
-  count    = local.global_table && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0
+#   provider = aws.glob
+#   count    = local.global_table && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0
 
-  global_table_arn       = aws_dynamodb_table.this.0.arn
-  point_in_time_recovery = var.q.point_in_time_recovery
+#   global_table_arn       = aws_dynamodb_table.this.0.arn
+#   point_in_time_recovery = var.q.point_in_time_recovery
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
 
-provider "aws" {
-  alias  = "glob"
-  region = element(keys(var.backend_bucket), 1)
+# provider "aws" {
+#   alias  = "glob"
+#   region = element(keys(var.backend_bucket), 1)
 
-  skip_region_validation = true
-}
+#   skip_region_validation = true
+# }

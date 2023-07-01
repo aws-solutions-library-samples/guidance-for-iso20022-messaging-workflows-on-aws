@@ -9,10 +9,6 @@ locals {
       type = "S"
     },
   ]
-  region = (
-    data.aws_region.this.name == element(keys(var.backend_bucket), 0)
-    ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
-  )
   global_secondary_indexes = [
     # {
     #   name               = "transaction_id-transaction_status-index"
@@ -22,9 +18,14 @@ locals {
     #   non_key_attributes = ["id", "created_by", "transaction_code"]
     # },
   ]
-  global_table = (
+  region = (
+    data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+    ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+  )
+  region_enabled = (
     data.aws_region.this.name != local.region &&
     !contains(var.r, element(keys(var.backend_bucket), 0)) &&
     !contains(var.r, element(keys(var.backend_bucket), 1))
   )
+  replicas = local.region_enabled && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? [{region = local.region}] : []
 }

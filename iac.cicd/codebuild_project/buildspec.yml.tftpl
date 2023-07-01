@@ -31,9 +31,7 @@ phases:
     commands:
       - terraform -v
       - terragrunt -v
-      - cd $CODEBUILD_SRC_DIR/iso20022-payments-processing/iac.src/
-      - terragrunt run-all init -backend-config="bucket=rp2-backend-$RP2_REGION" -backend-config="region=$RP2_REGION"
-      - echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain="$RP2_DOMAIN" -var backend_bucket=$RP2_BACKEND
+      - /bin/bash ./bin/deploy.sh -d iac.src -q $RP2_DOMAIN -r $RP2_REGION -t rp2-backend-$RP2_REGION
 # cache:
 #   path:
 #     - $CODEBUILD_SRC_DIR/iso20022-payments-processing/

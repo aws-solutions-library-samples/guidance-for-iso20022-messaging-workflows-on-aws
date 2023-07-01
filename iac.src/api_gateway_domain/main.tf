@@ -9,10 +9,6 @@ resource "aws_api_gateway_domain_name" "this" {
   endpoint_configuration {
     types = var.types
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_api_gateway_base_path_mapping" "healthy" {

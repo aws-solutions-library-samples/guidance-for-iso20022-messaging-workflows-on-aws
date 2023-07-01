@@ -6,20 +6,20 @@ help()
   echo
   echo "Syntax: docker.sh [-q|r|v|p|d|u]"
   echo "Options:"
-  echo "q     Specify repository name (e.g. rp2-inbox)"
+  echo "q     Specify repository name (e.g. rp2-health)"
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "v     Specify version number (e.g. latest)"
   echo "p     Specify platform (e.g. linux/arm64)"
   echo "d     Specify directory (e.g. app.src)"
   echo "f     Specify Dockerfile (e.g. Dockerfile)"
-  echo "u     Update Lambda function (e.g. true)"
+  echo "u     Specify update to Lambda function (e.g. true)"
   echo
 }
 
 set -o pipefail
 
-REGION="us-east-1"
-REPOSITORY="rp2-health"
+REGION=""
+REPOSITORY=""
 VERSION="latest"
 PLATFORM="linux/arm64"
 DIRECTORY="app.src"
@@ -57,7 +57,9 @@ aws --version > /dev/null 2>&1 || { pip install awscli; }
 aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; exit 1; }
 docker --version > /dev/null 2>&1 || { echo "[ERROR] docker is missing. aborting..."; exit 1; }
 
-if [ ! -z "${TF_VAR_RP2_REGION}" ]; then REGION="${TF_VAR_RP2_REGION}"; fi
+if [ -z "${REGION}" ] && [ ! -z "${TF_VAR_RP2_REGION}" ]; then REGION="${TF_VAR_RP2_REGION}"; fi
+if [ -z "${REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then REGION="${AWS_DEFAULT_REGION}"; fi
+if [ -z "${REGION}" ] && [ ! -z "${AWS_REGION}" ]; then REGION="${AWS_REGION}"; fi
 
 if [ -z "${REGION}" ]; then
   echo "[DEBUG] REGION: ${REGION}"

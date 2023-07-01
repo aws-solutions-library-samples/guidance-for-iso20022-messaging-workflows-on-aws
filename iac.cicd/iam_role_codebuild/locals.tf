@@ -18,15 +18,15 @@ locals {
     {
       actions = "s3:GetBucketAcl,s3:GetBucketLocation"
       resources = format(
-        "arn:aws:s3:::%s,arn:aws:s3:::%s",
-        values(var.backend_bucket)[0], values(var.backend_bucket)[1]
+        "arn:aws:s3:::%s",
+        var.backend_bucket[data.aws_region.this.name]
       )
     },
     {
       actions = "s3:GetObject,s3:GetObjectVersion,s3:PutObject"
       resources = format(
-        "arn:aws:s3:::%s/*,arn:aws:s3:::%s/*",
-        values(var.backend_bucket)[0], values(var.backend_bucket)[1]
+        "arn:aws:s3:::%s/*",
+        var.backend_bucket[data.aws_region.this.name]
       )
     },
   ]

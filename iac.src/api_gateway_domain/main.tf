@@ -1,8 +1,8 @@
 resource "aws_api_gateway_domain_name" "this" {
   #checkov:skip=CKV_AWS_206:This solution leverages TLS_1_2 security policy (false positive)
 
-  count                    = length(local.domains)
-  domain_name              = element(local.domains, count.index)
+  for_each                 = local.domains
+  domain_name              = each.value
   regional_certificate_arn = data.aws_acm_certificate.this.arn
   security_policy          = var.q.security_policy
 

@@ -1,22 +1,22 @@
 ##########################################
 # validate acm certificate and s3 bucket #
 ##########################################
-variable "custom_domain" {
+variable "domain" {
   type    = string
   default = "example.com"
 }
 
-variable "resource_prefix" {
+variable "prefix" {
   type    = string
   default = "example-resource"
 }
 
 data "aws_s3_bucket" "this" {
-  bucket = var.resource_prefix
+  bucket = var.prefix
 }
 
 data "aws_acm_certificate" "this" {
-  domain   = var.custom_domain
+  domain   = var.domain
   statuses = ["ISSUED"]
 }
 
@@ -38,7 +38,7 @@ resource "random_string" "this" {
 # create kms key: alias/aws/acm #
 #################################
 resource "aws_acm_certificate" "this" {
-  domain_name       = var.custom_domain
+  domain_name       = var.domain
   validation_method = "EMAIL"
 
   lifecycle {
@@ -52,7 +52,7 @@ resource "aws_acm_certificate" "this" {
 resource "aws_dynamodb_table" "this" {
   #checkov:skip=CKV_AWS_119:KMS Customer Managed CMK not needed - overwritten decision
 
-  name           = format("%s-%s", var.resource_prefix, random_string.this.result)
+  name           = format("%s-%s", var.prefix, random_string.this.result)
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "UserId"
 
@@ -85,7 +85,7 @@ resource "aws_dynamodb_table" "this" {
 # create kms key: alias/aws/ecr #
 #################################
 resource "aws_ecr_repository" "this" {
-  name                 = format("%s-%s", var.resource_prefix, random_string.this.result)
+  name                 = format("%s-%s", var.prefix, random_string.this.result)
   image_tag_mutability = "IMMUTABLE"
 
   encryption_configuration {
@@ -113,7 +113,7 @@ resource "aws_s3_bucket" "this" {
   #checkov:skip=CKV2_AWS_61:Lifecycle not needed -- lifecycle policy is skipped
   #checkov:skip=CKV2_AWS_62:Event notification not needed -- triggering events is skipped
 
-  bucket = format("%s-%s", var.resource_prefix, random_string.this.result)
+  bucket = format("%s-%s", var.prefix, random_string.this.result)
 
   lifecycle {
     create_before_destroy = true
@@ -138,7 +138,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
 # create kms key: alias/aws/sns #
 #################################
 resource "aws_sns_topic" "this" {
-  name              = format("%s-%s.fifo", var.resource_prefix, random_string.this.result)
+  name              = format("%s-%s.fifo", var.prefix, random_string.this.result)
   fifo_topic        = true
   kms_master_key_id = "alias/aws/sns"
 
@@ -151,7 +151,7 @@ resource "aws_sns_topic" "this" {
 # create kms key: alias/aws/sqs #
 #################################
 resource "aws_sqs_queue" "this" {
-  name              = format("%s-%s.fifo", var.resource_prefix, random_string.this.result)
+  name              = format("%s-%s.fifo", var.prefix, random_string.this.result)
   fifo_queue        = true
   kms_master_key_id = "alias/aws/sqs"
 

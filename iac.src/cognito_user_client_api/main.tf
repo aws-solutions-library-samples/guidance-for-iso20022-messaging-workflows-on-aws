@@ -36,7 +36,10 @@ resource "aws_secretsmanager_secret" "this" {
   force_overwrite_replica_secret = true
 
   replica {
-    region = data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+    region = (
+      data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+      ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+    )
   }
 }
 

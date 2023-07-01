@@ -23,7 +23,10 @@ output "region" {
 }
 
 output "region2" {
-  value = aws_s3_bucket.this.region == element(keys(var.backend_bucket), 0) ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+  value = (
+    aws_s3_bucket.this.region == element(keys(var.backend_bucket), 0)
+    ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+  )
 }
 
 output "domain" {

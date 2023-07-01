@@ -106,7 +106,7 @@ OUTPUT=$(docker push ${ENDPOINT}/${REPOSITORY}:${VERSION}) || { echo "[ERROR] do
 echo "[INFO] OUTPUT: ${OUTPUT}"
 IFS=' ' read -ra ARR <<< "$(echo "${OUTPUT}" | tr '\n' ' ')"
 
-if [ ! -z "${UPDATE}" -a "${UPDATE}" == "true" ]; then
+if [ ! -z "${UPDATE}" ] && [ "${UPDATE}" == "true" ]; then
   echo "[INFO] aws lambda update-function-code --region ${REGION} --function-name ${REPOSITORY} --image-uri ${ENDPOINT}/${REPOSITORY}@${ARR[${#ARR[@]} - 3]}"
   aws lambda update-function-code --region ${REGION} --function-name ${REPOSITORY} --image-uri ${ENDPOINT}/${REPOSITORY}@${ARR[${#ARR[@]} - 3]}
 fi

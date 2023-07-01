@@ -75,7 +75,7 @@ cd ${WORKDIR}/${DIRECTORY}/
 echo "[EXEC] terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET}"
 terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET} || { echo "[ERROR] terragrunt run-all init failed. aborting..."; cd -; exit 1; }
 
-if [ ! -z "${CLEANUP}" -a "${CLEANUP}" == "true" ]; then
+if [ ! -z "${CLEANUP}" ] && [ "${CLEANUP}" == "true" ]; then
   echo "[EXEC] terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
   echo "Y" | terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"} || { echo "[ERROR] terragrunt run-all destroy failed. aborting..."; cd -; exit 1; }
 else

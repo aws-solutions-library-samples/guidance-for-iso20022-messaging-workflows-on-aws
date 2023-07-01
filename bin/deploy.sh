@@ -35,7 +35,7 @@ while getopts "h:q:r:t:d:c:" option; do
       RP2_BUCKET=$OPTARG;;
     d)
       DIRECTORY=$OPTARG;;
-    d)
+    c)
       CLEANUP=$OPTARG;;
     \?)
       echo "[ERROR] invalid option"

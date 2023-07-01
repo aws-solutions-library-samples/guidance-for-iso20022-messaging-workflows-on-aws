@@ -80,8 +80,8 @@ cd ${WORKDIR}/bin
 echo "[EXEC] terraform init -input=false -no-color"
 terraform init -input=false -no-color || { echo "[ERROR] terraform init failed. aborting..."; cd -; exit 1; }
 
-echo "[EXEC] terraform plan -var=\"resource_prefix=${RP2_BUCKET}\" -var=\"custom_domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
-terraform plan -var="resource_prefix=${RP2_BUCKET}" -var="custom_domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
+echo "[EXEC] terraform plan -var=\"prefix=${RP2_BUCKET}\" -var=\"domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
+terraform plan -var="prefix=${RP2_BUCKET}" -var="domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform apply -auto-approve terraform.tfplan"
 terraform apply -auto-approve terraform.tfplan || { echo "[ERROR] terraform apply failed. aborting..."; cd -; exit 1; }
@@ -89,8 +89,8 @@ terraform apply -auto-approve terraform.tfplan || { echo "[ERROR] terraform appl
 echo "[EXEC] terraform output"
 terraform output || { echo "[ERROR] terraform output failed. aborting..."; cd -; exit 1; }
 
-echo "[EXEC] terraform plan -destroy -var=\"resource_prefix=${RP2_BUCKET}\" -var=\"custom_domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
-terraform plan -destroy -var="resource_prefix=${RP2_BUCKET}" -var="custom_domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
+echo "[EXEC] terraform plan -destroy -var=\"prefix=${RP2_BUCKET}\" -var=\"domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
+terraform plan -destroy -var="prefix=${RP2_BUCKET}" -var="domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform apply -destroy -auto-approve terraform.tfplan"
 terraform apply -destroy -auto-approve terraform.tfplan || { echo "[ERROR] terraform destroy failed. aborting..."; cd -; exit 1; }

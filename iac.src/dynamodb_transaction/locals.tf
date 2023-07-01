@@ -27,5 +27,5 @@ locals {
     !contains(var.r, element(keys(var.backend_bucket), 0)) &&
     !contains(var.r, element(keys(var.backend_bucket), 1))
   )
-  replicas = local.region_enabled && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? [{region = local.region}] : []
+  replicas = local.region_enabled && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? [{region_name = local.region}] : []
 }

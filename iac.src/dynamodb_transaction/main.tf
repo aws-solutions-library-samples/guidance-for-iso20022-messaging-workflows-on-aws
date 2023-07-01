@@ -34,7 +34,7 @@ resource "aws_dynamodb_table" "this" {
   dynamic "replica" {
     for_each = local.replicas
     content {
-      region = replica.value.region
+      region_name = replica.value.region_name
     }
   }
 

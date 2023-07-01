@@ -54,14 +54,30 @@ while getopts "h:q:r:v:p:d:f:u:" option; do
 done
 
 aws --version > /dev/null 2>&1 || { pip install awscli; }
-aws --version > /dev/null 2>&1 || { echo &2 "[ERROR] aws is missing. aborting..."; exit 1; }
-docker --version > /dev/null 2>&1 || { echo &2 "[ERROR] docker is missing. aborting..."; exit 1; }
+aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; exit 1; }
+docker --version > /dev/null 2>&1 || { echo "[ERROR] docker is missing. aborting..."; exit 1; }
 
 if [ ! -z "${TF_VAR_RP2_REGION}" ]; then REGION="${TF_VAR_RP2_REGION}"; fi
-if [ -z "${REGION}" ]; then echo &2 "[ERROR] REGION is missing. aborting..."; exit 1; fi
-if [ -z "${REPOSITORY}" ]; then echo &2 "[ERROR] REPOSITORY is missing. aborting..."; exit 1; fi
-if [ -z "${VERSION}" ]; then echo &2 "[ERROR] VERSION is missing. aborting..."; exit 1; fi
-if [ -z "${PLATFORM}" ]; then echo &2 "[ERROR] PLATFORM is missing. aborting..."; exit 1; fi
+
+if [ -z "${REGION}" ]; then
+  echo "[DEBUG] REGION: ${REGION}"
+  echo "[ERROR] REGION is missing. aborting..."; exit 1;
+fi
+
+if [ -z "${REPOSITORY}" ]; then
+  echo "[DEBUG] REPOSITORY: ${REPOSITORY}"
+  echo "[ERROR] REPOSITORY is missing. aborting..."; exit 1;
+fi
+
+if [ -z "${VERSION}" ]; then
+  echo "[DEBUG] VERSION: ${VERSION}"
+  echo "[ERROR] VERSION is missing. aborting..."; exit 1;
+fi
+
+if [ -z "${PLATFORM}" ]; then
+  echo "[DEBUG] PLATFORM: ${PLATFORM}"
+  echo "[ERROR] PLATFORM is missing. aborting..."; exit 1;
+fi
 
 WORKDIR="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit 1; pwd -P )"
 ACCOUNT=$(aws sts get-caller-identity --query Account --region ${REGION})
@@ -73,19 +89,19 @@ echo "[INFO] echo {\"credsStore\":\"ecr-login\"} > ${DOCKER_CONFIG}/config.json"
 mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"credsStore\":\"ecr-login\"}" > ${DOCKER_CONFIG}/config.json
 
 echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
-aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo &2 "[ERROR] docker login failed. aborting..."; exit 1; }
+aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo "[ERROR] docker login failed. aborting..."; exit 1; }
 
 echo "[INFO] aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/rp2-cicd-assume-role --role-session-name ${ACCOUNT}"
 ASSUME_ROLE=$(aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/rp2-cicd-assume-role --role-session-name ${ACCOUNT})
 
 echo "[INFO] docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/${DOCKERFILE} ${WORKDIR}/${DIRECTORY}/${REPOSITORY}/ --platform ${PLATFORM}"
-docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/${DOCKERFILE} ${WORKDIR}/${DIRECTORY}/${REPOSITORY}/ --platform ${PLATFORM} --build-arg AWS_DEFAULT_REGION=${REGION} --build-arg AWS_ACCESS_KEY_ID=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.AccessKeyId') --build-arg AWS_SECRET_ACCESS_KEY=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SecretAccessKey') --build-arg AWS_SESSION_TOKEN=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SessionToken') || { echo &2 "[ERROR] docker build failed. aborting..."; exit 1; }
+docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/${DOCKERFILE} ${WORKDIR}/${DIRECTORY}/${REPOSITORY}/ --platform ${PLATFORM} --build-arg AWS_DEFAULT_REGION=${REGION} --build-arg AWS_ACCESS_KEY_ID=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.AccessKeyId') --build-arg AWS_SECRET_ACCESS_KEY=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SecretAccessKey') --build-arg AWS_SESSION_TOKEN=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SessionToken') || { echo "[ERROR] docker build failed. aborting..."; exit 1; }
 
 echo "[INFO] docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION}"
-docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION} || { echo &2 "[ERROR] docker tag failed. aborting..."; exit 1; }
+docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION} || { echo "[ERROR] docker tag failed. aborting..."; exit 1; }
 
 echo "[INFO] docker push ${ENDPOINT}/${REPOSITORY}:${VERSION}"
-OUTPUT=$(docker push ${ENDPOINT}/${REPOSITORY}:${VERSION}) || { echo &2 "[ERROR] docker push failed. aborting..."; exit 1; }
+OUTPUT=$(docker push ${ENDPOINT}/${REPOSITORY}:${VERSION}) || { echo "[ERROR] docker push failed. aborting..."; exit 1; }
 
 echo "[INFO] OUTPUT: ${OUTPUT}"
 IFS=' ' read -ra ARR <<< "$(echo "${OUTPUT}" | tr '\n' ' ')"

@@ -1,4 +1,5 @@
 locals {
+  rp2_id = data.terraform_remote_state.mq.outputs.rp2_id
   statements = [
     {
       actions = "cloudwatch:*"

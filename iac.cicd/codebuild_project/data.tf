@@ -1,4 +1,4 @@
-data "terraform_remote_state" "assume" {
+data "terraform_remote_state" "iam" {
   backend = "s3"
   config = {
     skip_region_validation = true

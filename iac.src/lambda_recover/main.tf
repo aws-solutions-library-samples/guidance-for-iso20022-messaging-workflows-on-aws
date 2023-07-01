@@ -23,7 +23,7 @@ resource "aws_lambda_function" "this" {
   environment {
     variables = {
       RP2_LOGGING  = var.q.logging
-      RP2_ID       = data.terraform_remote_state.s3.outputs.rp2_id
+      RP2_ID       = local.rp2_id
       RP2_ACCOUNT  = data.aws_caller_identity.this.account_id
       RP2_REGION   = data.aws_region.this.name
       RP2_API_URL  = format("api-%s", local.domain)

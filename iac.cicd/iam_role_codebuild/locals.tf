@@ -1,4 +1,5 @@
 locals {
+  rp2_id = data.terraform_remote_state.iam.outputs.rp2_id
   statements = [
     {
       actions = "codebuild:CreateReportGroup,codebuild:CreateReport,codebuild:UpdateReport,codebuild:BatchPutTestCases,codebuild:BatchPutCodeCoverages"

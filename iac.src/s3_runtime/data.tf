@@ -1,5 +1,8 @@
 data "terraform_remote_state" "s3" {
-  count   = data.aws_region.this.name == element(keys(var.backend_bucket), 1) ? 1 : 0
+  count = (
+    data.aws_region.this.name == element(keys(var.backend_bucket), 1)
+    && data.aws_region.this.name != local.region ? 1 : 0
+  )
   backend = "s3"
   config = {
     skip_region_validation = true

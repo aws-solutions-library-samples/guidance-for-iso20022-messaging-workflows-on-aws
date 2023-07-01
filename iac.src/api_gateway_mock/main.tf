@@ -7,7 +7,10 @@ resource "aws_api_gateway_rest_api" "this" {
     version       = var.q.version
     region        = data.aws_region.this.name
     api_url       = format("https://api-%s.%s", data.aws_region.this.name, var.custom_domain)
-    failover_url  = format("https://api-%s.%s", data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0), var.custom_domain)
+    failover_url  = format("https://api-%s.%s", (
+      data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+      ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+    ), var.custom_domain)
     lambda_health = data.terraform_remote_state.lambda_health.outputs.invoke_arn
     cognito_arn   = data.terraform_remote_state.cognito.outputs.arn
   })

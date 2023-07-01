@@ -9,6 +9,10 @@ locals {
       type = "S"
     },
   ]
+  region = (
+    data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+    ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
+  )
   global_secondary_indexes = [
     # {
     #   name               = "transaction_id-transaction_status-index"
@@ -19,6 +23,7 @@ locals {
     # },
   ]
   global_table = (
+    data.aws_region.this.name != local.region &&
     !contains(var.r, element(keys(var.backend_bucket), 0)) &&
     !contains(var.r, element(keys(var.backend_bucket), 1))
   )

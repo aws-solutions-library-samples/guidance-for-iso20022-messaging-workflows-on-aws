@@ -3,7 +3,7 @@ resource "aws_ecr_repository" "this" {
   #checkov:skip=CKV_AWS_136:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
   #checkov:skip=CKV_AWS_163:This solution leverages scan on push (false positive)
 
-  name                 = var.q.name
+  name                 = format("%s-%s", var.q.name, local.rp2_id)
   image_tag_mutability = var.q.image_tag_mutability
 
   encryption_configuration {

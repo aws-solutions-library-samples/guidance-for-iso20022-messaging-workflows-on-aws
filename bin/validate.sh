@@ -37,18 +37,21 @@ while getopts "h:q:r:t:" option; do
   esac
 done
 
-aws --version > /dev/null 2>&1 || { echo &2 "[ERROR] aws is missing. aborting..."; exit 1; }
-terraform -version > /dev/null 2>&1 || { echo &2 "[ERROR] terraform is missing. aborting..."; exit 1; }
+aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; exit 1; }
+terraform -version > /dev/null 2>&1 || { echo "[ERROR] terraform is missing. aborting..."; exit 1; }
 
 if [ -z "${RP2_DOMAIN}" ]; then
+  echo "[DEBUG] RP2_DOMAIN: ${RP2_DOMAIN}"
   echo "[ERROR] RP2_DOMAIN is missing..."; exit 1;
 fi
 
 if [ -z "${RP2_REGION}" ]; then
+  echo "[DEBUG] RP2_REGION: ${RP2_REGION}"
   echo "[ERROR] RP2_REGION is missing..."; exit 1;
 fi
 
 if [ -z "${RP2_BUCKET}" ]; then
+  echo "[DEBUG] RP2_BUCKET: ${RP2_BUCKET}"
   echo "[ERROR] RP2_BUCKET is missing..."; exit 1;
 fi
 
@@ -75,22 +78,22 @@ echo "[EXEC] cd ${WORKDIR}/bin"
 cd ${WORKDIR}/bin
 
 echo "[EXEC] terraform init -input=false -no-color"
-terraform init -input=false -no-color
+terraform init -input=false -no-color || { echo "[ERROR] terraform init failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform plan -var=\"resource_prefix=${RP2_BUCKET}\" -var=\"custom_domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
-terraform plan -var="resource_prefix=${RP2_BUCKET}" -var="custom_domain=${RP2_DOMAIN}" -out=terraform.tfplan
+terraform plan -var="resource_prefix=${RP2_BUCKET}" -var="custom_domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform apply -auto-approve terraform.tfplan"
-terraform apply -auto-approve terraform.tfplan
+terraform apply -auto-approve terraform.tfplan || { echo "[ERROR] terraform apply failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform output"
-terraform output
+terraform output || { echo "[ERROR] terraform output failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform plan -destroy -var=\"resource_prefix=${RP2_BUCKET}\" -var=\"custom_domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
-terraform plan -destroy -var="resource_prefix=${RP2_BUCKET}" -var="custom_domain=${RP2_DOMAIN}" -out=terraform.tfplan
+terraform plan -destroy -var="resource_prefix=${RP2_BUCKET}" -var="custom_domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform apply -destroy -auto-approve terraform.tfplan"
-terraform apply -destroy -auto-approve terraform.tfplan
+terraform apply -destroy -auto-approve terraform.tfplan || { echo "[ERROR] terraform destroy failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] rm -rf .terraform* terraform*"
 rm -rf .terraform* terraform*

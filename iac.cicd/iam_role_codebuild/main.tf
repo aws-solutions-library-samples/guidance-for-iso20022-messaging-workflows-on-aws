@@ -1,6 +1,5 @@
 resource "aws_iam_role" "this" {
-  count              = data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0
-  name               = var.q.name
+  name               = format("%s-%s-%s", var.q.name, data.aws_region.this.name, local.rp2_id)
   description        = var.q.description
   path               = var.q.path
   assume_role_policy = data.aws_iam_policy_document.role.json
@@ -11,8 +10,7 @@ resource "aws_iam_role" "this" {
 }
 
 resource "aws_iam_policy" "this" {
-  count       = data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0
-  name        = var.q.name
+  name        = format("%s-%s-%s", var.q.name, data.aws_region.this.name, local.rp2_id)
   description = var.q.description
   path        = var.q.path
   policy      = data.aws_iam_policy_document.policy.json
@@ -23,7 +21,6 @@ resource "aws_iam_policy" "this" {
 }
 
 resource "aws_iam_role_policy_attachment" "this" {
-  count      = data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? 1 : 0
-  role       = element(aws_iam_role.this.*.name, 0)
-  policy_arn = element(aws_iam_policy.this.*.arn, 0)
+  role       = aws_iam_role.this.name
+  policy_arn = aws_iam_policy.this.arn
 }

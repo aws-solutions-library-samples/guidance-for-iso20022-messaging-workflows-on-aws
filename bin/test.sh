@@ -50,6 +50,7 @@ if [ ! -z "${TF_VAR_RP2_REGION}" ]; then RP2_REGION="${TF_VAR_RP2_REGION}"; fi
 if [ ! -z "${TF_VAR_RP2_ID}" ]; then RP2_ID="${TF_VAR_RP2_ID}"; fi
 
 if [ -z "${RP2_DOMAIN}" ]; then
+  echo "[DEBUG] RP2_DOMAIN: ${RP2_DOMAIN}"
   echo "[ERROR] RP2_DOMAIN is missing..."; exit 1;
 fi
 

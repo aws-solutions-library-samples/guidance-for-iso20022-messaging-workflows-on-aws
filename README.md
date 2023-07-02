@@ -120,9 +120,9 @@ the public subdomain names to be updated with your DNS provider:
 *example.com* with your custom domain.
 
 First command returns the domain name and target value of the AUTH endpoint.
-This endpoint will be used to retrieve OAuth 2.0 token. Second command returns
-the domain names and target values of the API endpoints. Use these domain names
-and target values to update your DNS provider.
+This endpoint will be used to retrieve OAuth 2.0 access token. Second command
+returns the domain names and target values of the API endpoints. Use these
+domain names and target values to update your DNS provider.
 
 ### Run Tests
 

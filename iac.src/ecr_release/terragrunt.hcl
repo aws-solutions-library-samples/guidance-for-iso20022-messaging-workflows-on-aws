@@ -5,7 +5,7 @@ dependency "s3" {
   }
 
   mock_outputs_merge_with_state           = true
-  mock_outputs_allowed_terraform_commands = ["init", "plan", "apply", "validate"]
+  mock_outputs_allowed_terraform_commands = ["init", "plan", "apply", "destroy", "validate"]
 }
 
 inputs = {

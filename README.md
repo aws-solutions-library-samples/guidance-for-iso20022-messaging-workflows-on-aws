@@ -134,6 +134,20 @@ Starting at the ROOT level of this repository, run the following command:
 *us-east-1* with your target AWS region and *abcd1234* with your solution
 deployment id.
 
+### Clean Up
+
+If you decide to clean up your AWS environment and remove all AWS resources
+deployed by this solution, this can be easily achieved by running the following
+command:
+
+  ```sh
+  /bin/bash ./bin/deploy.sh -c true -q example.com -r us-east-1 -t rp2-backend-us-east-1
+  ```
+
+> REMINDER: Make sure to replace *example.com* with your custom domain,
+*us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
+your S3 bucket.
+
 ## Security
 
 See [CONTRIBUTING](./CONTRIBUTING.md#security-issue-notifications) for more

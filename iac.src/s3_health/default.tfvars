@@ -1,6 +1,6 @@
 q = {
   bucket           = "rp2-health"
-  force_destroy    = false
+  force_destroy    = true
   block_access     = true
   object_name      = "rp2-health"
   object_ext       = "txt"

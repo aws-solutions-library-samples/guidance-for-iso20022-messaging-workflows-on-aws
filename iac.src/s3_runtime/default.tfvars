@@ -1,6 +1,6 @@
 q = {
   bucket              = "rp2-runtime"
-  force_destroy       = false
+  force_destroy       = true
   block_access        = true
   object_lock_enabled = true
   object_lock_mode    = "COMPLIANCE"

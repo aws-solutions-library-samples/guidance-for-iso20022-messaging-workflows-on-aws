@@ -22,6 +22,11 @@ locals {
       value = var.custom_domain
     },
     {
+      name  = "RP2_BUCKET"
+      type  = "PLAINTEXT"
+      value = var.backend_bucket[data.aws_region.this.name]
+    },
+    {
       name  = "RP2_BACKEND"
       type  = "PLAINTEXT"
       value = format("{%s}", join(",", [for key, value in var.backend_bucket : "\"${key}\"=\"${value}\""]))

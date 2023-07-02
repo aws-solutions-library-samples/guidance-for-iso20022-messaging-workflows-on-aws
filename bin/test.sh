@@ -65,7 +65,7 @@ if [ -z "${RP2_REGION}" ]; then
 
   RP2_REGION=$(echo ${RP2_REGION} | jq .region_id)
   RP2_REGION=${RP2_REGION//\"/}
-  echo "[INFO] RP2_REGION: ${RP2_REGION}"
+  echo "[DEBUG] RP2_REGION: ${RP2_REGION}"
 fi
 
 if [ -z "${RP2_AUTH_CLIENT_ID}" ] || [ -z "${RP2_AUTH_CLIENT_SECRET}" ]; then
@@ -99,11 +99,10 @@ if [ -z "${RP2_AUTH_CLIENT_SECRET}" ] || [ -z "${RP2_AUTH_CLIENT_SECRET##*error*
 fi
 
 RP2_API_URL="https://api-${RP2_REGION}.${RP2_DOMAIN}"
-echo "[INFO] RP2_API_URL: ${RP2_API_URL}"
+echo "[DEBUG] RP2_API_URL: ${RP2_API_URL}"
 RP2_AUTH_URL="https://auth-${RP2_REGION}.${RP2_DOMAIN}"
-echo "[INFO] RP2_AUTH_URL: ${RP2_AUTH_URL}"
+echo "[DEBUG] RP2_AUTH_URL: ${RP2_AUTH_URL}"
 RP2_AUTH_CLIENT_SCOPE="rp2/read rp2/write"
-echo "[INFO] RP2_AUTH_CLIENT_SCOPE: ${RP2_AUTH_CLIENT_SCOPE}"
 RP2_AUTH_CLIENT_BASE64=$(echo -n "${RP2_AUTH_CLIENT_ID}:${RP2_AUTH_CLIENT_SECRET}" | base64)
 
 RP2_TOKEN=$(curl ${RP2_AUTH_URL}/oauth2/token \

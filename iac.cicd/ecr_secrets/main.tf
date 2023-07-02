@@ -4,6 +4,7 @@ resource "aws_ecr_repository" "this" {
   #checkov:skip=CKV_AWS_163:This solution leverages scan on push (false positive)
 
   name                 = format("%s-%s", var.q.name, local.rp2_id)
+  force_delete         = var.q.force_delete
   image_tag_mutability = var.q.image_tag_mutability
 
   encryption_configuration {

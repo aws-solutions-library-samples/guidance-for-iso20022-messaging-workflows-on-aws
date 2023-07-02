@@ -138,10 +138,14 @@ deployment id.
 
 If you decide to clean up your AWS environment and remove all AWS resources
 deployed by this solution, this can be easily achieved by running the following
-command:
+two commands:
 
   ```sh
-  /bin/bash ./bin/deploy.sh -c true -q example.com -r us-east-1 -t rp2-backend-us-east-1
+  /bin/bash ./bin/deploy.sh -c true -d iac.src -q example.com -r us-east-1 -t rp2-backend-us-east-1
+  ```
+
+  ```sh
+  /bin/bash ./bin/deploy.sh -c true -d iac.cicd -q example.com -r us-east-1 -t rp2-backend-us-east-1
   ```
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,

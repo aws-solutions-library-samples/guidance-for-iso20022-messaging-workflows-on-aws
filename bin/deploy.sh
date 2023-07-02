@@ -4,13 +4,14 @@ help()
 {
   echo "Deploy AWS resource using Terraform and Terragrunt"
   echo
-  echo "Syntax: deploy.sh [-q|r|t|d|c]"
+  echo "Syntax: deploy.sh [-q|r|t|d|c|b]"
   echo "Options:"
   echo "q     Specify custom domain (e.g. example.com)"
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "t     Specify S3 bucket (e.g. rp2-backend-us-east-1)"
   echo "d     Specify directory (e.g. iac.cicd)"
-  echo "c     Specify cleanup / resource removal (e.g. true)"
+  echo "c     Specify cleanup / destroy resources (e.g. true)"
+  echo "b     Specify Terraform backend config (e.g. {\"us-east-1\"=\"rp2-backend-us-east-1\"})"
   echo
 }
 
@@ -19,10 +20,11 @@ set -o pipefail
 RP2_DOMAIN=""
 RP2_REGION="us-east-1"
 RP2_BUCKET="rp2-backend-us-east-1"
+RP2_BACKEND=""
 DIRECTORY="iac.cicd"
 CLEANUP=""
 
-while getopts "h:q:r:t:d:c:" option; do
+while getopts "h:q:r:t:d:c:b:" option; do
   case $option in
     h)
       help
@@ -37,6 +39,8 @@ while getopts "h:q:r:t:d:c:" option; do
       DIRECTORY=$OPTARG;;
     c)
       CLEANUP=$OPTARG;;
+    b)
+      RP2_BACKEND=$OPTARG;;
     \?)
       echo "[ERROR] invalid option"
       echo
@@ -67,6 +71,10 @@ if [ -z "${RP2_BUCKET}" ]; then
   echo "[ERROR] RP2_BUCKET is missing..."; exit 1;
 fi
 
+if [ -z "${RP2_BACKEND}" ]; then
+  RP2_BACKEND={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}
+fi
+
 WORKDIR="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit 1; pwd -P )"
 
 echo "[EXEC] cd ${WORKDIR}/${DIRECTORY}/"
@@ -76,11 +84,11 @@ echo "[EXEC] terragrunt run-all init -backend-config region=${RP2_REGION} -backe
 terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET} || { echo "[ERROR] terragrunt run-all init failed. aborting..."; cd -; exit 1; }
 
 if [ ! -z "${CLEANUP}" ] && [ "${CLEANUP}" == "true" ]; then
-  echo "[EXEC] terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
-  echo "Y" | terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"} || { echo "[ERROR] terragrunt run-all destroy failed. aborting..."; cd -; exit 1; }
+  echo "[EXEC] terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND}"
+  echo "Y" | terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND} || { echo "[ERROR] terragrunt run-all destroy failed. aborting..."; cd -; exit 1; }
 else
-  echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"}"
-  echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket={\"${RP2_REGION}\"=\"${RP2_BUCKET}\"} || { echo "[ERROR] terragrunt run-all apply failed. aborting..."; cd -; exit 1; }
+  echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND}"
+  echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND} || { echo "[ERROR] terragrunt run-all apply failed. aborting..."; cd -; exit 1; }
 fi
 
 echo "[EXEC] cd -"

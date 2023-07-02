@@ -76,6 +76,11 @@ if [ -z "${RP2_BACKEND}" ]; then
 fi
 
 WORKDIR="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit 1; pwd -P )"
+OPTIONS="-var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND}"
+
+if [ ! -z "${RP2_ID}" ]; then
+  OPTIONS="${OPTIONS} -var rp2_id=${RP2_ID}"
+fi
 
 echo "[EXEC] cd ${WORKDIR}/${DIRECTORY}/"
 cd ${WORKDIR}/${DIRECTORY}/
@@ -84,11 +89,11 @@ echo "[EXEC] terragrunt run-all init -backend-config region=${RP2_REGION} -backe
 terragrunt run-all init -backend-config region=${RP2_REGION} -backend-config bucket=${RP2_BUCKET} || { echo "[ERROR] terragrunt run-all init failed. aborting..."; cd -; exit 1; }
 
 if [ ! -z "${CLEANUP}" ] && [ "${CLEANUP}" == "true" ]; then
-  echo "[EXEC] terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND}"
-  echo "Y" | terragrunt run-all destroy -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND} || { echo "[ERROR] terragrunt run-all destroy failed. aborting..."; cd -; exit 1; }
+  echo "[EXEC] terragrunt run-all destroy -auto-approve -var-file default.tfvars ${OPTIONS}"
+  echo "Y" | terragrunt run-all destroy -auto-approve -var-file default.tfvars ${OPTIONS} || { echo "[ERROR] terragrunt run-all destroy failed. aborting..."; cd -; exit 1; }
 else
-  echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND}"
-  echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars -var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND} || { echo "[ERROR] terragrunt run-all apply failed. aborting..."; cd -; exit 1; }
+  echo "[EXEC] terragrunt run-all apply -auto-approve -var-file default.tfvars ${OPTIONS}"
+  echo "Y" | terragrunt run-all apply -auto-approve -var-file default.tfvars ${OPTIONS} || { echo "[ERROR] terragrunt run-all apply failed. aborting..."; cd -; exit 1; }
 fi
 
 echo "[EXEC] cd -"

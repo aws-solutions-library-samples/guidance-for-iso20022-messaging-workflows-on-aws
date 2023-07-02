@@ -22,10 +22,14 @@ locals {
     data.aws_region.this.name == element(keys(var.backend_bucket), 0)
     ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
   )
-  region_enabled = (
-    data.aws_region.this.name != local.region &&
-    !contains(var.r, element(keys(var.backend_bucket), 0)) &&
-    !contains(var.r, element(keys(var.backend_bucket), 1))
+  replicas_enabled = (
+    data.aws_region.this.name != local.region
+    && !contains(var.r, element(keys(var.backend_bucket), 0))
+    && !contains(var.r, element(keys(var.backend_bucket), 1))
   )
-  replicas = local.region_enabled && data.aws_region.this.name == element(keys(var.backend_bucket), 0) ? [{region_name = local.region}] : []
+  replicas = (
+    local.replicas_enabled
+    && data.aws_region.this.name == element(keys(var.backend_bucket), 0)
+    ? [{ region_name = local.region }] : []
+  )
 }

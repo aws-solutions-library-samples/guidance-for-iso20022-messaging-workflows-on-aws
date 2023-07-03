@@ -19,8 +19,8 @@ help()
 set -o pipefail
 
 RP2_DOMAIN=""
-RP2_REGION="us-east-1"
-RP2_BUCKET="rp2-backend-us-east-1"
+RP2_REGION=""
+RP2_BUCKET=""
 RP2_BACKEND=""
 RP2_ID=""
 DIRECTORY="iac.cicd"
@@ -57,9 +57,11 @@ aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; 
 terraform -version > /dev/null 2>&1 || { echo "[ERROR] terraform is missing. aborting..."; exit 1; }
 terragrunt -version > /dev/null 2>&1 || { echo "[ERROR] terragrunt is missing. aborting..."; exit 1; }
 
-if [ ! -z "${TF_VAR_CUSTOM_DOMAIN}" ]; then RP2_DOMAIN="${TF_VAR_CUSTOM_DOMAIN}"; fi
-if [ ! -z "${TF_VAR_RP2_REGION}" ]; then RP2_REGION="${TF_VAR_RP2_REGION}"; fi
-if [ ! -z "${TF_VAR_RP2_ID}" ]; then RP2_ID="${TF_VAR_RP2_ID}"; fi
+if [ -z "${RP2_DOMAIN}" ] && [ ! -z "${TF_VAR_CUSTOM_DOMAIN}" ]; then RP2_DOMAIN="${TF_VAR_CUSTOM_DOMAIN}"; fi
+if [ -z "${RP2_REGION}" ] && [ ! -z "${TF_VAR_RP2_REGION}" ]; then RP2_REGION="${TF_VAR_RP2_REGION}"; fi
+if [ -z "${RP2_REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then RP2_REGION="${AWS_DEFAULT_REGION}"; fi
+if [ -z "${RP2_REGION}" ] && [ ! -z "${AWS_REGION}" ]; then RP2_REGION="${AWS_REGION}"; fi
+if [ -z "${RP2_ID}" ] && [ ! -z "${TF_VAR_RP2_ID}" ]; then RP2_ID="${TF_VAR_RP2_ID}"; fi
 
 if [ -z "${RP2_DOMAIN}" ]; then
   echo "[DEBUG] RP2_DOMAIN: ${RP2_DOMAIN}"

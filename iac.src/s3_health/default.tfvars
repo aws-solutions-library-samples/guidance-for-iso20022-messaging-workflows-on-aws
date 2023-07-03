@@ -1,7 +1,7 @@
 q = {
   bucket           = "rp2-health"
   force_destroy    = true
-  block_access     = true
+  block_access     = false
   object_name      = "rp2-health"
   object_ext       = "txt"
   object_ownership = "BucketOwnerPreferred"

@@ -1,24 +1,46 @@
 # Copyright (C) Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-import pika
+import os, boto3, json, ssl, pika
 
-rabbitmq_host = "127.0.0.1"
-rabbitmq_port = 5672
-rabbitmq_virtual_host = "default"
-rabbitmq_send_exchange = "some_exchange"
-rabbitmq_rcv_exchange = "some_exchange"
-rabbitmq_rcv_queue = "some_incoming_queue"
-rabbitmq_rcv_key = "some_routing_key"
+# predefined variables
+secret_name = 'rp2-service-mq'
+region_name = 'us-east-1'
+rp2_id = 'abcd1234'
+resources = ['inbox.pacs.002', 'inbox.pacs.008', 'outbox.pacs.002', 'outbox.pacs.008']
 
-outgoingRoutingKeys = ["outgoing_routing_key"]
-outgoingQueues = ["some_outgoing_queue "]
+# overwrite variables
+if os.getenv("RP2_REGION"):
+    region_name = os.getenv("RP2_REGION")
+elif os.getenv("AWS_REGION"):
+    region_name = os.getenv("AWS_REGION")
+elif os.getenv("AWS_DEFAULT_REGION"):
+    region_name = os.getenv("AWS_DEFAULT_REGION")
+if os.getenv("RP2_ID"):
+    rp2_id = os.getenv("RP2_ID")
 
-# The binding area
-credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
-connection = pika.BlockingConnection(pika.ConnectionParameters(rabbitmq_host, rabbitmq_port, rabbitmq_virtual_host, credentials))
+# retrieve secrets
+print('[INFO] Connecting to AWS Secrets Manager...')
+session = boto3.session.Session()
+client = session.client(service_name='secretsmanager', region_name=region_name)
+print('[INFO] Retrieving RabbitMQ secret from AWS Secrets Manager...')
+response = client.get_secret_value(SecretId=f'{secret_name}-{region_name}-{rp2_id}')
+r = json.loads(response['SecretString'])
+
+# create rabbitmq resources
+print('[INFO] Connecting to RabbitMQ...')
+credentials = pika.PlainCredentials(r['RP2_RMQ_USER'], r['RP2_RMQ_PASS'])
+context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+parameters = pika.ConnectionParameters(r['RP2_RMQ_HOST'], r['RP2_RMQ_PORT'], '/', credentials, ssl_options=pika.SSLOptions(context))
+connection = pika.BlockingConnection(parameters)
+print('[INFO] Retrieving connection channel from RabbitMQ...')
 channel = connection.channel()
-channel.queue_bind(exchange=rabbitmq_rcv_exchange, queue=rabbitmq_rcv_queue, routing_key=rabbitmq_rcv_key)
 
-for index in range(len(outgoingRoutingKeys)):
-    channel.queue_bind(exchange=rabbitmq_send_exchange, queue=outgoingQueues[index], routing_key=outgoingRoutingKeys[index])
+print('[INFO] Creating RabbitMQ resources...')
+for index in range(len(resources)):
+    channel.queue_declare(queue=resources[index])
+    print(f'[INFO] {resources[index]} queue created successfully...')
+    channel.exchange_declare(exchange=resources[index], exchange_type='topic')
+    print(f'[INFO] {resources[index]} exchange created successfully...')
+    channel.queue_bind(exchange=resources[index], queue=resources[index], routing_key=resources[index])
+    print(f'[INFO] {resources[index]} binding created successfully...')

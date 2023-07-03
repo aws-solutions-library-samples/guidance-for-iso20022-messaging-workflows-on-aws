@@ -1,4 +1,4 @@
 q = {
-  status       = "Enabled"
-  stoage_class = "INTELLIGENT_TIERING"
+  status        = "Enabled"
+  storage_class = "INTELLIGENT_TIERING"
 }

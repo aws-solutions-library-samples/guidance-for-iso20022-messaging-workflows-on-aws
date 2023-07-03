@@ -9,7 +9,7 @@ dependency "mq" {
 }
 
 inputs = {
-  ROLE_NAME  = dependency.s3.outputs.role_name
+  ROLE_NAME  = dependency.mq.outputs.role_name
   RP2_REGION = dependency.mq.outputs.region
 }
 

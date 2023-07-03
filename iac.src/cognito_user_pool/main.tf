@@ -80,8 +80,8 @@ resource "aws_cognito_resource_server" "this" {
   dynamic "scope" {
     for_each = local.scopes
     content {
-      scope_name        = each.value.name
-      scope_description = each.value.description
+      scope_name        = scope.value.name
+      scope_description = scope.value.description
     }
   }
 }

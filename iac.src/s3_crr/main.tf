@@ -5,11 +5,11 @@ resource "aws_s3_bucket_replication_configuration" "this" {
   dynamioc "rule" {
     for_each = local.rules
     content {
-      id     = each.value
+      id     = rule.value
       status = var.q.status
 
       filter {
-        prefix = each.value
+        prefix = rule.value
       }
 
       destination {

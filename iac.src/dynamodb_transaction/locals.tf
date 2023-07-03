@@ -30,6 +30,6 @@ locals {
   replicas = (
     local.replicas_enabled
     && data.aws_region.this.name == element(keys(var.backend_bucket), 0)
-    ? [{ region_name = local.region }] : []
+    ? [ local.region ] : []
   )
 }

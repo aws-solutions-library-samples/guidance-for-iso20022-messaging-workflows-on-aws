@@ -40,8 +40,6 @@ done
 aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; exit 1; }
 terraform -version > /dev/null 2>&1 || { echo "[ERROR] terraform is missing. aborting..."; exit 1; }
 
-if [ -z "${RP2_DOMAIN}" ] && [ ! -z "${TF_VAR_CUSTOM_DOMAIN}" ]; then RP2_DOMAIN="${TF_VAR_CUSTOM_DOMAIN}"; fi
-if [ -z "${RP2_REGION}" ] && [ ! -z "${TF_VAR_RP2_REGION}" ]; then RP2_REGION="${TF_VAR_RP2_REGION}"; fi
 if [ -z "${RP2_REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then RP2_REGION="${AWS_DEFAULT_REGION}"; fi
 if [ -z "${RP2_REGION}" ] && [ ! -z "${AWS_REGION}" ]; then RP2_REGION="${AWS_REGION}"; fi
 

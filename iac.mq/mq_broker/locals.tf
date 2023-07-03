@@ -1,4 +1,5 @@
 locals {
+  bucket_arn = data.terraform_remote_state.s3.outputs.arn
   role_name = data.terraform_remote_state.iam.outputs.name
   rp2_id = data.terraform_remote_state.s3.outputs.rp2_id
   region = (

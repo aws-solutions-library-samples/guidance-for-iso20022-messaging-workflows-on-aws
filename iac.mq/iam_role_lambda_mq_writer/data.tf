@@ -56,13 +56,13 @@ data "aws_iam_policy_document" "policy" {
   }
 }
 
-data "terraform_remote_state" "s3" {
+data "terraform_remote_state" "mq" {
   backend = "s3"
   config = {
     skip_region_validation = true
 
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
-    key    = format(var.backend_pattern, "s3_runtime")
+    key    = format(var.backend_pattern, "mq_broker")
   }
 }

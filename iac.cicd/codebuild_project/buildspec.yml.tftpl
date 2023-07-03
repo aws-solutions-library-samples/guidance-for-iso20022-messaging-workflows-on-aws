@@ -31,7 +31,7 @@ phases:
     commands:
       - terraform -v
       - terragrunt -v
-      - /bin/bash ./bin/deploy.sh -d iac.src -q $RP2_DOMAIN -r $RP2_REGION -t $RP2_BUCKET
+      - /bin/bash ./bin/deploy.sh -d iac.src -q $RP2_DOMAIN -r $RP2_REGION -t $RP2_BUCKET -i $RP2_ID
 # cache:
 #   path:
 #     - $CODEBUILD_SRC_DIR/iso20022-payments-processing/

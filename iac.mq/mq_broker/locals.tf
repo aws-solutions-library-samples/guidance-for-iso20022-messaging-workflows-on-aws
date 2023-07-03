@@ -6,5 +6,5 @@ locals {
     data.aws_region.this.name == element(keys(var.backend_bucket), 0)
     ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
   )
-  replicas = local.region == data.aws_region.this.name ? [] : [{region = local.region}]
+  replicas = local.region == data.aws_region.this.name ? [] : [ local.region ]
 }

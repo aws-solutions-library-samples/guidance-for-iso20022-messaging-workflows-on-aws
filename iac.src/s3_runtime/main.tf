@@ -8,6 +8,7 @@ resource "aws_s3_bucket" "this" {
   #checkov:skip=CKV2_AWS_62:This solution implemented events notification as a separate terraform resource (false positive)
 
   bucket              = format("%s-%s-%s", var.q.bucket, data.aws_region.this.name, local.rp2_id)
+  storage_class       = var.q.storage_class
   force_destroy       = var.q.force_destroy
   object_lock_enabled = var.q.object_lock_enabled
 

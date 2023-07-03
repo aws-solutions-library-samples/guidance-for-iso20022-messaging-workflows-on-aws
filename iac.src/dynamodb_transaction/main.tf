@@ -15,26 +15,26 @@ resource "aws_dynamodb_table" "this" {
   dynamic "attribute" {
     for_each = local.attributes
     content {
-      name = attribute.value.name
-      type = attribute.value.type
+      name = each.value.name
+      type = each.value.type
     }
   }
 
   dynamic "global_secondary_index" {
     for_each = local.global_secondary_indexes
     content {
-      name               = global_secondary_index.value.name
-      hash_key           = global_secondary_index.value.hash_key
-      range_key          = global_secondary_index.value.range_key
-      projection_type    = global_secondary_index.value.projection_type
-      non_key_attributes = global_secondary_index.value.non_key_attributes
+      name               = each.value.name
+      hash_key           = each.value.hash_key
+      range_key          = each.value.range_key
+      projection_type    = each.value.projection_type
+      non_key_attributes = each.value.non_key_attributes
     }
   }
 
   dynamic "replica" {
     for_each = local.replicas
     content {
-      region_name = replica.value.region_name
+      region_name = each.value.region_name
     }
   }
 

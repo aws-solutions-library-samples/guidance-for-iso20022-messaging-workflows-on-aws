@@ -38,7 +38,7 @@ resource "aws_secretsmanager_secret" "this" {
   dynamic "replica" {
     for_each = local.replicas
     content {
-      region = replica.value.region
+      region = each.value.region
     }
   }
 }

@@ -1,5 +1,6 @@
 q = {
   bucket              = "rp2-runtime"
+  storage_class       = "INTELLIGENT_TIERING"
   force_destroy       = true
   object_lock_enabled = true
   object_lock_mode    = "COMPLIANCE"

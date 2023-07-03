@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "role" {
 
     principals {
       type        = "Service"
-      identifiers = ["codebuild.amazonaws.com"]
+      identifiers = ["s3.amazonaws.com"]
     }
   }
 }
@@ -21,33 +21,15 @@ data "aws_iam_policy_document" "policy" {
       resources = split(",", each.value.resources)
     }
   }
-
-  statement {
-    effect    = "Allow"
-    actions   = ["sts:AssumeRole"]
-    resources = [data.terraform_remote_state.iam.outputs.arn]
-
-    condition {
-      test     = "IpAddress"
-      variable = "aws:SourceIp"
-      values   = data.terraform_remote_state.iam.outputs.ips
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "aws:ResourceAccount"
-      values   = [data.aws_caller_identity.this.account_id]
-    }
-  }
 }
 
-data "terraform_remote_state" "iam" {
+data "terraform_remote_state" "s3" {
   backend = "s3"
   config = {
     skip_region_validation = true
 
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
-    key    = format(var.backend_pattern, "iam_role_assume")
+    key    = format(var.backend_pattern, "s3_runtime")
   }
 }

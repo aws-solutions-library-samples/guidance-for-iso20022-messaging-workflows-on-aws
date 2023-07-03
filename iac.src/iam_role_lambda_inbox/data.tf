@@ -17,8 +17,8 @@ data "aws_iam_policy_document" "policy" {
     for_each = local.statements
     content {
       effect    = "Allow"
-      actions   = split(",", statement.value.actions)
-      resources = split(",", statement.value.resources)
+      actions   = split(",", each.value.actions)
+      resources = split(",", each.value.resources)
     }
   }
 

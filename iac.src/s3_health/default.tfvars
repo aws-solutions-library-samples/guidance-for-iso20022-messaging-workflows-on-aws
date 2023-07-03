@@ -1,6 +1,5 @@
 q = {
   bucket           = "rp2-health"
-  storage_class    = "INTELLIGENT_TIERING"
   force_destroy    = true
   block_access     = true
   object_name      = "rp2-health"

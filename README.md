@@ -19,7 +19,6 @@ AWS regions.
 
 * an [AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html)
 * already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html),
-[Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git),
 [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) and
 [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
 * [AWS access keys](https://docs.aws.amazon.com/accounts/latest/reference/credentials-access-keys-best-practices.html)

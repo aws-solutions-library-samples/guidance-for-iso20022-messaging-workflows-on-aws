@@ -61,7 +61,7 @@ aws --version > /dev/null 2>&1 || { pip install awscli; }
 aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; exit 1; }
 docker --version > /dev/null 2>&1 || { echo "[ERROR] docker is missing. aborting..."; exit 1; }
 
-if [ -z "${ROLENAME}" ] && [ ! -z "${TF_VAR_ROLE_NAME}" ]; then REGION="${TF_VAR_ROLE_NAME}"; fi
+if [ -z "${ROLENAME}" ] && [ ! -z "${TF_VAR_ROLE_NAME}" ]; then ROLENAME="${TF_VAR_ROLE_NAME}"; fi
 if [ -z "${REGION}" ] && [ ! -z "${TF_VAR_RP2_REGION}" ]; then REGION="${TF_VAR_RP2_REGION}"; fi
 if [ -z "${REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then REGION="${AWS_DEFAULT_REGION}"; fi
 if [ -z "${REGION}" ] && [ ! -z "${AWS_REGION}" ]; then REGION="${AWS_REGION}"; fi

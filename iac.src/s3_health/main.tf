@@ -53,19 +53,19 @@ resource "aws_s3_bucket_ownership_controls" "this" {
   depends_on = [aws_s3_bucket_public_access_block.this]
 }
 
-resource "aws_s3_bucket_acl" "this" {
-  bucket = aws_s3_bucket.this.id
-  acl    = var.q.acl
+# resource "aws_s3_bucket_acl" "this" {
+#   bucket = aws_s3_bucket.this.id
+#   acl    = var.q.acl
 
-  depends_on = [aws_s3_bucket_ownership_controls.this]
-}
+#   depends_on = [aws_s3_bucket_ownership_controls.this]
+# }
 
 resource "aws_s3_bucket_policy" "this" {
   count  = var.q.block_access ? 0 : 1
   bucket = aws_s3_bucket.this.id
   policy = data.aws_iam_policy_document.this.json
 
-  depends_on = [aws_s3_bucket_acl.this]
+  depends_on = [aws_s3_bucket_ownership_controls.this]
 }
 
 resource "aws_s3_bucket_logging" "this" {

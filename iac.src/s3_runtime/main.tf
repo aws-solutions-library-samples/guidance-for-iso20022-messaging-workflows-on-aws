@@ -16,16 +16,16 @@ resource "aws_s3_bucket" "this" {
   }
 }
 
-resource "random_id" "this" {
-  byte_length = 4
+resource "aws_s3_account_public_access_block" "this" {
+  #checkov:skip=CKV_AWS_53:This solution leverages block public ACLs feature as TRUE (false positive)
+  #checkov:skip=CKV_AWS_54:This solution leverages block public policy feature as TRUE (false positive)
+  #checkov:skip=CKV_AWS_55:This solution leverages ignore public ACLs feature as TRUE (false positive)
+  #checkov:skip=CKV_AWS_56:This solution leverages restrict public buckets feature as TRUE (false positive)
 
-  keepers = {
-    custom_domain = var.custom_domain
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
+  block_public_acls       = var.q.block_access
+  block_public_policy     = var.q.block_access
+  ignore_public_acls      = var.q.block_access
+  restrict_public_buckets = var.q.block_access
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
@@ -40,6 +40,8 @@ resource "aws_s3_bucket_public_access_block" "this" {
   block_public_policy     = var.q.block_access
   ignore_public_acls      = var.q.block_access
   restrict_public_buckets = var.q.block_access
+
+  depends_on = [aws_s3_account_public_access_block.this]
 }
 
 resource "aws_s3_bucket_ownership_controls" "this" {
@@ -57,4 +59,59 @@ resource "aws_s3_bucket_acl" "this" {
   acl    = var.q.acl
 
   depends_on = [aws_s3_bucket_ownership_controls.this]
+}
+
+resource "aws_s3_bucket_versioning" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  versioning_configuration {
+    status = var.q.versioning_status
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = var.q.sse_algorithm
+    }
+  }
+}
+
+resource "aws_s3_bucket_object_lock_configuration" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    default_retention {
+      mode = var.q.object_lock_mode
+      days = var.q.object_lock_days
+    }
+  }
+}
+
+resource "aws_s3_bucket_ownership_controls" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  rule {
+    object_ownership = var.q.object_ownership
+  }
+}
+
+resource "aws_s3_bucket_logging" "this" {
+  bucket        = aws_s3_bucket.this.id
+  target_bucket = aws_s3_bucket.this.id
+  target_prefix = var.q.logs_prefix
+}
+
+resource "random_id" "this" {
+  byte_length = 4
+
+  keepers = {
+    custom_domain = var.custom_domain
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }

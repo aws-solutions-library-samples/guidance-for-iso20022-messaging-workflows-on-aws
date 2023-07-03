@@ -16,37 +16,6 @@ resource "aws_s3_bucket" "this" {
   }
 }
 
-# resource "aws_s3_bucket_public_access_block" "this" {
-#   #checkov:skip=CKV_AWS_53:This solution leverages block public ACLs feature as TRUE (false positive)
-#   #checkov:skip=CKV_AWS_54:This solution leverages block public policy feature as TRUE (false positive)
-#   #checkov:skip=CKV_AWS_55:This solution leverages ignore public ACLs feature as TRUE (false positive)
-#   #checkov:skip=CKV_AWS_56:This solution leverages restrict public buckets feature as TRUE (false positive)
-
-#   bucket = aws_s3_bucket.this.id
-
-#   block_public_acls       = var.q.block_access
-#   block_public_policy     = var.q.block_access
-#   ignore_public_acls      = var.q.block_access
-#   restrict_public_buckets = var.q.block_access
-# }
-
-# resource "aws_s3_bucket_ownership_controls" "this" {
-#   bucket = aws_s3_bucket.this.id
-
-#   rule {
-#     object_ownership = var.q.object_ownership
-#   }
-
-#   depends_on = [aws_s3_bucket_public_access_block.this]
-# }
-
-# resource "aws_s3_bucket_acl" "this" {
-#   bucket = aws_s3_bucket.this.id
-#   acl    = var.q.acl
-
-#   depends_on = [aws_s3_bucket_ownership_controls.this]
-# }
-
 resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.this.id
 

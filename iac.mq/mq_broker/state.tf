@@ -25,6 +25,10 @@ output "region2" {
   )
 }
 
+output "bucket_arn" {
+  value = local.bucket_arn
+}
+
 output "custom_domain" {
   value = var.custom_domain
 }

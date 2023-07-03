@@ -4,11 +4,12 @@ help()
 {
   echo "Deploy AWS resource using Terraform and Terragrunt"
   echo
-  echo "Syntax: deploy.sh [-q|r|t|d|c|b]"
+  echo "Syntax: deploy.sh [-q|r|t|i|d|c|b]"
   echo "Options:"
   echo "q     Specify custom domain (e.g. example.com)"
   echo "r     Specify AWS region (e.g. us-east-1)"
   echo "t     Specify S3 bucket (e.g. rp2-backend-us-east-1)"
+  echo "i     Specify unique id (e.g. abcd1234)"
   echo "d     Specify directory (e.g. iac.cicd)"
   echo "c     Specify cleanup / destroy resources (e.g. true)"
   echo "b     Specify Terraform backend config (e.g. {\"us-east-1\"=\"rp2-backend-us-east-1\"})"
@@ -21,10 +22,11 @@ RP2_DOMAIN=""
 RP2_REGION="us-east-1"
 RP2_BUCKET="rp2-backend-us-east-1"
 RP2_BACKEND=""
+RP2_ID=""
 DIRECTORY="iac.cicd"
 CLEANUP=""
 
-while getopts "h:q:r:t:d:c:b:" option; do
+while getopts "h:q:r:t:i:d:c:b:" option; do
   case $option in
     h)
       help
@@ -35,6 +37,8 @@ while getopts "h:q:r:t:d:c:b:" option; do
       RP2_REGION=$OPTARG;;
     t)
       RP2_BUCKET=$OPTARG;;
+    i)
+      RP2_ID=$OPTARG;;
     d)
       DIRECTORY=$OPTARG;;
     c)
@@ -55,6 +59,7 @@ terragrunt -version > /dev/null 2>&1 || { echo "[ERROR] terragrunt is missing. a
 
 if [ ! -z "${TF_VAR_CUSTOM_DOMAIN}" ]; then RP2_DOMAIN="${TF_VAR_CUSTOM_DOMAIN}"; fi
 if [ ! -z "${TF_VAR_RP2_REGION}" ]; then RP2_REGION="${TF_VAR_RP2_REGION}"; fi
+if [ ! -z "${TF_VAR_RP2_ID}" ]; then RP2_ID="${TF_VAR_RP2_ID}"; fi
 
 if [ -z "${RP2_DOMAIN}" ]; then
   echo "[DEBUG] RP2_DOMAIN: ${RP2_DOMAIN}"

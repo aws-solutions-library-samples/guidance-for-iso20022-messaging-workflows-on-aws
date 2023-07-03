@@ -9,6 +9,8 @@ provider "aws" {
     tags = {
       Project     = "rp2"
       Environment = "default"
+      UniqueId    = var.rp2_id
+      Domain      = var.custom_domain
       Contact     = "github.com/eistrati"
     }
   }

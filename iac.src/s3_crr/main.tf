@@ -2,7 +2,7 @@ resource "aws_s3_bucket_replication_configuration" "this" {
   bucket = data.terraform_remote_state.s3.outputs.id
   role   = data.terraform_remote_state.iam.outputs.arn
 
-  dynamioc "rule" {
+  dynamic "rule" {
     for_each = local.rules
     content {
       id     = rule.value

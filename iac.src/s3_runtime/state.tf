@@ -37,6 +37,10 @@ output "custom_domain" {
   value = var.custom_domain
 }
 
+output "role_name" {
+  value = local.role_name
+}
+
 output "rp2_id" {
   value = local.rp2_id
 }

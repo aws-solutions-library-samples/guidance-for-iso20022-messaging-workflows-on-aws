@@ -9,6 +9,7 @@ dependency "s3" {
 }
 
 inputs = {
+  ROLE_NAME  = dependency.s3.outputs.role_name
   RP2_REGION = dependency.s3.outputs.region
 }
 

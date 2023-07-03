@@ -81,7 +81,8 @@ def s3_put_object(region, bucket, prefix, name, ext, body, time):
     object = s3.Object(bucket, key)
     return {
         'path': key,
-        'object': object.put(Body=body, ContentType=f'application/{ext}',
+        'object': object.put(Body=body,
+            ContentType=f'application/{ext}', StorageClass='INTELLIGENT_TIERING',
             ObjectLockMode='GOVERNANCE', ObjectLockRetainUntilDate=retain)
     }
 

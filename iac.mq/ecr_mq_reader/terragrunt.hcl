@@ -1,7 +1,8 @@
 dependency "mq" {
   config_path  = "../mq_broker"
   mock_outputs = {
-    region = "us-east-1"
+    role_name = "rp2-cicd-assume-role"
+    region    = "us-east-1"
   }
 
   mock_outputs_merge_with_state           = true

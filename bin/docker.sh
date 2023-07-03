@@ -4,7 +4,7 @@ help()
 {
   echo "Build image based on Dockerfile and push it to private container registry"
   echo
-  echo "Syntax: docker.sh [-q|r|v|p|d|u]"
+  echo "Syntax: docker.sh [-q|r|v|p|d|f|g|u]"
   echo "Options:"
   echo "q     Specify repository name (e.g. rp2-health)"
   echo "r     Specify AWS region (e.g. us-east-1)"
@@ -12,6 +12,7 @@ help()
   echo "p     Specify platform (e.g. linux/arm64)"
   echo "d     Specify directory (e.g. app.src)"
   echo "f     Specify Dockerfile (e.g. Dockerfile)"
+  echo "g     Specify CI/CD role name (e.g. rp2-cicd-assume-role-abcd1234)"
   echo "u     Specify update to Lambda function (e.g. true)"
   echo
 }
@@ -24,9 +25,10 @@ VERSION="latest"
 PLATFORM="linux/arm64"
 DIRECTORY="app.src"
 DOCKERFILE="Dockerfile"
+ROLENAME=""
 UPDATE=""
 
-while getopts "h:q:r:v:p:d:f:u:" option; do
+while getopts "h:q:r:v:p:d:f:g:u:" option; do
   case $option in
     h)
       help
@@ -43,6 +45,8 @@ while getopts "h:q:r:v:p:d:f:u:" option; do
       DIRECTORY=$OPTARG;;
     f)
       DOCKERFILE=$OPTARG;;
+    g)
+      ROLENAME=$OPTARG;;
     u)
       UPDATE=$OPTARG;;
     \?)
@@ -57,6 +61,7 @@ aws --version > /dev/null 2>&1 || { pip install awscli; }
 aws --version > /dev/null 2>&1 || { echo "[ERROR] aws is missing. aborting..."; exit 1; }
 docker --version > /dev/null 2>&1 || { echo "[ERROR] docker is missing. aborting..."; exit 1; }
 
+if [ -z "${ROLENAME}" ] && [ ! -z "${TF_VAR_ROLE_NAME}" ]; then REGION="${TF_VAR_ROLE_NAME}"; fi
 if [ -z "${REGION}" ] && [ ! -z "${TF_VAR_RP2_REGION}" ]; then REGION="${TF_VAR_RP2_REGION}"; fi
 if [ -z "${REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then REGION="${AWS_DEFAULT_REGION}"; fi
 if [ -z "${REGION}" ] && [ ! -z "${AWS_REGION}" ]; then REGION="${AWS_REGION}"; fi
@@ -86,6 +91,7 @@ ACCOUNT=$(aws sts get-caller-identity --query Account --region ${REGION})
 ACCOUNT=${ACCOUNT//\"/}
 ENDPOINT="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
 DOCKER_CONFIG="${WORKDIR}/.docker"
+OPTIONS=""
 
 echo "[INFO] echo {\"credsStore\":\"ecr-login\"} > ${DOCKER_CONFIG}/config.json"
 mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"credsStore\":\"ecr-login\"}" > ${DOCKER_CONFIG}/config.json
@@ -93,11 +99,17 @@ mkdir -p ${DOCKER_CONFIG} && touch ${DOCKER_CONFIG}/config.json && echo "{\"cred
 echo "[INFO] aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT}"
 aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ENDPOINT} || { echo "[ERROR] docker login failed. aborting..."; exit 1; }
 
-echo "[INFO] aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/rp2-cicd-assume-role --role-session-name ${ACCOUNT}"
-ASSUME_ROLE=$(aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/rp2-cicd-assume-role --role-session-name ${ACCOUNT})
+if [ ! -z "${ROLENAME}" ]; then
+  echo "[INFO] aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/${ROLENAME} --role-session-name ${ACCOUNT}"
+  ASSUME_ROLE=$(aws sts assume-role --role-arn arn:aws:iam::${ACCOUNT}:role/${ROLENAME} --role-session-name ${ACCOUNT})
+  OPTIONS="${OPTIONS} --build-arg AWS_DEFAULT_REGION=${REGION}"
+  OPTIONS="${OPTIONS} --build-arg AWS_ACCESS_KEY_ID=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.AccessKeyId')"
+  OPTIONS="${OPTIONS} --build-arg AWS_SECRET_ACCESS_KEY=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SecretAccessKey')"
+  OPTIONS="${OPTIONS} --build-arg AWS_SESSION_TOKEN=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SessionToken')"
+fi
 
 echo "[INFO] docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/${DOCKERFILE} ${WORKDIR}/${DIRECTORY}/${REPOSITORY}/ --platform ${PLATFORM}"
-docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/${DOCKERFILE} ${WORKDIR}/${DIRECTORY}/${REPOSITORY}/ --platform ${PLATFORM} --build-arg AWS_DEFAULT_REGION=${REGION} --build-arg AWS_ACCESS_KEY_ID=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.AccessKeyId') --build-arg AWS_SECRET_ACCESS_KEY=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SecretAccessKey') --build-arg AWS_SESSION_TOKEN=$(echo "${ASSUME_ROLE}" | jq -r '.Credentials.SessionToken') || { echo "[ERROR] docker build failed. aborting..."; exit 1; }
+docker build -t ${REPOSITORY}:${VERSION} -f ${WORKDIR}/${DOCKERFILE} ${WORKDIR}/${DIRECTORY}/${REPOSITORY}/ --platform ${PLATFORM} ${OPTIONS} || { echo "[ERROR] docker build failed. aborting..."; exit 1; }
 
 echo "[INFO] docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION}"
 docker tag ${REPOSITORY}:${VERSION} ${ENDPOINT}/${REPOSITORY}:${VERSION} || { echo "[ERROR] docker tag failed. aborting..."; exit 1; }

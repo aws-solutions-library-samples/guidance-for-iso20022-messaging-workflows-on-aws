@@ -90,14 +90,6 @@ resource "aws_s3_bucket_object_lock_configuration" "this" {
   }
 }
 
-resource "aws_s3_bucket_ownership_controls" "this" {
-  bucket = aws_s3_bucket.this.id
-
-  rule {
-    object_ownership = var.q.object_ownership
-  }
-}
-
 resource "aws_s3_bucket_logging" "this" {
   bucket        = aws_s3_bucket.this.id
   target_bucket = aws_s3_bucket.this.id

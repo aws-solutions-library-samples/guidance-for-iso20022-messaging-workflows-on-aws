@@ -1,3 +1,5 @@
+# to enable replication on a bucket that has Object Lock enabled, contact AWS Support
+# source: https://docs.aws.amazon.com/AmazonS3/latest/userguide/replication.html#replication-requirements
 resource "aws_s3_bucket_replication_configuration" "this" {
   bucket = data.terraform_remote_state.s3.outputs.id
   role   = data.terraform_remote_state.iam.outputs.arn

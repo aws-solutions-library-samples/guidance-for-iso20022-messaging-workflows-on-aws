@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "this" {
   #checkov:skip=CKV_AWS_18:This solution implemented access logging as a separate terraform resource (false positive)
+  #checkov:skip=CKV_AWS_19:This solution implemented encryption at rest as a separate terraform resource (false positive)
   #checkov:skip=CKV_AWS_21:This solution implemented versioning as a separate terraform resource (false positive)
   #checkov:skip=CKV_AWS_144:This solution implemented cross region replication as a separate terraform resource (false positive)
   #checkov:skip=CKV_AWS_145:This solution implemented encryption as a separate terraform resource (false positive)

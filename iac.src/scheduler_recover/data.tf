@@ -5,7 +5,7 @@ data "terraform_remote_state" "iam" {
 
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
-    key    = format(var.backend_pattern, "iam_role_scheduler_timeout")
+    key    = format(var.backend_pattern, "iam_role_scheduler_recover")
   }
 }
 
@@ -16,6 +16,6 @@ data "terraform_remote_state" "lambda" {
 
     region = data.aws_region.this.name
     bucket = var.backend_bucket[data.aws_region.this.name]
-    key    = format(var.backend_pattern, "lambda_timeout")
+    key    = format(var.backend_pattern, "lambda_recover")
   }
 }

@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "this" {
+data "aws_iam_policy_document" "role" {
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]

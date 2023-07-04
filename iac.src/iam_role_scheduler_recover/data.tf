@@ -10,6 +10,19 @@ data "aws_iam_policy_document" "this" {
   }
 }
 
+data "aws_iam_policy_document" "policy" {
+  #checkov:skip=CKV_AWS_109:This solution defines IAM policies have constrains with conditions in place (false positive)
+
+  dynamic "statement" {
+    for_each = local.statements
+    content {
+      effect    = "Allow"
+      actions   = split(",", statement.value.actions)
+      resources = split(",", statement.value.resources)
+    }
+  }
+}
+
 data "terraform_remote_state" "s3" {
   backend = "s3"
   config = {

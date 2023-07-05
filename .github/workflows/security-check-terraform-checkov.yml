@@ -18,7 +18,7 @@ jobs:
       - name: Run Checkov on Source Code
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: ./iac.src/
+          directory: ./iac.src
           framework: terraform
           soft_fail: true
           download_external_modules: true
@@ -28,7 +28,7 @@ jobs:
       - name: Run Checkov on MQ Code
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: ./iac.mq/
+          directory: ./iac.mq
           framework: terraform
           soft_fail: true
           download_external_modules: true

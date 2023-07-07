@@ -9,7 +9,7 @@ resource "aws_wafv2_web_acl" "this" {
   dynamic "rule" {
     for_each = local.rules
     content {
-      name     = rule.value.name
+      name     = format("%s-%s", rule.value.vendor_name, rule.value.name)
       priority = rule.value.priority
 
       override_action {
@@ -25,7 +25,7 @@ resource "aws_wafv2_web_acl" "this" {
 
       visibility_config {
         cloudwatch_metrics_enabled = true
-        metric_name                = format("%sMetric", rule.value.name)
+        metric_name                = rule.value.name
         sampled_requests_enabled   = true
       }
     }

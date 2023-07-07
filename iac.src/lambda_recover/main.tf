@@ -22,14 +22,16 @@ resource "aws_lambda_function" "this" {
 
   environment {
     variables = {
-      RP2_LOGGING      = var.q.logging
-      RP2_ID           = local.rp2_id
-      RP2_ACCOUNT      = data.aws_caller_identity.this.account_id
-      RP2_REGION       = data.aws_region.this.name
-      RP2_API_URL      = format("api-%s", local.domain)
-      RP2_AUTH_URL     = format("auth-%s", local.domain)
-      RP2_CHECK_REGION = local.region
-      RP2_SECRETS      = data.aws_secretsmanager_secret.this.name
+      RP2_LOGGING       = var.q.logging
+      RP2_ID            = local.rp2_id
+      RP2_ACCOUNT       = data.aws_caller_identity.this.account_id
+      RP2_REGION        = data.aws_region.this.name
+      RP2_API_HEALTHY   = data.terraform_remote_state.apigw_healthy.outputs.id
+      RP2_API_UNHEALTHY = data.terraform_remote_state.apigw_unhealthy.outputs.id
+      RP2_API_URL       = format("api-%s", local.domain)
+      RP2_AUTH_URL      = format("auth-%s", local.domain)
+      RP2_CHECK_REGION  = local.region
+      RP2_SECRETS       = data.aws_secretsmanager_secret.this.name
 
       SECRETS_MANAGER_TTL = var.q.secrets_manager_ttl
     }

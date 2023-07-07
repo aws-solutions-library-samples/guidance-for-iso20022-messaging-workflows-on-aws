@@ -390,6 +390,15 @@ def lambda_response(code=200, message='OK', metadata=None, start=None):
         'headers': {'Content-Type': 'application/json'}
     }
 
+def apigateway_base_path_mapping(region, api_id, stage_name, base_path=None):
+    client = boto3.client('apigateway', region_name=region)
+    response = client.update_base_path_mapping(
+        domainName=f'{api_id}.execute-api.{region}.amazonaws.com',
+        stageName=stage_name,
+        basePath=base_path
+    )
+    return response
+
 def auth2token(url, client_id, client_secret):
     if not (client_id and client_secret):
         return None

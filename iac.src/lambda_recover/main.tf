@@ -26,11 +26,11 @@ resource "aws_lambda_function" "this" {
       RP2_ID            = local.rp2_id
       RP2_ACCOUNT       = data.aws_caller_identity.this.account_id
       RP2_REGION        = data.aws_region.this.name
-      RP2_API_HEALTHY   = local.rest_api
-      RP2_API_UNHEALTHY = local.mock_api
       RP2_API_URL       = format("api-%s", local.domain)
       RP2_AUTH_URL      = format("auth-%s", local.domain)
       RP2_CHECK_REGION  = local.region
+      RP2_SECRETS_REST  = local.rest_api
+      RP2_SECRETS_MOCK  = local.mock_api
       RP2_SECRETS       = data.aws_secretsmanager_secret.this.name
 
       SECRETS_MANAGER_TTL = var.q.secrets_manager_ttl

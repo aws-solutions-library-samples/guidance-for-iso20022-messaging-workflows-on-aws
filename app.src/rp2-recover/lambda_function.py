@@ -82,24 +82,24 @@ def lambda_handler(event, context):
         msg = 'moving object in s3 failed'
         LOGGER.error(f'{msg}: {str(e)}')
 
-    # step 4: switch healthy api base path mapping: (v1, none) to (v1, healthy)
+    # step 4: switch rest api base path mapping: (v1, none) to (v1, healthy)
     try:
-        api_id = VARIABLES.get_rp2_secret('RP2_API_HEALTHY', 'RP2_API_ID')
+        api_id = VARIABLES.get_rp2_secret('RP2_SECRETS_REST', 'RP2_API_ID')
         if api_id:
             apigateway_base_path_mapping(region2, api_id, 'v1', 'healthy')
-            LOGGER.info(f'RP2_API_HEALTHY: {api_id} base path mapping updated')
+            LOGGER.info(f'RP2_SECRETS_REST: {api_id} base path mapping updated')
     except Exception as e:
-        msg = 'update to healthy apigateway base path mapping failed'
+        msg = 'update to apigateway rest api base path mapping failed'
         LOGGER.error(f'{msg}: {str(e)}')
 
-    # step 5: switch unhealthy api base path mapping: (v0, unhealthy) to (v0, none)
+    # step 5: switch mock api base path mapping: (v0, unhealthy) to (v0, none)
     try:
-        api_id = VARIABLES.get_rp2_secret('RP2_API_UNHEALTHY', 'RP2_API_ID')
+        api_id = VARIABLES.get_rp2_secret('RP2_SECRETS_MOCK', 'RP2_API_ID')
         if api_id:
             apigateway_base_path_mapping(region2, api_id, 'v0')
-            LOGGER.info(f'RP2_API_UNHEALTHY: {api_id} base path mapping updated')
+            LOGGER.info(f'RP2_SECRETS_MOCK: {api_id} base path mapping updated')
     except Exception as e:
-        msg = 'update to unhealthy apigateway base path mapping failed'
+        msg = 'update to apigateway mock api base path mapping failed'
         LOGGER.error(f'{msg}: {str(e)}')
 
     # step 6: continue to recover, cancel in-flight payments from affected region

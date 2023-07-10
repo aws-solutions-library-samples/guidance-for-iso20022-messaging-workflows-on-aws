@@ -1,4 +1,4 @@
-data "terraform_remote_state" "apigw_healthy" {
+data "terraform_remote_state" "apigw_rest" {
   backend = "s3"
   config = {
     skip_region_validation = true
@@ -9,7 +9,7 @@ data "terraform_remote_state" "apigw_healthy" {
   }
 }
 
-data "terraform_remote_state" "apigw_unhealthy" {
+data "terraform_remote_state" "apigw_mock" {
   backend = "s3"
   config = {
     skip_region_validation = true

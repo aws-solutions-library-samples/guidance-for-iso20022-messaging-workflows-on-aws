@@ -1,9 +1,9 @@
-dependency "apigw_healthy" {
+dependency "apigw_rest" {
   config_path  = "../api_gateway_rest"
   skip_outputs = true
 }
 
-dependency "apigw_unhealthy" {
+dependency "apigw_mock" {
   config_path  = "../api_gateway_mock"
   skip_outputs = true
 }

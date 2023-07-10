@@ -84,14 +84,20 @@ def lambda_handler(event, context):
 
     # step 4: switch healthy api base path mapping: (v1, none) to (v1, healthy)
     try:
-        apigateway_base_path_mapping(region2, VARIABLES.get_rp2_env('RP2_API_HEALTHY'), 'v1', 'healthy')
+        api_id = VARIABLES.get_rp2_secret('RP2_API_HEALTHY', 'RP2_API_ID')
+        if api_id:
+            apigateway_base_path_mapping(region2, api_id, 'v1', 'healthy')
+            LOGGER.info(f'RP2_API_HEALTHY: {api_id} base path mapping updated')
     except Exception as e:
         msg = 'update to healthy apigateway base path mapping failed'
         LOGGER.error(f'{msg}: {str(e)}')
 
     # step 5: switch unhealthy api base path mapping: (v0, unhealthy) to (v0, none)
     try:
-        apigateway_base_path_mapping(region2, VARIABLES.get_rp2_env('RP2_API_UNHEALTHY'), 'v0')
+        api_id = VARIABLES.get_rp2_secret('RP2_API_UNHEALTHY', 'RP2_API_ID')
+        if api_id:
+            apigateway_base_path_mapping(region2, api_id, 'v0')
+            LOGGER.info(f'RP2_API_UNHEALTHY: {api_id} base path mapping updated')
     except Exception as e:
         msg = 'update to unhealthy apigateway base path mapping failed'
         LOGGER.error(f'{msg}: {str(e)}')

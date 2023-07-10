@@ -7,6 +7,7 @@ q = {
 
   retention_in_days = 5
   skip_destroy      = true
+  secret_name       = "rp2-rest-api"
 
   agw_invoke_sqs_arn    = "arn:aws:apigateway:%s:sqs:path/%s/rp2-inbox.fifo"
   cloudwatch_group_name = "API-Gateway-Execution-Logs_%s/%s"

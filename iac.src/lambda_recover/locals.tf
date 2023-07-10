@@ -5,4 +5,12 @@ locals {
     data.aws_region.this.name == element(keys(var.backend_bucket), 0)
     ? element(keys(var.backend_bucket), 1) : element(keys(var.backend_bucket), 0)
   )
+  rest_api = (
+    local.region == data.aws_region.this.name
+    ? null : data.terraform_remote_state.apigw_rest.outputs.secret_name
+  )
+  mock_api = (
+    local.region == data.aws_region.this.name
+    ? null : data.terraform_remote_state.apigw_mock.outputs.secret_name
+  )
 }

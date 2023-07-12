@@ -145,34 +145,32 @@ distribution under the hood which requires the public certificate in Amazon
 Certificate Manager to be pre-configured in *us-east-1* region. Please make
 sure to create public certificates in both your target region and *us-east-1*.
 Terraform configuration where this behavior is defined can be viewed
-[here](./blob/main/iac.src/cognito_user_domain/data.tf#L12)
+[here](./iac.src/cognito_user_domain/data.tf#L12)
 
 2. AWS Identity and Access Management (IAM) role configured for AWS CodeBuild
 allows least privilege access. Build script assumes programmatically another
 IAM role that provides elevated admin privileges and is restricted to your
 target AWS account, AWS region and AWS CodeBuild IP range.
 Terraform configuration where this behavior is defined can be viewed
-[here](./blob/main/iac.cicd/iam_role_codebuild/data.tf#L16) and
-[here](./blob/main/iac.cicd/iam_role_assume/data.tf#L8)
+[here](./iac.cicd/iam_role_codebuild/data.tf#L16) and
+[here](./iac.cicd/iam_role_assume/data.tf#L8)
 
 3. Amazon Web Application Firewall is deployed by default in non-blocking mode.
 To change this behavior from `count` to `block`, update Terraform configuration
-[here](./blob/main/iac.src/waf_web_acl/main.tf#L16). To add more rules, update
-Terraform configuration [here](./blob/main/iac.src/waf_web_acl/locals.tf#L12)
+[here](./iac.src/waf_web_acl/main.tf#L16). To add more rules, update
+Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L12)
 
 4. Amazon Simple Storage Service blocks public access by default. This solution
 removes this block on both account level and bucket level to enable health
 checks managed via data plane of Amazon S3. Terraform configuration where this
-behavior is defined can be viewed
-[here](./blob/main/iac.src/s3_health/main.tf#L25) and
-[here](./blob/main/iac.src/s3_health/main.tf#L39)
+behavior is defined can be viewed [here](./iac.src/s3_health/main.tf#L25) and
+[here](./iac.src/s3_health/main.tf#L39)
 
 5. Amazon EventBridge Scheduler is used to trigger `Timeout MSA` and
 `Recover MSA` every minute. To change this behavior, update Terraform
-configuration
-[here](./blob/main/iac.src/scheduler_timeout/main.tf#L8) and
-[here](./blob/main/iac.src/scheduler_recover/main.tf#L8). We are still
-exploring options to provide a more granular solution, down to every X seconds
+configuration [here](./iac.src/scheduler_timeout/main.tf#L8) and
+[here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
+options to provide a more granular solution, down to every X seconds
 
 ### Clean Up
 

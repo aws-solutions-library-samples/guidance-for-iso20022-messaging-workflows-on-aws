@@ -13,7 +13,8 @@ AWS regions.
 
 ![Architecture Diagram](./docs/architecture.png "Event Driven Architecture")
 
-Step-by-step guidance for reference architecture diagram from above:
+Here below is the step-by-step guidance for reference architecture diagram
+from above:
 
 1. API consumer calls regional AUTH endpoint associated with region specific
 Amazon Cognito's client id and client secret and receives OAuth 2.0 access

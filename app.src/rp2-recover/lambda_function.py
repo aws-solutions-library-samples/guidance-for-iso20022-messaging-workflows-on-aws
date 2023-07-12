@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 import os, logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from env import Variables
 from util import get_request_arn, lambda_health_check, s3_move_object, dynamodb_batch_items, lambda_response, apigateway_base_path_mapping
 
@@ -17,7 +17,7 @@ else:
 
 def lambda_handler(event, context):
     # log time, event and context
-    TIME = datetime.now(timezone.utc)
+    TIME = datetime.utcnow()
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 

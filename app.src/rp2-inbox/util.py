@@ -3,7 +3,7 @@
 
 import boto3, uuid, re, json, base64, requests
 from boto3.dynamodb.conditions import Key, Attr
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from math import floor
 
 def get_iso20022_mapping(msg):
@@ -145,7 +145,7 @@ def sqs_receive_message(region, queue, account, num=1, wait=1):
     return response.get("Messages", [])
 
 def dynamodb_prep_item(attributes):
-    item = {'request_timestamp': str(datetime.now(timezone.utc))}
+    item = {'request_timestamp': str(datetime.utcnow())}
     if attributes:
         if '_arn' in attributes and attributes['_arn']:
             item = {**item, **get_request_arn(attributes['_arn'])}
@@ -177,7 +177,7 @@ def dynamodb_prep_item(attributes):
             item['storage_path'] = str(attributes['storage_path'])
         if 'storage_type' in attributes and attributes['storage_type']:
             item['storage_type'] = str(attributes['storage_type'])
-    item['created_at'] = str(datetime.now(timezone.utc))
+    item['created_at'] = str(datetime.utcnow())
     item['pk'] = get_partition_key(item)
     item['sk'] = get_sort_key(item)
     return item
@@ -385,7 +385,7 @@ def lambda_response(code=200, message='OK', metadata=None):
             body[re.sub(r'(?<!^)(?=[A-Z])', '_', k).lower()] = str(metadata[k])
     if 'RequestTimestamp' in metadata:
         # body['request_timestamp'] = int(metadata['RequestTimestamp'].timestamp() * 1000)
-        body['request_duration'] = (datetime.now(timezone.utc) - metadata['RequestTimestamp']).total_seconds()
+        body['request_duration'] = (datetime.utcnow() - metadata['RequestTimestamp']).total_seconds()
     return {
         'statusCode': code,
         'body': json.dumps(body),

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 import os, logging
-from datetime import datetime, timezone
+from datetime import datetime
 from env import Variables
 from util import get_request_arn, get_filtered_statuses, dynamodb_put_item, dynamodb_query_by_item, s3_get_object, lambda_validate, lambda_response
 
@@ -17,7 +17,7 @@ else:
 
 def lambda_handler(event, context):
     # log time, event and context
-    TIME = datetime.now(timezone.utc)
+    TIME = datetime.utcnow()
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 

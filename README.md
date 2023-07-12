@@ -158,7 +158,7 @@ Terraform configuration where this behavior is defined can be viewed
 3. Amazon Web Application Firewall is deployed by default in non-blocking mode.
 To change this behavior from `count` to `block`, update Terraform configuration
 [here](./iac.src/waf_web_acl/main.tf#L16). To add more rules, update
-Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L12)
+Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L2)
 
 4. Amazon Simple Storage Service blocks public access by default. This solution
 removes this block on both account level and bucket level to enable health
@@ -166,13 +166,13 @@ checks managed via data plane of Amazon S3. Terraform configuration where this
 behavior is defined can be viewed [here](./iac.src/s3_health/main.tf#L25) and
 [here](./iac.src/s3_health/main.tf#L39)
 
-5. Amazon EventBridge Scheduler is used to trigger `Timeout MSA` and
-`Recover MSA` every minute. To change this behavior, update Terraform
-configuration [here](./iac.src/scheduler_timeout/main.tf#L8) and
-[here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
+5. Amazon EventBridge Scheduler is used to trigger every minute AWS Lambda
+functions for `Timeout MSA` and `Recover MSA` . To change this behavior,
+update Terraform configuration [here](./iac.src/scheduler_timeout/main.tf#L8)
+and [here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
 options to provide a more granular solution, down to every X seconds
 
-### Clean Up
+## Clean Up
 
 If you decide to clean up your AWS environment and remove all AWS resources
 deployed by this solution, this can be easily achieved by running the following

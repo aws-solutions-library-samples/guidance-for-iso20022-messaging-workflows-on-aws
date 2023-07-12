@@ -13,6 +13,56 @@ AWS regions.
 
 ![Architecture Diagram](./docs/architecture.png "Event Driven Architecture")
 
+Here below is the step-by-step guidance for reference architecture diagram
+from above:
+
+1. API consumer calls regional AUTH endpoint associated with region specific
+Amazon Cognito's client id and client secret and receives OAuth 2.0 access
+token (to be used with all subsequent API requests)
+
+2. API consumer calls regional API endpoint associated with Transaction MSA
+and receives HTTP 200 with response payload that includes transaction id
+(to be used with all subsequent API requests)
+
+3. Transaction MSA generates UUID v4, verifies if it's unique within current
+partition in Amazon DynamoDB (transaction table) and records step in DynamoDB
+(status = ACCP); otherwise retries up to 3 times
+
+4. API consumer calls regional API endpoint associated with Incoming Queue and
+passes transaction id as HTTP header and ISO 20022 incoming message as HTTP
+body (this step starts internal event driven workflow)
+
+5. Incoming MSA consumes ISO 20022 message from Incoming Queue, stores it into
+S3 bucket (incoming path), records step in DynamoDB (status = ACTC) and pushes
+incoming message to Processing Queue
+
+6. Processing MSA consumes ISO 20022 message from Processing Queue, runs
+technical and business validations including sync calls to other MSAs:
+FIPS-140-2 / KYC / AML / Fraud / Liquidity / etc., records step in DynamoDB
+(status = ACSP or RJCT) and pushes ISO 20022 confirmation or rejection message
+to Releasing Queue
+
+7. Releasing MSA consumes ISO 20022 message from Releasing Queue, stores it into
+S3 bucket (outgoing path), records step in DynamoDB (status = ACSC or RJCT) and
+pushes notification to Amazon SNS
+
+8. API consumer calls regional API endpoint associated with Outgoing MSA and
+receives HTTP 200 with ISO 20022 outgoing message as response payload
+
+9. Timeout MSA executes every 15 sec to retrieve any transaction that exceeds
+SLA, generates rejection ISO 20022 message, stores it in S3 (outgoing path) and
+records new step in DynamoDB (status = RJCT)
+
+10. OPTIONALLY, for on-prem downstream systems leverage existing messaging
+capabilities (e.g. IBM MQ, or Kafka, etc); deploy the same tool in the cloud
+and use native replication between on-prem and cloud
+
+11. MQ Reader MSA consumes messages from cloud based MQ and submits them to
+Incoming API (see steps 1 through 5 from above)
+
+12. MQ Writer MSA consumes messages from Outgoing API and pushes them to cloud
+based MQ (see steps 1, 2 and 9 from above)
+
 ## Getting Started
 
 ### Pre-requisites
@@ -158,7 +208,7 @@ Terraform configuration where this behavior is defined can be viewed
 3. Amazon Web Application Firewall is deployed by default in non-blocking mode.
 To change this behavior from `count` to `block`, update Terraform configuration
 [here](./iac.src/waf_web_acl/main.tf#L16). To add more rules, update
-Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L12)
+Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L2)
 
 4. Amazon Simple Storage Service blocks public access by default. This solution
 removes this block on both account level and bucket level to enable health
@@ -166,13 +216,13 @@ checks managed via data plane of Amazon S3. Terraform configuration where this
 behavior is defined can be viewed [here](./iac.src/s3_health/main.tf#L25) and
 [here](./iac.src/s3_health/main.tf#L39)
 
-5. Amazon EventBridge Scheduler is used to trigger `Timeout MSA` and
-`Recover MSA` every minute. To change this behavior, update Terraform
-configuration [here](./iac.src/scheduler_timeout/main.tf#L8) and
-[here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
+5. Amazon EventBridge Scheduler is used to trigger every minute AWS Lambda
+functions for `Timeout MSA` and `Recover MSA` . To change this behavior,
+update Terraform configuration [here](./iac.src/scheduler_timeout/main.tf#L8)
+and [here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
 options to provide a more granular solution, down to every X seconds
 
-### Clean Up
+## Clean Up
 
 If you decide to clean up your AWS environment and remove all AWS resources
 deployed by this solution, this can be easily achieved by running the following

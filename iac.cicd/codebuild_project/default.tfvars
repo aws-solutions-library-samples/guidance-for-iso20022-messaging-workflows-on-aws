@@ -11,4 +11,5 @@ q = {
   group_name_prefix           = "/aws/codebuild"
   s3_logs_status              = "ENABLED"
   s3_logs_location            = "codebuild"
+  s3_cache_location           = "cache"
 }

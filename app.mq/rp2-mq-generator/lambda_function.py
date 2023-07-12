@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 import os, multiprocessing, logging, json
-from datetime import datetime, timezone
+from datetime import datetime
 from env import Variables
 from joblib import Parallel, delayed
 from util import connect2rmq, publish2rmq
@@ -42,7 +42,7 @@ def _parallel(thread=1):
 
 def lambda_handler(event, context):
     # log time, event and context
-    TIME = datetime.now(timezone.utc)
+    TIME = datetime.utcnow()
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
@@ -58,7 +58,7 @@ def lambda_handler(event, context):
         'body': json.dumps({
             'code': 200,
             'message': 'message generated successfully',
-            'request_duration': (datetime.now(timezone.utc)-TIME).total_seconds(),
+            'request_duration': (datetime.utcnow() - TIME).total_seconds(),
         })
     }
 

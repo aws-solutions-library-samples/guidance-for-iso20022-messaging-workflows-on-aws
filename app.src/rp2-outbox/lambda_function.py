@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 import os, logging
-from datetime import datetime, timezone
+from datetime import datetime
 from env import Variables
 from util import get_request_arn, get_filtered_statuses, dynamodb_put_item, dynamodb_query_by_item, s3_get_object, lambda_validate, lambda_response
 
@@ -17,7 +17,7 @@ else:
 
 def lambda_handler(event, context):
     # log time, event and context
-    TIME = datetime.now(timezone.utc)
+    TIME = datetime.utcnow()
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
@@ -25,7 +25,7 @@ def lambda_handler(event, context):
     id = None
     if 'headers' in event and event['headers'] and 'X-Transaction-Id' in event['headers'] and event['headers']['X-Transaction-Id']:
         id = event['headers']['X-Transaction-Id']
-    LOGGER.debug(f'computed id: {id}')
+    LOGGER.debug(f'computed transaction_id: {id}')
     type = None
     if 'headers' in event and event['headers'] and 'X-Message-Type' in event['headers'] and event['headers']['X-Message-Type']:
         type = event['headers']['X-Message-Type']
@@ -60,9 +60,9 @@ def lambda_handler(event, context):
         replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {
-        'created_at': TIME,
         'created_by': identity,
         'message_id': type[:8] if type else None,
+        'request_timestamp': TIME,
         'transaction_id': id,
         'transaction_status': 'RJCT',
         'transaction_code': 'NARR',
@@ -86,8 +86,9 @@ def lambda_handler(event, context):
     metadata = {
         'ErrorCode': 'NARR',
         'ErrorMessage': 'rejected (see narrative reason)',
-        'TransactionId': id,
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': id,
     }
 
     try:
@@ -104,7 +105,7 @@ def lambda_handler(event, context):
             response = dynamodb_put_item(region, table, item, replicated)
             LOGGER.debug(f'dynamodb_put_item msg: {msg}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
-            return lambda_response(400, msg, metadata, TIME)
+            return lambda_response(400, msg, metadata)
 
         if statuses['index'] >= 0:
             object = response['Items'][statuses['index']]['storage_path']
@@ -114,7 +115,7 @@ def lambda_handler(event, context):
     except Exception as e:
         msg = str(e)
         LOGGER.warning(f'{msg}: {event}')
-        return lambda_response(400, msg, {'RequestId': request_id}, TIME)
+        return lambda_response(400, msg, {'RequestId': request_id})
 
     # step 4: retrieve file
     try:
@@ -134,7 +135,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 5: trigger response
     LOGGER.info(f'successful execution: {item}')
@@ -142,12 +143,6 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json'},
         'body': response['object'],
-        # @TODO: Refactor response to include duration time
-        # 'body': {
-        #     'code': 200,
-        #     'message': response['object'],
-        #     'request_duration': (datetime.now(timezone.utc)-TIME).total_seconds()
-        # },
     }
 
 if __name__ == '__main__':

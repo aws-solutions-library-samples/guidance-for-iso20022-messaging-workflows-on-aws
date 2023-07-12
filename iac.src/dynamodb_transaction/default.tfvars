@@ -1,6 +1,6 @@
 q = {
   name         = "rp2-transaction"
-  hash_key     = "id"
+  hash_key     = "pk"
   range_key    = "sk"
   billing_mode = "PAY_PER_REQUEST"
 

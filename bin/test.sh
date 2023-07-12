@@ -150,7 +150,8 @@ if [ -z "${RP2_INBOX}" ] || [ -z "${RP2_INBOX##*error*}" ]; then
   echo "[ERROR] RP2_INBOX request failed..."; exit 1;
 fi
 
-sleep 10
+echo "[INFO] Wait for 15 seconds..."
+sleep 15
 
 echo -n "[INFO] RP2_OUTBOX: "
 curl ${RP2_API_URL}/outbox \

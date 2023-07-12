@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 import os, uuid, logging
-from datetime import datetime, timezone
+from datetime import datetime
 from env import Variables
 from util import get_request_arn, dynamodb_query_by_item, dynamodb_put_item, lambda_response
 
@@ -17,7 +17,7 @@ else:
 
 def lambda_handler(event, context):
     # log time, event and context
-    TIME = datetime.now(timezone.utc)
+    TIME = datetime.utcnow()
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
@@ -54,9 +54,9 @@ def lambda_handler(event, context):
         replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {
-        'created_at': TIME,
         'created_by': identity,
         'message_id': type[:8] if type else None,
+        'request_timestamp': TIME,
         'transaction_status': 'ACCP',
     }
     item = {**item, **request_arn}
@@ -67,6 +67,7 @@ def lambda_handler(event, context):
         'ErrorCode': 'NARR',
         'ErrorMessage': 'rejected (see narrative reason)',
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
     }
 
     # step 3: create and validate transaction_id
@@ -83,7 +84,7 @@ def lambda_handler(event, context):
         elif count > limit:
             msg = 'transaction initialization failed'
             LOGGER.error(f'{msg}: {request_id}')
-            return lambda_response(500, msg, metadata, TIME)
+            return lambda_response(500, msg, metadata)
 
     # step 4: save item into dynamodb
     try:
@@ -102,19 +103,20 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 5: trigger response
     metadata = {
-        'TransactionId': item['transaction_id'],
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': item['transaction_id'],
         'RegionId': region,
         'ApiEndpoint': api_url,
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']
     LOGGER.info(f'{msg}: {item}')
-    return lambda_response(200, msg, metadata, TIME)
+    return lambda_response(200, msg, metadata)
 
 if __name__ == '__main__':
     lambda_handler(event=None, context=None)

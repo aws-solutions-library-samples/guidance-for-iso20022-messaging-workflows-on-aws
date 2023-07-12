@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MIT-0
 
 import os, logging, json, xmltodict
-from datetime import datetime, timezone
+from datetime import datetime
 from env import Variables
 from util import get_iso20022_mapping, get_request_arn, get_filtered_statuses, dynamodb_put_item, dynamodb_query_by_item, lambda_validate, lambda_response, sqs_send_message
 
@@ -17,7 +17,7 @@ else:
 
 def lambda_handler(event, context):
     # log time, event and context
-    TIME = datetime.now(timezone.utc)
+    TIME = datetime.utcnow()
     LOGGER.debug(f'got event: {event}')
     LOGGER.debug(f'got context: {context}')
 
@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         id = event['Records'][0]['attributes']['MessageDeduplicationId']
     elif 'headers' in event and event['headers'] and 'X-Transaction-Id' in event['headers'] and event['headers']['X-Transaction-Id']:
         id = event['headers']['X-Transaction-Id']
-    LOGGER.debug(f'computed id: {id}')
+    LOGGER.debug(f'computed transaction_id: {id}')
     type = None
     if 'Records' in event and 'attributes' in event['Records'][0] and 'MessageGroupId' in event['Records'][0]['attributes']:
         type = event['Records'][0]['attributes']['MessageGroupId']
@@ -62,9 +62,9 @@ def lambda_handler(event, context):
         replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {
-        'created_at': TIME,
         'created_by': identity,
         'message_id': type[:8] if type else None,
+        'request_timestamp': TIME,
         'transaction_id': id,
         'transaction_status': 'RJCT',
         'transaction_code': 'NARR',
@@ -80,6 +80,7 @@ def lambda_handler(event, context):
 
     # step 2: outgoing response from incoming request
     try:
+        # @TODO: replace with dynamically generated ISO 20022 message
         type = get_iso20022_mapping(type)
         with open(f'{type}.xml', 'r', encoding='utf8') as fp:
             body = xmltodict.parse(fp.read())
@@ -93,7 +94,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 3: validate event
     response = lambda_validate(event, request_id)
@@ -111,8 +112,9 @@ def lambda_handler(event, context):
     metadata = {
         'ErrorCode': 'NARR',
         'ErrorMessage': 'rejected (see narrative reason)',
-        'TransactionId': id,
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': id,
     }
 
     # step 5: check previous transaction statuses
@@ -129,22 +131,9 @@ def lambda_handler(event, context):
             LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
             sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
-            return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
+            return lambda_response(400, metadata['ErrorMessage'], metadata)
         else:
             item['created_by'] = response['Items'][0]['created_by']
-
-        # LOGGER.debug(f'dynamodb_query_by_item: {item}')
-        # response = dynamodb_query_by_item(region, table, {**item, 'transaction_status': 'ACSP'})
-        # LOGGER.debug(f'dynamodb_query_by_item: {response}')
-        # if 'Item' in response and response['Item']:
-        #     metadata['ErrorMessage'] = 'processed transaction is duplicate'
-        #     LOGGER.warning(f'{metadata["ErrorMessage"]}: {response}')
-        #     item['transaction_code'] = 'DUPL'
-        #     response = dynamodb_put_item(region, table, item, replicated)
-        #     LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
-        #     LOGGER.debug(f'dynamodb_put_item response: {response}')
-        #     sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
-        #     return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
 
     except Exception as e:
         msg = 'retrieving item from dynamodb failed'
@@ -154,7 +143,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 6: save item into dynamodb
     try:
@@ -174,7 +163,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 7: send the message to next sqs queue
     try:
@@ -188,19 +177,20 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 8: trigger response
     metadata = {
-        'TransactionId': id,
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': id,
         'RegionId': region,
         'ApiEndpoint': api_url,
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']
     LOGGER.info(f'{msg}: {item}')
-    return lambda_response(201, msg, metadata, TIME)
+    return lambda_response(201, msg, metadata)
 
 if __name__ == '__main__':
     lambda_handler(event=None, context=None)

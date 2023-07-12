@@ -50,6 +50,7 @@ def lambda_handler(event, context):
     # step 1: initialize variables
     metadata = {
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
         'RegionId': region,
         'ApiEndpoint': api_url,
     }
@@ -68,7 +69,7 @@ def lambda_handler(event, context):
         if 'StatusCode' in response and response['StatusCode'] == 200:
             msg = f'successful health check - {iter} attempt(s)'
             LOGGER.info(f'{msg}: {response}')
-            return lambda_response(200, msg, metadata, TIME)
+            return lambda_response(200, msg, metadata)
 
     # step 3: force route53 failover and initiate recovery in healthy region
     try:
@@ -103,14 +104,14 @@ def lambda_handler(event, context):
         LOGGER.error(f'{msg}: {str(e)}')
 
     # step 6: continue to recover, cancel in-flight payments from affected region
-    item = {**request_arn, 'created_at': TIME, 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
+    item = {**request_arn, 'request_timestamp': TIME, 'transaction_status': 'CANC', 'transaction_code': 'RCVR'}
     filter = {'request_region': region2, 'transaction_status': 'FLAG'}
     result = dynamodb_batch_items(region, table, item, filter, range)
 
     # step 7: trigger response
     msg = f'successful recover of {len(result)} transactions'
     LOGGER.info(f'{msg}: {result}')
-    return lambda_response(200, msg, metadata, TIME)
+    return lambda_response(200, msg, metadata)
 
 if __name__ == '__main__':
     lambda_handler(event=None, context=None)

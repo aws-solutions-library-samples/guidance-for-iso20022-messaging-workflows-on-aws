@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         id = event['headers']['X-Transaction-Id']
     else:
         id = str(uuid.uuid4())
-    LOGGER.debug(f'computed id: {id}')
+    LOGGER.debug(f'computed transaction_id: {id}')
     request_id = None
     if context and context.aws_request_id:
         request_id = context.aws_request_id
@@ -46,8 +46,8 @@ def lambda_handler(event, context):
         identity = event['identity']
     LOGGER.debug(f'computed identity: {identity}')
     item = {
-        'created_at': TIME,
         'created_by': identity,
+        'request_timestamp': TIME,
         'transaction_id': id,
     }
     item = {**item, **request_arn}
@@ -64,8 +64,9 @@ def lambda_handler(event, context):
     queue = f'{health}.fifo'
 
     metadata = {
-        'TransactionId': id,
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': id,
         'RegionId': region,
         'ApiEndpoint': api_url,
     }
@@ -108,11 +109,11 @@ def lambda_handler(event, context):
     if error:
         msg = 'execution failed'
         LOGGER.warning(f'{msg}: {error}')
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     msg = 'execution successful'
     LOGGER.info(f'{msg}: {item}')
-    return lambda_response(200, msg, metadata, TIME)
+    return lambda_response(200, msg, metadata)
 
 if __name__ == '__main__':
     lambda_handler(event=None, context=None)

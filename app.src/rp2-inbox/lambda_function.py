@@ -27,7 +27,7 @@ def lambda_handler(event, context):
         id = event['Records'][0]['attributes']['MessageDeduplicationId']
     elif 'headers' in event and event['headers'] and 'X-Transaction-Id' in event['headers'] and event['headers']['X-Transaction-Id']:
         id = event['headers']['X-Transaction-Id']
-    LOGGER.debug(f'computed id: {id}')
+    LOGGER.debug(f'computed transaction_id: {id}')
     type = None
     if 'Records' in event and 'attributes' in event['Records'][0] and 'MessageGroupId' in event['Records'][0]['attributes']:
         type = event['Records'][0]['attributes']['MessageGroupId']
@@ -64,9 +64,9 @@ def lambda_handler(event, context):
         replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {
-        'created_at': TIME,
         'created_by': identity,
         'message_id': type[:8] if type else None,
+        'request_timestamp': TIME,
         'transaction_id': id,
         'transaction_status': 'RJCT',
         'transaction_code': 'NARR',
@@ -96,8 +96,9 @@ def lambda_handler(event, context):
     metadata = {
         'ErrorCode': 'NARR',
         'ErrorMessage': 'rejected (see narrative reason)',
-        'TransactionId': id,
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': id,
     }
 
     object_name = str(id) if type == None else str(id) + '-' + type
@@ -123,7 +124,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 5: check previous transaction statuses
     try:
@@ -139,7 +140,7 @@ def lambda_handler(event, context):
             LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
             sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, id, type)
-            return lambda_response(400, metadata['ErrorMessage'], metadata, TIME)
+            return lambda_response(400, metadata['ErrorMessage'], metadata)
         else:
             item['created_by'] = response['Items'][0]['created_by']
 
@@ -151,7 +152,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 6: parse inbox message
     # try:
@@ -168,7 +169,7 @@ def lambda_handler(event, context):
     #     LOGGER.debug(f'dynamodb_put_item response: {response}')
     #     sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, id, type)
     #     metadata['ErrorMessage'] = str(e)
-    #     return lambda_response(400, msg, metadata, TIME)
+    #     return lambda_response(400, msg, metadata)
 
     # step 7: save item into dynamodb
     try:
@@ -188,7 +189,7 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 8: send the message to next sqs queue
     try:
@@ -202,19 +203,20 @@ def lambda_handler(event, context):
         LOGGER.debug(f'dynamodb_put_item response: {response}')
         sqs_send_message(region, 'rp2-process.fifo', item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
-        return lambda_response(500, msg, metadata, TIME)
+        return lambda_response(500, msg, metadata)
 
     # step 9: trigger response
     metadata = {
-        'TransactionId': id,
         'RequestId': request_id,
+        'RequestTimestamp': TIME,
+        'TransactionId': id,
         'RegionId': region,
         'ApiEndpoint': api_url,
     }
     if 'replicated' in response and response['replicated']:
         metadata['DynamodbReplicated'] = response['replicated']
     LOGGER.info(f'{msg}: {item}')
-    return lambda_response(201, msg, metadata, TIME)
+    return lambda_response(201, msg, metadata)
 
 if __name__ == '__main__':
     lambda_handler(event=None, context=None)

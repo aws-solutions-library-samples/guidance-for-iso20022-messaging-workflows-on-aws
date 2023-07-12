@@ -1,7 +1,7 @@
 locals {
   attributes = [
     {
-      name = "id"
+      name = "pk"
       type = "S"
     },
     {

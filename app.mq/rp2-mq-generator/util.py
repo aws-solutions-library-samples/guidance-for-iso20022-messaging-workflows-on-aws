@@ -41,16 +41,17 @@ def get_request_arn(arn):
 def get_partition_key(item, range=3600):
     # @TODO: distribute partitioning even further by tenant_id, worker_id, etc
     result = ""
-    if 'created_at' in item and item['created_at']:
-        result += str(get_timestamp_shift(item['created_at'], range).timestamp())
     # if 'created_by' in item and item['created_by']:
     #     result += item['created_by']
+    if 'request_timestamp' in item and item['request_timestamp']:
+        result += str(get_timestamp_shift(item['request_timestamp'], range).timestamp())
     if 'request_region' in item and item['request_region']:
         result += item['request_region']
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, result + '.com'))
 
 def get_sort_key(item):
-    time = str(item["created_at"]).replace(" ", "+")
+    key = "created_at" if "created_at" in item and item["created_at"] else "request_timestamp"
+    time = str(item[key]).replace(" ", "+")
     return f'{item["transaction_id"]}|{time}|{item["transaction_status"]}'
 
 def get_filtered_statuses(all, one=None):
@@ -144,18 +145,18 @@ def sqs_receive_message(region, queue, account, num=1, wait=1):
     return response.get("Messages", [])
 
 def dynamodb_prep_item(attributes):
-    item = {'created_at': str(datetime.utcnow())}
+    item = {'request_timestamp': str(datetime.now(timezone.utc))}
     if attributes:
         if '_arn' in attributes and attributes['_arn']:
             item = {**item, **get_request_arn(attributes['_arn'])}
-        if 'created_at' in attributes and attributes['created_at']:
-            item['created_at'] = str(attributes['created_at'])
         if 'created_by' in attributes and attributes['created_by']:
             item['created_by'] = str(attributes['created_by'])
         if 'message_id' in attributes and attributes['message_id']:
             item['message_id'] = str(attributes['message_id'])
         if 'request_id' in attributes and attributes['request_id']:
             item['request_id'] = str(attributes['request_id'])
+        if 'request_timestamp' in attributes and attributes['request_timestamp']:
+            item['request_timestamp'] = str(attributes['request_timestamp'])
         if 'request_partition' in attributes and attributes['request_partition']:
             item['request_partition'] = str(attributes['request_partition'])
         if 'request_service' in attributes and attributes['request_service']:
@@ -176,16 +177,17 @@ def dynamodb_prep_item(attributes):
             item['storage_path'] = str(attributes['storage_path'])
         if 'storage_type' in attributes and attributes['storage_type']:
             item['storage_type'] = str(attributes['storage_type'])
-    item['id'] = get_partition_key(item)
+    item['created_at'] = str(datetime.now(timezone.utc))
+    item['pk'] = get_partition_key(item)
     item['sk'] = get_sort_key(item)
     return item
 
 def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=None, range=3600):
     resource = boto3.resource('dynamodb', region_name=region)
-    kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item)), 'ScanIndexForward': False}
+    kwargs = {'KeyConditionExpression': Key('pk').eq(get_partition_key(item)), 'ScanIndexForward': False}
     if filter:
-        if 'created_at' in filter and 'transaction_status' in filter:
-            kwargs['FilterExpression'] = (Attr('created_at').lte(str(filter['created_at']))
+        if 'request_timestamp' in filter and 'transaction_status' in filter:
+            kwargs['FilterExpression'] = (Attr('request_timestamp').lte(str(filter['request_timestamp']))
                 & Attr('transaction_status').eq(str(filter['transaction_status'])))
         elif 'transaction_status' in filter:
             kwargs['FilterExpression'] = Attr('transaction_status').eq(str(filter['transaction_status']))
@@ -205,12 +207,12 @@ def dynamodb_query_by_item(region, table, item, filter=None, key1=None, key2=Non
         response['LastEvaluatedKey1'] = response['LastEvaluatedKey']
 
     if int(range) > 0:
-        time = item['created_at'] if isinstance(item['created_at'], datetime) else datetime.fromisoformat(str(item['created_at']))
-        item2 = {**item, 'created_at': time - timedelta(seconds=int(range))}
-        kwargs = {'KeyConditionExpression': Key('id').eq(get_partition_key(item2)), 'ScanIndexForward': False}
+        time = item['request_timestamp'] if isinstance(item['request_timestamp'], datetime) else datetime.fromisoformat(str(item['request_timestamp']))
+        item2 = {**item, 'request_timestamp': time - timedelta(seconds=int(range))}
+        kwargs = {'KeyConditionExpression': Key('pk').eq(get_partition_key(item2)), 'ScanIndexForward': False}
         if filter:
-            if 'created_at' in filter and 'transaction_status' in filter:
-                kwargs['FilterExpression'] = (Attr('created_at').lte(str(filter['created_at']))
+            if 'request_timestamp' in filter and 'transaction_status' in filter:
+                kwargs['FilterExpression'] = (Attr('request_timestamp').lte(str(filter['request_timestamp']))
                     & Attr('transaction_status').eq(str(filter['transaction_status'])))
             elif 'transaction_status' in filter:
                 kwargs['FilterExpression'] = Attr('transaction_status').eq(str(filter['transaction_status']))
@@ -245,11 +247,11 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
     status = 'FLAG'
     if item['transaction_status'] in ['ACCP']:
         item2 = {**item, 'transaction_status': status}
-        item2['created_at'] = str(item['created_at']
-            if isinstance(item['created_at'], datetime)
-            else datetime.fromisoformat(str(item['created_at']))
+        item2['request_timestamp'] = str(item['request_timestamp']
+            if isinstance(item['request_timestamp'], datetime)
+            else datetime.fromisoformat(str(item['request_timestamp']))
             + timedelta(microseconds=1))
-        item2['id'] = get_partition_key(item2)
+        item2['pk'] = get_partition_key(item2)
         item2['sk'] = get_sort_key(item2)
         result['response'] = resource.Table(table).put_item(Item=item2)
     elif item['transaction_status'] in ['ACSC', 'RJCT', 'CANC', 'FAIL']:
@@ -257,7 +259,7 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
         for i in response['Items']:
             if i['transaction_status'] == status:
                 try:
-                    resource.Table(table).delete_item(Key={'id': i['id'], 'sk': i['sk']})
+                    resource.Table(table).delete_item(Key={'pk': i['pk'], 'sk': i['sk']})
                 except Exception as e:
                     pass # nosec B110
                 break
@@ -374,21 +376,30 @@ def lambda_validate(event, id):
 
     return None
 
-def lambda_response(code=200, message='OK', metadata=None, start=None):
+def lambda_response(code=200, message='OK', metadata=None):
     body = {}
     if message:
         body['message'] = message
     if metadata:
         for k in metadata:
-            body[re.sub(r'(?<!^)(?=[A-Z])', '_', k).lower()] = metadata[k]
-    if start:
-        body['request_timestamp'] = int(start.timestamp() * 1000)
-        body['request_duration'] = (datetime.now(timezone.utc)-start).total_seconds()
+            body[re.sub(r'(?<!^)(?=[A-Z])', '_', k).lower()] = str(metadata[k])
+    if 'RequestTimestamp' in metadata:
+        # body['request_timestamp'] = int(metadata['RequestTimestamp'].timestamp() * 1000)
+        body['request_duration'] = (datetime.now(timezone.utc) - metadata['RequestTimestamp']).total_seconds()
     return {
         'statusCode': code,
         'body': json.dumps(body),
         'headers': {'Content-Type': 'application/json'}
     }
+
+def apigateway_base_path_mapping(region, api_id, stage_name, base_path=None):
+    client = boto3.client('apigateway', region_name=region)
+    response = client.update_base_path_mapping(
+        domainName=f'{api_id}.execute-api.{region}.amazonaws.com',
+        stageName=stage_name,
+        basePath=base_path
+    )
+    return response
 
 def auth2token(url, client_id, client_secret):
     if not (client_id and client_secret):

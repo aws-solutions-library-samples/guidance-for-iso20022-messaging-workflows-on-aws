@@ -1,5 +1,5 @@
 locals {
-  rp2_id = data.terraform_remote_state.iam.outputs.rp2_id
+  rp2_id = (var.rp2_id == null ? data.terraform_remote_state.iam.outputs.rp2_id : var.rp2_id)
   environment_variables = [
     {
       name  = "AWS_DEFAULT_REGION"

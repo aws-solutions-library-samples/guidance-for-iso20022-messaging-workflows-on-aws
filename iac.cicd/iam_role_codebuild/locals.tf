@@ -1,5 +1,5 @@
 locals {
-  rp2_id = data.terraform_remote_state.iam.outputs.rp2_id
+  rp2_id = (var.rp2_id == null ? data.terraform_remote_state.iam.outputs.rp2_id : var.rp2_id)
   statements = [
     {
       actions = "codebuild:CreateReportGroup,codebuild:CreateReport,codebuild:UpdateReport,codebuild:BatchPutTestCases,codebuild:BatchPutCodeCoverages"
@@ -16,14 +16,14 @@ locals {
       )
     },
     {
-      actions = "s3:GetBucketAcl,s3:GetBucketLocation"
+      actions = "s3:GetBucket*,s3:ListBucket*"
       resources = format(
         "arn:aws:s3:::%s",
         var.backend_bucket[data.aws_region.this.name]
       )
     },
     {
-      actions = "s3:GetObject,s3:GetObjectVersion,s3:PutObject"
+      actions = "s3:GetObject*,s3:PutObject*"
       resources = format(
         "arn:aws:s3:::%s/*",
         var.backend_bucket[data.aws_region.this.name]

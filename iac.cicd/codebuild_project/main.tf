@@ -17,6 +17,11 @@ resource "aws_codebuild_project" "this" {
     type = "NO_ARTIFACTS"
   }
 
+  cache {
+    type     = "S3"
+    location = format("%s/%s", var.backend_bucket[data.aws_region.this.name], var.q.s3_cache_location)
+  }
+
   environment {
     compute_type                = var.q.compute_type
     image                       = var.q.image

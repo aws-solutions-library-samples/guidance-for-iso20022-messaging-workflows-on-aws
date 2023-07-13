@@ -11,10 +11,11 @@ process managed by the API consumers that allows for the acceptance, rejection,
 cancellation, and re-drive of data processing workflows with failover across
 AWS regions.
 
+## Event Driven Architecture
+
 ![Architecture Diagram](./docs/architecture.png "Event Driven Architecture")
 
-Here below is the step-by-step guidance for reference architecture diagram
-from above:
+### Step-by-Step Guidance
 
 1. API consumer calls regional AUTH endpoint associated with region specific
 Amazon Cognito's client id and client secret and receives OAuth 2.0 access

@@ -4,7 +4,7 @@ resource "aws_lambda_function" "this" {
   #checkov:skip=CKV_AWS_173:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
   #checkov:skip=CKV_AWS_272:This solution does not support code signing due to container based images (false positive)
 
-  function_name = var.q.function_name
+  function_name = format("%s-%s", var.q.name, local.rp2_id)
   description   = var.q.description
   role          = data.terraform_remote_state.iam.outputs.arn
   package_type  = var.q.package_type
@@ -53,6 +53,6 @@ resource "aws_lambda_function" "this" {
 resource "aws_sqs_queue" "this" {
   #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  name                    = var.q.dlq_name
+  name                    = format("%s-%s-lambda-dql", var.q.name, local.rp2_id)
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 }

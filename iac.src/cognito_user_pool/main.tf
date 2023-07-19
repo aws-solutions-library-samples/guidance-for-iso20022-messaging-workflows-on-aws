@@ -1,5 +1,5 @@
 resource "aws_cognito_user_pool" "this" {
-  name                       = var.q.name
+  name                       = format("%s-%s", var.q.name, local.rp2_id)
   alias_attributes           = var.attributes
   auto_verified_attributes   = var.attributes
   mfa_configuration          = var.q.mfa_configuration

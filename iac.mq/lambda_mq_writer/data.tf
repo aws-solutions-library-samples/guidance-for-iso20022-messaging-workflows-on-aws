@@ -1,3 +1,24 @@
+data "aws_ecr_image" "this" {
+  repository_name = data.terraform_remote_state.ecr.outputs.name
+  image_tag       = "latest"
+}
+
+data "aws_secretsmanager_secret" "cognito" {
+  name = data.terraform_remote_state.cognito.outputs.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "cognito" {
+  secret_id = data.aws_secretsmanager_secret.cognito.id
+}
+
+data "aws_secretsmanager_secret" "mq" {
+  name = data.terraform_remote_state.mq.outputs.secret_name
+}
+
+data "aws_secretsmanager_secret_version" "mq" {
+  secret_id = data.aws_secretsmanager_secret.mq.id
+}
+
 data "terraform_remote_state" "cognito" {
   backend = "s3"
   config = {
@@ -49,25 +70,4 @@ data "terraform_remote_state" "mq" {
     bucket = var.backend_bucket[data.aws_region.this.name]
     key    = format(var.backend_pattern, "mq_broker")
   }
-}
-
-data "aws_ecr_image" "this" {
-  repository_name = data.terraform_remote_state.ecr.outputs.name
-  image_tag       = "latest"
-}
-
-data "aws_secretsmanager_secret" "cognito" {
-  name = data.terraform_remote_state.cognito.outputs.secret_name
-}
-
-data "aws_secretsmanager_secret_version" "cognito" {
-  secret_id = data.aws_secretsmanager_secret.cognito.id
-}
-
-data "aws_secretsmanager_secret" "mq" {
-  name = data.terraform_remote_state.mq.outputs.secret_name
-}
-
-data "aws_secretsmanager_secret_version" "mq" {
-  secret_id = data.aws_secretsmanager_secret.mq.id
 }

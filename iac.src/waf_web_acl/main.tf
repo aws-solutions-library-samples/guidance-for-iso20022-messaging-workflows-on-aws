@@ -1,5 +1,5 @@
 resource "aws_wafv2_web_acl" "this" {
-  name  = var.q.name
+  name  = format("%s-%s", var.q.name, local.rp2_id)
   scope = "REGIONAL"
 
   default_action {

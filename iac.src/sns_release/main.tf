@@ -1,5 +1,5 @@
 resource "aws_sns_topic" "this" {
-  name              = var.q.name
+  name              = format("%s-%s", var.q.name, local.rp2_id)
   display_name      = var.q.display_name
   kms_master_key_id = var.q.kms_key
   delivery_policy   = file(var.q.delivery_policy)

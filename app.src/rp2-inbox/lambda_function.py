@@ -56,8 +56,9 @@ def lambda_handler(event, context):
     region = VARIABLES.get_rp2_env('RP2_REGION')
     region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
     api_url = VARIABLES.get_rp2_env('RP2_API_URL')
-    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
     runtime = VARIABLES.get_rp2_env('RP2_RUNTIME')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    table = f'{table}-{rp2_id}'
     replicated = None
     ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))
     if ddb_retry > 0:

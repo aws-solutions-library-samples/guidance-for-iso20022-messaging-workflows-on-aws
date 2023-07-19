@@ -17,3 +17,8 @@ dependency "lambda_health" {
   config_path  = "../lambda_health"
   skip_outputs = true
 }
+
+dependency "s3" {
+  config_path  = "../s3_runtime"
+  skip_outputs = true
+}

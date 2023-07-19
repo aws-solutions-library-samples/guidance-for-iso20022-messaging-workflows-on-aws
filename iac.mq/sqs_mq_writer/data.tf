@@ -1,14 +1,3 @@
-data "terraform_remote_state" "cognito" {
-  backend = "s3"
-  config = {
-    skip_region_validation = true
-
-    region = data.aws_region.this.name
-    bucket = var.backend_bucket[data.aws_region.this.name]
-    key    = format(var.backend_pattern, "cognito_user_client_mq")
-  }
-}
-
 data "aws_iam_policy_document" "this" {
   statement {
     effect    = "Allow"
@@ -53,4 +42,26 @@ data "aws_secretsmanager_secret" "cognito" {
 
 data "aws_secretsmanager_secret_version" "cognito" {
   secret_id = data.aws_secretsmanager_secret.cognito.id
+}
+
+data "terraform_remote_state" "cognito" {
+  backend = "s3"
+  config = {
+    skip_region_validation = true
+
+    region = data.aws_region.this.name
+    bucket = var.backend_bucket[data.aws_region.this.name]
+    key    = format(var.backend_pattern, "cognito_user_client_mq")
+  }
+}
+
+data "terraform_remote_state" "mq" {
+  backend = "s3"
+  config = {
+    skip_region_validation = true
+
+    region = data.aws_region.this.name
+    bucket = var.backend_bucket[data.aws_region.this.name]
+    key    = format(var.backend_pattern, "mq_broker")
+  }
 }

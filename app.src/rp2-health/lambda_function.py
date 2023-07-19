@@ -56,9 +56,10 @@ def lambda_handler(event, context):
     rp2_id = VARIABLES.get_rp2_env('RP2_ID')
     account = VARIABLES.get_rp2_env('RP2_ACCOUNT')
     region = VARIABLES.get_rp2_env('RP2_REGION')
-    api_url = VARIABLES.get_rp2_env('api_url')
-    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    api_url = VARIABLES.get_rp2_env('RP2_API_URL')
     health = VARIABLES.get_rp2_env('RP2_HEALTH')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    table = f'{table}-{rp2_id}'
     bucket = f'{health}-{region}-{rp2_id}'
     key = f'{health}-{region}.txt'
     queue = f'{health}.fifo'

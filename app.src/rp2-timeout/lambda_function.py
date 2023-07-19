@@ -34,9 +34,10 @@ def lambda_handler(event, context):
     rp2_id = VARIABLES.get_rp2_env('RP2_ID')
     region = VARIABLES.get_rp2_env('RP2_REGION')
     api_url = VARIABLES.get_rp2_env('RP2_API_URL')
-    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
     timeout = VARIABLES.get_rp2_env('RP2_TIMEOUT_TRANSACTION')
     range = VARIABLES.get_rp2_env('RP2_TIMESTAMP_PARTITION')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    table = f'{table}-{rp2_id}'
 
     # step 2: initialize variables
     metadata = {

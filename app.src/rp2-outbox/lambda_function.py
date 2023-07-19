@@ -51,8 +51,9 @@ def lambda_handler(event, context):
     rp2_id = VARIABLES.get_rp2_env('RP2_ID')
     region = VARIABLES.get_rp2_env('RP2_REGION')
     region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
-    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
     runtime = VARIABLES.get_rp2_env('RP2_RUNTIME')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    table = f'{table}-{rp2_id}'
     bucket = f'{runtime}-{region}-{rp2_id}'
     replicated = None
     ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))

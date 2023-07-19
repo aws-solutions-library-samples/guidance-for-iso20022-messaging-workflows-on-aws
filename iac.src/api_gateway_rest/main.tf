@@ -1,12 +1,13 @@
 resource "aws_api_gateway_rest_api" "this" {
-  name              = var.q.name
+  name              = format("%s-%s", var.q.name, local.rp2_id)
   put_rest_api_mode = var.q.mode
 
   body = templatefile(var.q.file, {
-    title         = var.q.name
+    title         = format("%s-%s", var.q.name, local.rp2_id)
     version       = var.q.version
     region        = data.aws_region.this.name
     api_url       = format("https://api-%s.%s", data.aws_region.this.name, var.custom_domain)
+    cognito_key   = format("%s-%s", var.q.secret_name, local.rp2_id)
     cognito_arn   = data.terraform_remote_state.cognito.outputs.arn
     lambda_health = data.terraform_remote_state.lambda_health.outputs.invoke_arn
     lambda_inbox  = data.terraform_remote_state.lambda_inbox.outputs.invoke_arn

@@ -265,8 +265,12 @@ def dynamodb_put_item(region, table, attributes, replicated=None):
                 break
     result['response'] = resource.Table(table).put_item(Item=item)
     if replicated:
-        result['replicated'] = dynamodb_replicated(replicated['region'], replicated['region2'],
-            replicated['count'], item['transaction_id'], item['transaction_status'], replicated['identity'])
+        result['replicated'] = dynamodb_replicated(
+            replicated['region'], replicated['region2'],
+            item['transaction_id'], item['transaction_status'],
+            replicated['health'], replicated['identity'],
+            replicated['count']
+        )
     return result
 
 def dynamodb_batch_items(region, table, item, filter, range=3600):
@@ -293,7 +297,7 @@ def dynamodb_batch_items(region, table, item, filter, range=3600):
             enabled = False
     return result
 
-def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, identity=None):
+def dynamodb_replicated(region, region2, id=None, status=None, health=None, identity=None, req_count=5):
     headers = {'X-S3-Skip': 1, 'X-SNS-Skip': 1, 'X-SQS-Skip': 1, 'X-Transaction-Region': region}
     if id:
         headers['X-Transaction-Id'] = id
@@ -304,7 +308,7 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
     iter = 0
     # @TODO: exponential back-off
     while iter < req_count:
-        response = lambda_health_check(region2, headers, payload)
+        response = lambda_health_check(region2, health, headers, payload)
         if not('StatusCode' in response and response['StatusCode'] == 200):
             return False
         payload = json.loads(response['Payload'].read())
@@ -315,7 +319,7 @@ def dynamodb_replicated(region, region2, req_count=5, id=None, status=None, iden
             return True
     return False
 
-def lambda_health_check(region, headers=None, payload=None, function="rp2-health"):
+def lambda_health_check(region, function, headers=None, payload=None):
     lambd = boto3.client('lambda', region_name=region)
     _payload = {}
     if headers:

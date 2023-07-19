@@ -65,7 +65,7 @@ def lambda_handler(event, context):
 
     while iter < req_count:
         iter += 1
-        response = lambda_health_check(region2, headers, payload)
+        response = lambda_health_check(region2, f'{health}-{rp2_id}', headers, payload)
         LOGGER.debug(f'lambda_health_check response: {response}')
         if 'StatusCode' in response and response['StatusCode'] == 200:
             msg = f'successful health check - {iter} attempt(s)'

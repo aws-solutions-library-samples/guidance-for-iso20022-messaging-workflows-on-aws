@@ -1,5 +1,5 @@
 q = {
-  broker_name                = "rp2-mq"
+  name                       = "rp2-mq"
   description                = "RP2 MQ"
   engine_type                = "RabbitMQ"
   engine_version             = "3.10.20"

@@ -69,9 +69,7 @@ based MQ (see steps 1, 2 and 9 from above)
 ### Pre-requisites
 
 * an [AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html)
-* already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html),
-[Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) and
-[Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
+* already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 * [AWS access keys](https://docs.aws.amazon.com/accounts/latest/reference/credentials-access-keys-best-practices.html)
 used by AWS CLI
 * allowed AWS CLI permissions to create

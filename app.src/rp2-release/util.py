@@ -319,7 +319,7 @@ def dynamodb_replicated(region, region2, id=None, status=None, health=None, iden
             return True
     return False
 
-def lambda_health_check(region, function, headers=None, payload=None):
+def lambda_health_check(region, function='rp2-health-abcd1234', headers=None, payload=None):
     lambd = boto3.client('lambda', region_name=region)
     _payload = {}
     if headers:

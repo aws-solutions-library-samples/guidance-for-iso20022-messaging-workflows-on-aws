@@ -152,7 +152,7 @@
           }
         },
         "security" : [ {
-          "{cognito_key}" : [ "rp2/write" ]
+          "${cognito_key}" : [ "rp2/write" ]
         } ],
         "x-amazon-apigateway-integration" : {
           "uri" : "${sqs_arn}",
@@ -263,7 +263,7 @@
           }
         },
         "security" : [ {
-          "{cognito_key}" : [ "rp2/write" ]
+          "${cognito_key}" : [ "rp2/write" ]
         } ],
         "x-amazon-apigateway-integration" : {
           "uri" : "${lambda_outbox}",
@@ -349,7 +349,7 @@
           }
         },
         "security" : [ {
-          "{cognito_key}" : [ "rp2/read" ]
+          "${cognito_key}" : [ "rp2/read" ]
         } ],
         "x-amazon-apigateway-integration" : {
           "uri" : "${lambda_uuid}",
@@ -407,7 +407,7 @@
     }
   },
   "securityDefinitions" : {
-    "{cognito_key}" : {
+    "${cognito_key}" : {
       "type" : "apiKey",
       "name" : "Authorization",
       "in" : "header",

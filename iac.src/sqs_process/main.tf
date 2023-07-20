@@ -21,7 +21,7 @@ resource "aws_sqs_queue_policy" "this" {
 resource "aws_sqs_queue" "dlq" {
   #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  name                    = format("%s-%s-dlq.fifo", var.q.name, local.rp2_id)
+  name                    = format("%s-dlq-%s.fifo", var.q.name, local.rp2_id)
   fifo_queue              = var.q.fifo_queue
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 

@@ -56,6 +56,6 @@ resource "aws_lambda_event_source_mapping" "this" {
 resource "aws_sqs_queue" "this" {
   #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  name                    = format("%s-%s-lambda-dql", var.q.name, local.rp2_id)
+  name                    = format("%s-lambda-dql-%s", var.q.name, local.rp2_id)
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 }

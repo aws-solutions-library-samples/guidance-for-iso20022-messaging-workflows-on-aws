@@ -146,7 +146,7 @@
           }
         },
         "security" : [ {
-          "rp2-auth" : [ "rp2/write" ]
+          "${cognito_key}" : [ "rp2/write" ]
         } ],
         "x-amazon-apigateway-integration" : {
           "responses" : {
@@ -235,7 +235,7 @@
           }
         },
         "security" : [ {
-          "rp2-auth" : [ "rp2/write" ]
+          "${cognito_key}" : [ "rp2/write" ]
         } ],
         "x-amazon-apigateway-integration" : {
           "responses" : {
@@ -319,7 +319,7 @@
           }
         },
         "security" : [ {
-          "rp2-auth" : [ "rp2/read" ]
+          "${cognito_key}" : [ "rp2/read" ]
         } ],
         "x-amazon-apigateway-integration" : {
           "responses" : {
@@ -380,7 +380,7 @@
     }
   },
   "securityDefinitions" : {
-    "rp2-auth" : {
+    "${cognito_key}" : {
       "type" : "apiKey",
       "name" : "Authorization",
       "in" : "header",

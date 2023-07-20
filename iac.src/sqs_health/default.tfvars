@@ -1,6 +1,5 @@
 q = {
-  name_queue                  = "rp2-health.fifo"
-  name_dlq                    = "rp2-health-dlq.fifo"
+  name                        = "rp2-health"
   fifo_queue                  = true
   fifo_throughput_limit       = "perQueue" # "perMessageGroupId"
   content_based_deduplication = false

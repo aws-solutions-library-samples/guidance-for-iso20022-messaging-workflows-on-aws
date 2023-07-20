@@ -24,6 +24,6 @@ resource "aws_scheduler_schedule" "this" {
 resource "aws_sqs_queue" "this" {
   #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  name                    = format("%s-scheduler-dlq", data.terraform_remote_state.lambda.outputs.function_name)
+  name                    = replace(data.terraform_remote_state.lambda.outputs.function_name, local.rp2_id, local.dlq)
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 }

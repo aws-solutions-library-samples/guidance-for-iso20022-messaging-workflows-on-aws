@@ -1,5 +1,5 @@
 q = {
-  function_name = "rp2-mq-reader"
+  name          = "rp2-mq-reader"
   description   = "RP2 MQ READER"
   package_type  = "Image"
   architecture  = "arm64"
@@ -11,7 +11,6 @@ q = {
   reserved      = 20
   logging       = "DEBUG"
 
-  dlq_name                = "rp2-mq-reader-lambda-dql"
   sqs_managed_sse_enabled = true
   secrets_manager_ttl     = 300
 }

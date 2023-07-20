@@ -52,14 +52,19 @@ def lambda_handler(event, context):
         identity = event['identity']
     LOGGER.debug(f'computed identity: {identity}')
 
+    rp2_id = VARIABLES.get_rp2_env('RP2_ID')
     region = VARIABLES.get_rp2_env('RP2_REGION')
     region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
     api_url = VARIABLES.get_rp2_env('RP2_API_URL')
     table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    table = f'{table}-{rp2_id}'
+    health = VARIABLES.get_rp2_env('RP2_HEALTH')
+    health = f'{health}-{rp2_id}'
+    queue = f'rp2-release-{rp2_id}.fifo'
     replicated = None
     ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))
     if ddb_retry > 0:
-        replicated = {'region': region, 'region2': region2, 'count': ddb_retry, 'identity': identity}
+        replicated = {'region': region, 'region2': region2, 'health': health, 'identity': identity, 'count': ddb_retry}
     LOGGER.debug(f'computed replicated: {replicated}')
     item = {
         'created_by': identity,
@@ -92,7 +97,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+        sqs_send_message(region, queue, item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata)
 
@@ -105,7 +110,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+        sqs_send_message(region, queue, item['request_account'], body, id, type)
         return response
 
     # step 4: initialize variables
@@ -130,7 +135,7 @@ def lambda_handler(event, context):
             response = dynamodb_put_item(region, table, item, replicated)
             LOGGER.debug(f'dynamodb_put_item msg: {metadata["ErrorMessage"]}')
             LOGGER.debug(f'dynamodb_put_item response: {response}')
-            sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+            sqs_send_message(region, queue, item['request_account'], body, id, type)
             return lambda_response(400, metadata['ErrorMessage'], metadata)
         else:
             item['created_by'] = response['Items'][0]['created_by']
@@ -141,7 +146,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+        sqs_send_message(region, queue, item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata)
 
@@ -161,13 +166,13 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+        sqs_send_message(region, queue, item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata)
 
     # step 7: send the message to next sqs queue
     try:
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+        sqs_send_message(region, queue, item['request_account'], body, id, type)
 
     except Exception as e:
         msg = 'sending sqs message failed'
@@ -175,7 +180,7 @@ def lambda_handler(event, context):
         response = dynamodb_put_item(region, table, item, replicated)
         LOGGER.debug(f'dynamodb_put_item msg: {msg}')
         LOGGER.debug(f'dynamodb_put_item response: {response}')
-        sqs_send_message(region, 'rp2-release.fifo', item['request_account'], body, id, type)
+        sqs_send_message(region, queue, item['request_account'], body, id, type)
         metadata['ErrorMessage'] = str(e)
         return lambda_response(500, msg, metadata)
 

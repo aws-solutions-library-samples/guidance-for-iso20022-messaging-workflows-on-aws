@@ -1,5 +1,5 @@
 resource "aws_cognito_user_pool_client" "this" {
-  name         = var.q.name
+  name         = format("%s-%s", var.q.name, local.rp2_id)
   user_pool_id = data.terraform_remote_state.cognito.outputs.id
 
   allowed_oauth_flows_user_pool_client = var.q.allowed_oauth_flows_user_pool_client

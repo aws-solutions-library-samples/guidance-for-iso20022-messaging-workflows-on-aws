@@ -4,7 +4,7 @@ resource "aws_dynamodb_table" "this" {
   #checkov:skip=CKV2_AWS_16:This solution does not leverages DynamoDB auto-scaling capabilities (false positive)
 
   count        = (local.replicas_enabled && data.aws_region.this.name == element(keys(var.backend_bucket), 0)) || !local.replicas_enabled ? 1 : 0
-  name         = var.q.name
+  name         = format("%s-%s", var.q.name, local.rp2_id)
   hash_key     = var.q.hash_key
   range_key    = var.q.range_key
   billing_mode = var.q.billing_mode

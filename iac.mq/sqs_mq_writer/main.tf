@@ -1,7 +1,7 @@
 resource "aws_sqs_queue" "this" {
   #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  name                    = var.q.name_queue
+  name                    = format("%s-%s", var.q.name, local.rp2_id)
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 
   lifecycle {
@@ -17,7 +17,7 @@ resource "aws_sqs_queue_policy" "this" {
 resource "aws_sqs_queue" "dlq" {
   #checkov:skip=CKV_AWS_27:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  name                    = var.q.name_dlq
+  name                    = format("%s-sqs-dlq-%s", var.q.name, local.rp2_id)
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 
   redrive_allow_policy = jsonencode({

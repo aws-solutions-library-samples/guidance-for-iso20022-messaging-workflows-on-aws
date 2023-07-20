@@ -20,6 +20,17 @@ data "aws_acm_certificate" "this" {
   statuses = ["ISSUED"]
 }
 
+data "aws_acm_certificate" "that" {
+  provider = aws.glob
+  domain   = var.domain
+  statuses = ["ISSUED"]
+}
+
+provider "aws" {
+  alias  = "glob"
+  region = "us-east-1"
+}
+
 output "bucket" {
   value = data.aws_s3_bucket.this.bucket
 }

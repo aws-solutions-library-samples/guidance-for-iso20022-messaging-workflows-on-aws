@@ -43,9 +43,10 @@ def lambda_handler(event, context):
     region = VARIABLES.get_rp2_env('RP2_REGION')
     region2 = VARIABLES.get_rp2_env('RP2_CHECK_REGION')
     api_url = VARIABLES.get_rp2_env('RP2_API_URL')
-    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
-    health = VARIABLES.get_rp2_env('RP2_HEALTH')
     range = VARIABLES.get_rp2_env('RP2_TIMESTAMP_PARTITION')
+    table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
+    table = f'{table}-{rp2_id}'
+    health = VARIABLES.get_rp2_env('RP2_HEALTH')
 
     # step 1: initialize variables
     metadata = {
@@ -64,7 +65,7 @@ def lambda_handler(event, context):
 
     while iter < req_count:
         iter += 1
-        response = lambda_health_check(region2, headers, payload)
+        response = lambda_health_check(region2, f'{health}-{rp2_id}', headers, payload)
         LOGGER.debug(f'lambda_health_check response: {response}')
         if 'StatusCode' in response and response['StatusCode'] == 200:
             msg = f'successful health check - {iter} attempt(s)'

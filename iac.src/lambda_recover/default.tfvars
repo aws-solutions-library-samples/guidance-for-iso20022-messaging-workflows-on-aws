@@ -1,5 +1,5 @@
 q = {
-  function_name = "rp2-recover"
+  name          = "rp2-recover"
   description   = "RP2 RECOVER"
   package_type  = "Image"
   architecture  = "arm64"
@@ -11,7 +11,6 @@ q = {
   reserved      = 20
   logging       = "INFO"
 
-  dlq_name                = "rp2-recover-lambda-dql"
   sqs_managed_sse_enabled = true
   secrets_manager_ttl     = 300
 }

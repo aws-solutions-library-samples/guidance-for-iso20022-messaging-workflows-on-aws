@@ -37,3 +37,8 @@ dependency "sqs" {
   config_path  = "../sqs_inbox"
   skip_outputs = true
 }
+
+dependency "s3" {
+  config_path  = "../s3_runtime"
+  skip_outputs = true
+}

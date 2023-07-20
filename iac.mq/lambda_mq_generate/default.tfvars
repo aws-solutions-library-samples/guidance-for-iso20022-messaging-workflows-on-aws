@@ -1,5 +1,5 @@
 q = {
-  function_name = "rp2-mq-generator"
+  name          = "rp2-mq-generator"
   description   = "RP2 MQ GENERATOR"
   package_type  = "Image"
   architecture  = "arm64"
@@ -11,7 +11,6 @@ q = {
   reserved      = 20
   logging       = "DEBUG"
 
-  dlq_name                = "rp2-mq-generator-lambda-dql"
   sqs_managed_sse_enabled = true
   secrets_manager_ttl     = 300
 }

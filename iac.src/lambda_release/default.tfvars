@@ -1,5 +1,5 @@
 q = {
-  function_name = "rp2-release"
+  name          = "rp2-release"
   description   = "RP2 RELEASE"
   package_type  = "Image"
   architecture  = "arm64"
@@ -11,7 +11,6 @@ q = {
   reserved      = 20
   logging       = "INFO"
 
-  dlq_name                = "rp2-release-lambda-dql"
   sqs_managed_sse_enabled = true
   secrets_manager_ttl     = 300
 }

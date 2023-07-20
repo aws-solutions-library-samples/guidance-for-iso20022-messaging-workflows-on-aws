@@ -68,14 +68,14 @@ aws sts get-caller-identity --region ${RP2_REGION}
 echo "[EXEC] aws ec2 describe-availability-zones --query \"AvailabilityZones[\*].ZoneId\" --region ${RP2_REGION}"
 aws ec2 describe-availability-zones --query "AvailabilityZones[*].ZoneId" --region ${RP2_REGION}
 
-echo "[EXEC] aws iam create-service-linked-role --aws-service-name acm.amazonaws.com"
-aws iam create-service-linked-role --aws-service-name acm.amazonaws.com
+# echo "[EXEC] aws iam create-service-linked-role --aws-service-name acm.amazonaws.com"
+# aws iam create-service-linked-role --aws-service-name acm.amazonaws.com
 
-echo "[EXEC] aws iam create-service-linked-role --aws-service-name replication.dynamodb.amazonaws.com"
-aws iam create-service-linked-role --aws-service-name replication.dynamodb.amazonaws.com
+# echo "[EXEC] aws iam create-service-linked-role --aws-service-name replication.dynamodb.amazonaws.com"
+# aws iam create-service-linked-role --aws-service-name replication.dynamodb.amazonaws.com
 
-echo "[EXEC] aws iam create-service-linked-role --aws-service-name replication.ecr.amazonaws.com"
-aws iam create-service-linked-role --aws-service-name replication.ecr.amazonaws.com
+# echo "[EXEC] aws iam create-service-linked-role --aws-service-name replication.ecr.amazonaws.com"
+# aws iam create-service-linked-role --aws-service-name replication.ecr.amazonaws.com
 
 echo "[EXEC] cd ${WORKDIR}/bin"
 cd ${WORKDIR}/bin
@@ -83,8 +83,8 @@ cd ${WORKDIR}/bin
 echo "[EXEC] terraform init -input=false -no-color"
 terraform init -input=false -no-color || { echo "[ERROR] terraform init failed. aborting..."; cd -; exit 1; }
 
-echo "[EXEC] terraform plan -var=\"prefix=${RP2_BUCKET}\" -var=\"domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
-terraform plan -var="prefix=${RP2_BUCKET}" -var="domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
+echo "[EXEC] terraform plan -var=\"bucket=${RP2_BUCKET}\" -var=\"domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
+terraform plan -var="bucket=${RP2_BUCKET}" -var="domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform apply -auto-approve terraform.tfplan"
 terraform apply -auto-approve terraform.tfplan || { echo "[ERROR] terraform apply failed. aborting..."; cd -; exit 1; }
@@ -92,8 +92,8 @@ terraform apply -auto-approve terraform.tfplan || { echo "[ERROR] terraform appl
 echo "[EXEC] terraform output"
 terraform output || { echo "[ERROR] terraform output failed. aborting..."; cd -; exit 1; }
 
-echo "[EXEC] terraform plan -destroy -var=\"prefix=${RP2_BUCKET}\" -var=\"domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
-terraform plan -destroy -var="prefix=${RP2_BUCKET}" -var="domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
+echo "[EXEC] terraform plan -destroy -var=\"bucket=${RP2_BUCKET}\" -var=\"domain=${RP2_DOMAIN}\" -out=terraform.tfplan"
+terraform plan -destroy -var="bucket=${RP2_BUCKET}" -var="domain=${RP2_DOMAIN}" -out=terraform.tfplan || { echo "[ERROR] terraform plan failed. aborting..."; cd -; exit 1; }
 
 echo "[EXEC] terraform apply -destroy -auto-approve terraform.tfplan"
 terraform apply -destroy -auto-approve terraform.tfplan || { echo "[ERROR] terraform destroy failed. aborting..."; cd -; exit 1; }

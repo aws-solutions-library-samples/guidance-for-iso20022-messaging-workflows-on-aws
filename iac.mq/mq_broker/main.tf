@@ -4,7 +4,7 @@ resource "aws_mq_broker" "this" {
   #checkov:skip=CKV_AWS_208:This solution leverages current MQBroker version (false positive)
   #checkov:skip=CKV_AWS_209:This solution leverages KMS encryption using AWS managed keys instead of CMKs (false positive)
 
-  broker_name                = var.q.broker_name
+  broker_name                = format("%s-%s", var.q.name, local.rp2_id)
   engine_type                = var.q.engine_type
   engine_version             = var.q.engine_version
   host_instance_type         = var.q.host_instance_type

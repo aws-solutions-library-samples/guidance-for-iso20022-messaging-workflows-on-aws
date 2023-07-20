@@ -9,3 +9,7 @@ output "id" {
 output "url" {
   value = aws_sqs_queue.this.url
 }
+
+output "name" {
+  value = aws_sqs_queue.this.name
+}

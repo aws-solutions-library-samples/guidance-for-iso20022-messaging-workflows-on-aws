@@ -14,7 +14,7 @@ resource "aws_api_gateway_rest_api" "this" {
     lambda_outbox = data.terraform_remote_state.lambda_outbox.outputs.invoke_arn
     lambda_uuid   = data.terraform_remote_state.lambda_uuid.outputs.invoke_arn
     iam_arn       = data.terraform_remote_state.iam_sqs.outputs.arn
-    sqs_arn       = format(var.q.agw_invoke_sqs_arn, data.aws_region.this.name, data.aws_caller_identity.this.account_id)
+    sqs_arn       = format(var.q.agw_invoke_sqs_arn, data.aws_region.this.name, data.aws_caller_identity.this.account_id, data.terraform_remote_state.sqs.outputs.name)
   })
 
   endpoint_configuration {

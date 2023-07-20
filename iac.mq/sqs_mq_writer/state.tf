@@ -10,6 +10,10 @@ output "url" {
   value = aws_sqs_queue.this.url
 }
 
+output "name" {
+  value = aws_sqs_queue.this.name
+}
+
 output "subscription_arn" {
   value = aws_sns_topic_subscription.this.arn
 }

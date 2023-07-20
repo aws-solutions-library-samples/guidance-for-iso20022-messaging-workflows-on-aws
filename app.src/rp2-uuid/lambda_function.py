@@ -50,7 +50,7 @@ def lambda_handler(event, context):
     api_url = VARIABLES.get_rp2_env('RP2_API_URL')
     table = VARIABLES.get_rp2_env('RP2_DDB_TNX')
     table = f'{table}-{rp2_id}'
-    health = VARIABLES.get_rp2_end('RP2_HEALTH')
+    health = VARIABLES.get_rp2_env('RP2_HEALTH')
     health = f'{health}-{rp2_id}'
     replicated = None
     ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))

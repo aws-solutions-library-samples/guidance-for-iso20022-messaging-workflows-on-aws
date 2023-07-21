@@ -1,68 +1,68 @@
 # ISO 20022 Payments Processing
 
-ISO 20022 Payments Processing is an AWS Solution designed to receive, process
+ISO 20022 Payments Processing is an AWS Solution designed to receive, process,
 and release ISO 20022 payment messages. You can deploy this solution as a proxy
 in front of your existing payments infrastructure, on-prem or in the cloud, or
 use it as the foundational building block to modernize existing payments
 systems.
 
-This solution provides multi-region tunable consistency with decision making
-process managed by the API consumers that allows for the acceptance, rejection,
-cancellation, and re-drive of data processing workflows with failover across
-AWS regions.
+This solution provides multi-region, tunable consistency with the
+decision-making process managed by API consumers that allows for the
+acceptance, rejection, cancellation, and re-drive of data processing
+workflows with failover across AWS regions.
 
-## Event Driven Architecture
+## Event-Driven Architecture
 
-![Architecture Diagram](./docs/architecture.png "Event Driven Architecture")
+![Architecture Diagram](./docs/architecture.png "Event-Driven Architecture")
 
 ### Step-by-Step Guidance
 
-1. API consumer calls regional AUTH endpoint associated with region specific
-Amazon Cognito's client id and client secret and receives OAuth 2.0 access
-token (to be used with all subsequent API requests)
+1. API consumer calls regional AUTH endpoint associated with region-specific
+Amazon Cognito’s Client ID and Client Secret, and receives OAuth 2.0 Access
+Token (to be used with all subsequent API requests)
 
-2. API consumer calls regional API endpoint associated with Transaction MSA
-and receives HTTP 200 with response payload that includes transaction id
+2. API consumer calls regional API endpoint associated with the Transaction MSA
+and receives HTTP 200 with a response payload that includes a transaction ID
 (to be used with all subsequent API requests)
 
-3. Transaction MSA generates UUID v4, verifies if it's unique within current
+3. Transaction MSA generates UUID v4, verifies if it is unique within current
 partition in Amazon DynamoDB (transaction table) and records step in DynamoDB
 (status = ACCP); otherwise retries up to 3 times
 
 4. API consumer calls regional API endpoint associated with Incoming Queue and
-passes transaction id as HTTP header and ISO 20022 incoming message as HTTP
-body (this step starts internal event driven workflow)
+passes transaction ID as HTTP header and ISO 20022 incoming message as HTTP
+body (this step starts the internal event-driven workflow)
 
-5. Incoming MSA consumes ISO 20022 message from Incoming Queue, stores it into
-S3 bucket (incoming path), records step in DynamoDB (status = ACTC) and pushes
-incoming message to Processing Queue
+5. Incoming MSA consumes the ISO 20022 message from Incoming Queue, stores it
+into S3 bucket (incoming path), records step in DynamoDB (status = ACTC) and
+pushes incoming message to Processing Queue
 
-6. Processing MSA consumes ISO 20022 message from Processing Queue, runs
+6. Processing MSA consumes the ISO 20022 message from Processing Queue, runs
 technical and business validations including sync calls to other MSAs:
 FIPS-140-2 / KYC / AML / Fraud / Liquidity / etc., records step in DynamoDB
 (status = ACSP or RJCT) and pushes ISO 20022 confirmation or rejection message
 to Releasing Queue
 
-7. Releasing MSA consumes ISO 20022 message from Releasing Queue, stores it into
-S3 bucket (outgoing path), records step in DynamoDB (status = ACSC or RJCT) and
-pushes notification to Amazon SNS
+7. Releasing MSA consumes the ISO 20022 message from Releasing Queue, stores it
+into S3 bucket (outgoing path), records step in DynamoDB (status = ACSC or
+RJCT) and pushes notification to Amazon SNS
 
-8. API consumer calls regional API endpoint associated with Outgoing MSA and
-receives HTTP 200 with ISO 20022 outgoing message as response payload
+8. API consumer calls regional API endpoint associated with the Outgoing MSA
+and receives HTTP 200 with the ISO 20022 outgoing message as a response payload
 
-9. Timeout MSA executes every 15 sec to retrieve any transaction that exceeds
-SLA, generates rejection ISO 20022 message, stores it in S3 (outgoing path) and
-records new step in DynamoDB (status = RJCT)
+9. Timeout MSA executes every 15 seconds to retrieve any transaction that
+exceeds SLA, generates rejection ISO 20022 message, stores it in S3 (outgoing
+path) and records new step in DynamoDB (status = RJCT)
 
-10. OPTIONALLY, for on-prem downstream systems leverage existing messaging
+10. OPTIONALLY, for on-prem downstream systems leveraging existing messaging
 capabilities (e.g. IBM MQ, or Kafka, etc); deploy the same tool in the cloud
-and use native replication between on-prem and cloud
+and use native replication between on-premises and cloud
 
-11. MQ Reader MSA consumes messages from cloud based MQ and submits them to
-Incoming API (see steps 1 through 5 from above)
+11. MQ Reader MSA consumes messages from cloud-based MQ and submits them to
+the Incoming API (see steps 1 through 5 from above)
 
-12. MQ Writer MSA consumes messages from Outgoing API and pushes them to cloud
-based MQ (see steps 1, 2 and 9 from above)
+12. MQ Writer MSA consumes messages from Outgoing API and pushes them to
+cloud-based MQ (see steps 1, 2 and 9 from above)
 
 ## Getting Started
 
@@ -168,14 +168,14 @@ the public subdomain names to be updated with your DNS provider:
 *example.com* with your custom domain.
 
 First command returns the domain name and target value of the AUTH endpoint.
-This endpoint will be used to retrieve OAuth 2.0 access token. Second command
+This endpoint will be used to retrieve OAuth 2.0 Access Token. Second command
 returns the domain names and target values of the API endpoints. Use these
 domain names and target values to update your DNS provider.
 
 ### Run Tests
 
 The suffix *abcd1234* in your AWS CodeBuild project name is the solution
-deployment id. This value can be used to test this solution, as shown below.
+deployment ID. This value can be used to test this solution, as shown below.
 
 Starting at the ROOT level of this repository, run the following command:
 
@@ -185,7 +185,7 @@ Starting at the ROOT level of this repository, run the following command:
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,
 *us-east-1* with your target AWS region and *abcd1234* with your solution
-deployment id.
+deployment ID.
 
 ## Considerations
 

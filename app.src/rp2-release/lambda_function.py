@@ -61,6 +61,7 @@ def lambda_handler(event, context):
     table = f'{table}-{rp2_id}'
     health = VARIABLES.get_rp2_env('RP2_HEALTH')
     health = f'{health}-{rp2_id}'
+    topic = f'rp2-release-{rp2_id}'
     replicated = None
     ddb_retry = int(VARIABLES.get_rp2_env('RP2_DDB_RETRY'))
     if ddb_retry > 0:
@@ -187,7 +188,7 @@ def lambda_handler(event, context):
 
     # step 8: notify distribution topic
     try:
-        sns_publish_message(region, 'rp2-release', item['request_account'], item['transaction_id'], {'identity': item['created_by']})
+        sns_publish_message(region, topic, item['request_account'], item['transaction_id'], {'identity': item['created_by']})
 
     except Exception as e:
         LOGGER.warning(f'attempted to notify item: {item}')

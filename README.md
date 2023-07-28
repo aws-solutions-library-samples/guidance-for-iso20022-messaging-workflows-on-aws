@@ -179,6 +179,10 @@ domain names and target values to update your DNS provider.
 The suffix *abcd1234* in your AWS CodeBuild project name is the solution
 deployment ID. This value can be used to test this solution, as shown below.
 
+Test script is based on [curl](https://everything.curl.dev/get) and
+[jq](https://jqlang.github.io/jq/download/). Make sure you have installed
+them locally before executing below described command.
+
 Starting at the ROOT level of this repository, run the following command:
 
   ```sh

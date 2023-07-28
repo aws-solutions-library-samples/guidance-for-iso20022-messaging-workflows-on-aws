@@ -59,7 +59,7 @@ resource "aws_cloudformation_stack" "guidance_deployment_metrics" {
     template_body = <<STACK
     {
         "AWSTemplateFormatVersion": "2010-09-09",
-        "Description": "Guidance for ISO 20022 Messages Consumption on AWS (SO9257)",
+        "Description": "Guidance for ISO 20022 Messaging Workflows on AWS (SO9257)",
         "Resources": {
             "EmptyResource": {
                 "Type": "AWS::CloudFormation::WaitConditionHandle"

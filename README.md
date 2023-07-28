@@ -1,6 +1,6 @@
-# ISO 20022 Messages Consumption on AWS
+# ISO 20022 Messaging Workflows on AWS
 
-ISO 20022 Messages Consumption is an AWS Solution designed to receive,
+ISO 20022 Messaging Workflows is an AWS Solution designed to receive,
 consume, and release ISO 20022 payment messages. You can deploy this solution
 as a proxy in front of your existing payments infrastructure, on-prem or
 in the cloud, or use it as the foundational building block to modernize

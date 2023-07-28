@@ -81,7 +81,8 @@ and [AWS CodeBuild project](https://docs.aws.amazon.com/codebuild/latest/usergui
 [AWSCodeBuildAdminAccess](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSCodeBuildAdminAccess.html))
 * an [Amazon Simple Storage Service (S3) bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 used by Terraform remote state (e.g. *rp2-backend-us-east-1*)
-* a custom domain (e.g., *example.com*)
+* a custom domain with resolvable parent domain or subdomain
+to a valid A record (e.g., *example.com* A alias to *8.8.8.8*)
 * configured
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 (e.g., nested *example.com* and wildcarded **.example.com*)
@@ -205,7 +206,17 @@ sure to create public certificates in both your target region and *us-east-1*.
 Terraform configuration where this behavior is defined can be viewed
 [here](./iac.src/cognito_user_domain/data.tf#L12)
 
-2. AWS Identity and Access Management (IAM) role configured for AWS CodeBuild
+2. Amazon Cognito doesn't support top-level domains (TLDs) for custom domains.
+To create an Amazon Cognito custom domain, the parent domain must have a Domain
+Name System (DNS) A record. Create an A record for the parent domain in your
+DNS configuration. When the parent domain resolves to a valid A record, Amazon
+Cognito doesn't perform additional verifications. If the parent domain doesn't
+point to a real IP address, then consider putting a dummy IP address, such as
+"8.8.8.8", in your DNS configuration. Check
+[this post](https://repost.aws/knowledge-center/cognito-custom-domain-errors)
+for more details.
+
+3. AWS Identity and Access Management (IAM) role configured for AWS CodeBuild
 allows least privilege access. Build script assumes programmatically another
 IAM role that provides elevated admin privileges and is restricted to your
 target AWS account, AWS region and AWS CodeBuild IP range.
@@ -213,18 +224,18 @@ Terraform configuration where this behavior is defined can be viewed
 [here](./iac.cicd/iam_role_codebuild/data.tf#L16) and
 [here](./iac.cicd/iam_role_assume/data.tf#L8)
 
-3. Amazon Web Application Firewall is deployed by default in non-blocking mode.
+4. Amazon Web Application Firewall is deployed by default in non-blocking mode.
 To change this behavior from `count` to `block`, update Terraform configuration
 [here](./iac.src/waf_web_acl/main.tf#L16). To add more rules, update
 Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L2)
 
-4. Amazon Simple Storage Service blocks public access by default. This solution
+5. Amazon Simple Storage Service blocks public access by default. This solution
 removes this block on both account level and bucket level to enable health
 checks managed via data plane of Amazon S3. Terraform configuration where this
 behavior is defined can be viewed [here](./iac.src/s3_health/main.tf#L25) and
 [here](./iac.src/s3_health/main.tf#L39)
 
-5. Amazon EventBridge Scheduler is used to trigger every minute AWS Lambda
+6. Amazon EventBridge Scheduler is used to trigger every minute AWS Lambda
 functions for `Timeout MSA` and `Recover MSA` . To change this behavior,
 update Terraform configuration [here](./iac.src/scheduler_timeout/main.tf#L8)
 and [here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring

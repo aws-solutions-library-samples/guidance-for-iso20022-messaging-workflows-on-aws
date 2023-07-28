@@ -149,8 +149,9 @@ in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
 
-Once the build execution is successful, the following two commands will return
-the public subdomain names to be updated with your DNS provider:
+Once the build execution is successful, you need to retrieve newly created
+custom domain names to update your DNS provider. Next, we will describe how to
+retrieve them directly from Cognito and API Gateway using AWS CLI.
 
   ```sh
   aws cognito-idp describe-user-pool-domain --region us-east-1 \
@@ -170,9 +171,10 @@ the public subdomain names to be updated with your DNS provider:
 *example.com* with your custom domain.
 
 First command returns the domain name and target value of the AUTH endpoint.
-This endpoint will be used to retrieve OAuth 2.0 Access Token. Second command
-returns the domain names and target values of the API endpoints. Use these
-domain names and target values to update your DNS provider.
+This endpoint will be used to retrieve OAuth 2.0 Access Token.
+
+Second command returns the domain names and target values of the API endpoints.
+Use these domain names and target values to update your DNS provider.
 
 ### Run Tests
 

@@ -1,10 +1,10 @@
-# ISO 20022 Payments Processing
+# ISO 20022 Messaging Workflows on AWS
 
-ISO 20022 Payments Processing is an AWS Solution designed to receive, process,
-and release ISO 20022 payment messages. You can deploy this solution as a proxy
-in front of your existing payments infrastructure, on-prem or in the cloud, or
-use it as the foundational building block to modernize existing payments
-systems.
+ISO 20022 Messaging Workflows is an AWS Solution designed to receive,
+consume, and release ISO 20022 payment messages. You can deploy this solution
+as a proxy in front of your existing payments infrastructure, on-prem or
+in the cloud, or use it as the foundational building block to modernize
+existing payments systems.
 
 This solution provides multi-region, tunable consistency with the
 decision-making process managed by API consumers that allows for the
@@ -72,7 +72,9 @@ to cloud-based MQ (see the preceding Steps 1, 2, and 9).
 ### Pre-requisites
 
 * an [AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html)
-* already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+* already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html),
+[Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli), and
+[Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
 * [AWS access keys](https://docs.aws.amazon.com/accounts/latest/reference/credentials-access-keys-best-practices.html)
 used by AWS CLI
 * allowed AWS CLI permissions to create
@@ -82,7 +84,8 @@ and [AWS CodeBuild project](https://docs.aws.amazon.com/codebuild/latest/usergui
 [AWSCodeBuildAdminAccess](https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSCodeBuildAdminAccess.html))
 * an [Amazon Simple Storage Service (S3) bucket](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html)
 used by Terraform remote state (e.g. *rp2-backend-us-east-1*)
-* a custom domain (e.g., *example.com*)
+* a custom domain with resolvable parent domain or subdomain
+to a valid A record (e.g., *example.com* A alias to *8.8.8.8*)
 * configured
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 (e.g., nested *example.com* and wildcarded **.example.com*)
@@ -150,8 +153,11 @@ in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
 
-Once the build execution is successful, the following two commands will return
-the public subdomain names to be updated with your DNS provider:
+### Update DNS Provider
+
+Once the build execution is successful, you need to retrieve newly created
+custom domain names to update your DNS provider. Next, we will describe how to
+retrieve them directly from Cognito and API Gateway using AWS CLI.
 
   ```sh
   aws cognito-idp describe-user-pool-domain --region us-east-1 \
@@ -180,6 +186,10 @@ domain names and target values to update your DNS provider.
 The suffix *abcd1234* in your AWS CodeBuild project name is the solution
 deployment ID. This value can be used to test this solution, as shown below.
 
+Test script is based on [curl](https://everything.curl.dev/get) and
+[jq](https://jqlang.github.io/jq/download/). Make sure to have them
+installed locally before executing below described command...
+
 Starting at the ROOT level of this repository, run the following command:
 
   ```sh
@@ -199,7 +209,17 @@ sure to create public certificates in both your target region and *us-east-1*.
 Terraform configuration where this behavior is defined can be viewed
 [here](./iac.src/cognito_user_domain/data.tf#L12)
 
-2. AWS Identity and Access Management (IAM) role configured for AWS CodeBuild
+2. Amazon Cognito doesn't support top-level domains (TLDs) for custom domains.
+To create an Amazon Cognito custom domain, the parent domain must have a Domain
+Name System (DNS) A record. Create an A record for the parent domain in your
+DNS configuration. When the parent domain resolves to a valid A record, Amazon
+Cognito doesn't perform additional verifications. If the parent domain doesn't
+point to a real IP address, then consider putting a dummy IP address, such as
+"8.8.8.8", in your DNS configuration. Check
+[this post](https://repost.aws/knowledge-center/cognito-custom-domain-errors)
+for more details.
+
+3. AWS Identity and Access Management (IAM) role configured for AWS CodeBuild
 allows least privilege access. Build script assumes programmatically another
 IAM role that provides elevated admin privileges and is restricted to your
 target AWS account, AWS region and AWS CodeBuild IP range.
@@ -207,24 +227,24 @@ Terraform configuration where this behavior is defined can be viewed
 [here](./iac.cicd/iam_role_codebuild/data.tf#L16) and
 [here](./iac.cicd/iam_role_assume/data.tf#L8)
 
-3. Amazon Web Application Firewall is deployed by default in non-blocking mode.
+4. Amazon Web Application Firewall is deployed by default in non-blocking mode.
 To change this behavior from `count` to `block`, update Terraform configuration
 [here](./iac.src/waf_web_acl/main.tf#L16). To add more rules, update
 Terraform configuration [here](./iac.src/waf_web_acl/locals.tf#L2)
 
-4. Amazon Simple Storage Service blocks public access by default. This solution
+5. Amazon Simple Storage Service blocks public access by default. This solution
 removes this block on both account level and bucket level to enable health
 checks managed via data plane of Amazon S3. Terraform configuration where this
 behavior is defined can be viewed [here](./iac.src/s3_health/main.tf#L25) and
 [here](./iac.src/s3_health/main.tf#L39)
 
-5. Amazon EventBridge Scheduler is used to trigger every minute AWS Lambda
+6. Amazon EventBridge Scheduler is used to trigger every minute AWS Lambda
 functions for `Timeout MSA` and `Recover MSA` . To change this behavior,
 update Terraform configuration [here](./iac.src/scheduler_timeout/main.tf#L8)
 and [here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
 options to provide a more granular solution, down to every X seconds
 
-## Clean Up
+## Cleaning Up
 
 If you decide to clean up your AWS environment and remove all AWS resources
 deployed by this solution, this can be easily achieved by running the following

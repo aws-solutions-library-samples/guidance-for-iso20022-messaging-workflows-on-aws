@@ -45,6 +45,9 @@ while getopts "h:q:r:i:c:s:" option; do
   esac
 done
 
+curl --version > /dev/null 2>&1 || { echo "[ERROR] curl is missing. aborting..."; exit 1; }
+jq --version > /dev/null 2>&1 || { echo "[ERROR] jq is missing. aborting..."; exit 1; }
+
 if [ -z "${RP2_REGION}" ] && [ ! -z "${AWS_DEFAULT_REGION}" ]; then RP2_REGION="${AWS_DEFAULT_REGION}"; fi
 if [ -z "${RP2_REGION}" ] && [ ! -z "${AWS_REGION}" ]; then RP2_REGION="${AWS_REGION}"; fi
 

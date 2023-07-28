@@ -183,8 +183,8 @@ The suffix *abcd1234* in your AWS CodeBuild project name is the solution
 deployment ID. This value can be used to test this solution, as shown below.
 
 Test script is based on [curl](https://everything.curl.dev/get) and
-[jq](https://jqlang.github.io/jq/download/). Make sure you have installed
-them locally before executing below described command.
+[jq](https://jqlang.github.io/jq/download/). Make sure to have them
+installed locally before executing below described command...
 
 Starting at the ROOT level of this repository, run the following command:
 
@@ -230,7 +230,7 @@ update Terraform configuration [here](./iac.src/scheduler_timeout/main.tf#L8)
 and [here](./iac.src/scheduler_recover/main.tf#L8). We are still exploring
 options to provide a more granular solution, down to every X seconds
 
-## Clean Up
+## Cleaning Up
 
 If you decide to clean up your AWS environment and remove all AWS resources
 deployed by this solution, this can be easily achieved by running the following

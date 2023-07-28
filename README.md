@@ -70,7 +70,7 @@ cloud-based MQ (see steps 1, 2 and 9 from above)
 
 * an [AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html)
 * already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html),
-[Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli) and
+[Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli), and
 [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
 * [AWS access keys](https://docs.aws.amazon.com/accounts/latest/reference/credentials-access-keys-best-practices.html)
 used by AWS CLI
@@ -149,6 +149,8 @@ in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
 
+### Update DNS Provider
+
 Once the build execution is successful, you need to retrieve newly created
 custom domain names to update your DNS provider. Next, we will describe how to
 retrieve them directly from Cognito and API Gateway using AWS CLI.
@@ -171,10 +173,9 @@ retrieve them directly from Cognito and API Gateway using AWS CLI.
 *example.com* with your custom domain.
 
 First command returns the domain name and target value of the AUTH endpoint.
-This endpoint will be used to retrieve OAuth 2.0 Access Token.
-
-Second command returns the domain names and target values of the API endpoints.
-Use these domain names and target values to update your DNS provider.
+This endpoint will be used to retrieve OAuth 2.0 Access Token. Second command
+returns the domain names and target values of the API endpoints. Use these
+domain names and target values to update your DNS provider.
 
 ### Run Tests
 

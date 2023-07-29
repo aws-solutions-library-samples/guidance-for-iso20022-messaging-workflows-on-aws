@@ -63,3 +63,21 @@ resource "random_id" "this" {
     create_before_destroy = true
   }
 }
+
+#--------------------------------------------------------------
+# Adding guidance solution ID via AWS CloudFormation resource
+#--------------------------------------------------------------
+resource "aws_cloudformation_stack" "this" {
+    name = "tracking-stack"
+    template_body = <<STACK
+    {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "Guidance for ISO 20022 Messaging Workflows on AWS (SO9257)",
+        "Resources": {
+            "EmptyResource": {
+                "Type": "AWS::CloudFormation::WaitConditionHandle"
+            }
+        }
+    }
+    STACK
+}

@@ -90,12 +90,6 @@ to a valid A record (e.g., *example.com* A alias to *8.8.8.8*)
 [AWS Certificate Manager public certificate](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)
 (e.g., nested *example.com* and wildcarded **.example.com*)
 
-> IMPORTANT: If you select the AWS target region something else than
-*us-east-1*, please make sure to create public certificates in both your target
-region and *us-east-1*. Amazon Cognito custom domain deploys hosted UI using
-Amazon CloudFront distribution under the hood which requires the public
-certificate to be pre-configured in *us-east-1* region.
-
 ### Validate Pre-requisites
 
 Starting at the ROOT level of this repository, run the following command:

@@ -3,14 +3,14 @@ version: 0.2
 phases:
   build:
     commands:
-      - PATH="$PATH:$CODEBUILD_SRC_DIR/iso20022-payments-processing/bin" && export PATH
-      - if [ -d "$CODEBUILD_SRC_DIR/iso20022-payments-processing" ]; then mv $CODEBUILD_SRC_DIR/iso20022-payments-processing/ temp/; fi
-      - git clone https://$RP2_GITHUB_TOKEN@github.com/aws-samples/iso20022-payments-processing
-      - if [ -d "temp" ]; then cp -R temp/ $CODEBUILD_SRC_DIR/iso20022-payments-processing/; rm -rf temp; fi
-      - cd $CODEBUILD_SRC_DIR/iso20022-payments-processing/
+      - PATH="$PATH:$CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws/bin" && export PATH
+      - if [ -d "$CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws" ]; then mv $CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws/ temp/; fi
+      - git clone https://$RP2_GITHUB_TOKEN@github.com/aws-solutions-library-samples/guidance-for-iso20022-messaging-workflows-on-aws
+      - if [ -d "temp" ]; then cp -R temp/ $CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws/; rm -rf temp; fi
+      - cd $CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws/
       - if [ ! -z "$RP2_GITHUB_BRANCH" ]; then git checkout $RP2_GITHUB_BRANCH; fi
-      - terraform -v > /dev/null 2>&1 || { wget https://releases.hashicorp.com/terraform/1.5.4/terraform_1.5.4_linux_arm64.zip; unzip terraform_*.zip; mv terraform $CODEBUILD_SRC_DIR/iso20022-payments-processing/bin/terraform; }
-      - terragrunt -v > /dev/null 2>&1 || { wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.48.5/terragrunt_linux_arm64; chmod 0755 terragrunt_*; mv terragrunt_* $CODEBUILD_SRC_DIR/iso20022-payments-processing/bin/terragrunt; }
+      - terraform -v > /dev/null 2>&1 || { wget https://releases.hashicorp.com/terraform/1.5.4/terraform_1.5.4_linux_arm64.zip; unzip terraform_*.zip; mv terraform $CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws/bin/terraform; }
+      - terragrunt -v > /dev/null 2>&1 || { wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.48.5/terragrunt_linux_arm64; chmod 0755 terragrunt_*; mv terragrunt_* $CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws/bin/terragrunt; }
       - AWS_ASSUME_ROLE=$(aws sts assume-role --role-arn ${role_arn} --role-session-name rp2-`date '+%Y-%m-%d-%H-%M-%S'`) && export AWS_ASSUME_ROLE
       - AWS_ACCESS_KEY_ID=$(echo "$AWS_ASSUME_ROLE" | jq -r '.Credentials.AccessKeyId') && export AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=$(echo "$AWS_ASSUME_ROLE" | jq -r '.Credentials.SecretAccessKey') && export AWS_SECRET_ACCESS_KEY
@@ -26,4 +26,4 @@ phases:
 
 cache:
   paths:
-    - $CODEBUILD_SRC_DIR/iso20022-payments-processing
+    - $CODEBUILD_SRC_DIR/guidance-for-iso20022-messaging-workflows-on-aws

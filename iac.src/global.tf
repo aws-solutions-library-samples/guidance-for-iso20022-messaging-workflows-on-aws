@@ -12,7 +12,6 @@ provider "aws" {
       UniqueId    = var.rp2_id
       Domain      = var.custom_domain
       Contact     = "github.com/eistrati"
-      Description = "Guidance for ISO 20022 Payments Processing (SO9257)"
     }
   }
 }
@@ -23,7 +22,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.10.0"
+      version = "5.11.0"
     }
   }
 }

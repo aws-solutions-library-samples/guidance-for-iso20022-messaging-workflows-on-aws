@@ -1,5 +1,5 @@
 data "aws_cognito_user_pools" "this" {
-  name = var.q.cognito_name
+  name = format("%s-%s", var.q.cognito_name, local.rp2_id)
 }
 
 data "terraform_remote_state" "mq" {

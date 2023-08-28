@@ -1,41 +1,62 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.03">
-    <CstmrPmtStsRpt>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.12">
+    <FIToFIPmtStsRpt>
         <GrpHdr>
-            <MsgId>XML990920150717170814238</MsgId>
-            <CreDtTm>2015-07-17T15:08:14Z</CreDtTm>
-            <InitgPty>
-                <Id>
-                    <OrgId>
-                        <Othr>
-                            <Id>NDEATEST</Id>
-                            <SchmeNm>
-                                <Cd>BANK</Cd>
-                            </SchmeNm>
-                        </Othr>
-                        <Othr>
-                            <Id>1825226354</Id>
-                            <SchmeNm>
-                                <Cd>CUST</Cd>
-                            </SchmeNm>
-                        </Othr>
-                    </OrgId>
-                </Id>
-            </InitgPty>
+            <MsgId>ABABUS23-STATUS-456/04</MsgId>
+            <CreDtTm>2023-05-05T16:20:45.837-04:00</CreDtTm>
+            <InstgAgt>
+                <FinInstnId>
+                    <BICFI>ABABUS23</BICFI>
+                </FinInstnId>
+            </InstgAgt>
+            <InstdAgt>
+                <FinInstnId>
+                    <BICFI>AAAAUS29</BICFI>
+                </FinInstnId>
+            </InstdAgt>
         </GrpHdr>
         <OrgnlGrpInfAndSts>
-            <OrgnlMsgId>qE5yVJIHAPxNoLiC</OrgnlMsgId>
+            <OrgnlMsgId>AAAA100628-123v</OrgnlMsgId>
             <OrgnlMsgNmId>pacs.008.001.08</OrgnlMsgNmId>
+            <OrgnlCreDtTm>2023-05-05T16:20:45.837-04:00</OrgnlCreDtTm>
         </OrgnlGrpInfAndSts>
-        <OrgnlPmtInfAndSts>
-            <OrgnlPmtInfId>PMTINFID-COM-SCE25-1707-01</OrgnlPmtInfId>
-            <PmtInfSts>RJCT</PmtInfSts>
-            <StsRsnInf>
-                <Rsn>
-                    <Cd>NARR</Cd>
-                </Rsn>
-                <AddtlInf>CAP Invalid code or combinations in CategoryPurpose or ServiceLevel</AddtlInf>
-            </StsRsnInf>
-        </OrgnlPmtInfAndSts>
-    </CstmrPmtStsRpt>
+        <TxInfAndSts>
+            <StsId>AB/8568</StsId>
+            <OrgnlEndToEndId>VA060327/0123</OrgnlEndToEndId>
+            <OrgnlTxId>AAAAUS29/100628/ad458</OrgnlTxId>
+            <TxSts>ACCP</TxSts>
+            <OrgnlTxRef>
+                <IntrBkSttlmAmt Ccy="USD">92406.00</IntrBkSttlmAmt>
+                <IntrBkSttlmDt>2023-05-05</IntrBkSttlmDt>
+                <ReqdColltnDt>2023-05-19</ReqdColltnDt>
+                <MndtRltdInf>
+                    <DrctDbtMndt>
+                        <MndtId>VIRGAY123</MndtId>
+                    </DrctDbtMndt>
+                </MndtRltdInf>
+                <Dbtr>
+                    <Pty>
+                        <Nm>AMERICAN BEACON FUNDS - American Beacon SIM High Yield Opportunities Fund</Nm>
+                        <PstlAdr>
+                            <StrtNm>C/O CT CORPORATION SYSTEM</StrtNm>
+                            <PstCd>02110</PstCd>
+                            <TwnNm>BOSTON</TwnNm>
+                            <Ctry>US</Ctry>
+                        </PstlAdr>
+                    </Pty>
+                </Dbtr>
+                <Cdtr>
+                    <Pty>
+                        <Nm>GE Healthcare Canada Inc.</Nm>
+                        <PstlAdr>
+                            <StrtNm>2300 Meadowvale Boulevard</StrtNm>
+                            <PstCd>L5N 5P9</PstCd>
+                            <TwnNm>Mississauga</TwnNm>
+                            <Ctry>CA</Ctry>
+                        </PstlAdr>
+                    </Pty>
+                </Cdtr>
+            </OrgnlTxRef>
+        </TxInfAndSts>
+    </FIToFIPmtStsRpt>
 </Document>

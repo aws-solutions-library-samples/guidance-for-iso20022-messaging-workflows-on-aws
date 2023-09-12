@@ -30,7 +30,7 @@ r = json.loads(response['SecretString'])
 # create rabbitmq resources
 print('[INFO] Connecting to RabbitMQ...')
 credentials = pika.PlainCredentials(r['RP2_RMQ_USER'], r['RP2_RMQ_PASS'])
-context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS)
 parameters = pika.ConnectionParameters(r['RP2_RMQ_HOST'], r['RP2_RMQ_PORT'], '/', credentials, ssl_options=pika.SSLOptions(context))
 connection = pika.BlockingConnection(parameters)
 print('[INFO] Retrieving connection channel from RabbitMQ...')

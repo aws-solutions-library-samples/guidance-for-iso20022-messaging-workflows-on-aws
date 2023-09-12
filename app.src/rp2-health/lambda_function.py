@@ -62,7 +62,7 @@ def lambda_handler(event, context):
     health = VARIABLES.get_rp2_env('RP2_HEALTH')
     bucket = f'{health}-{region}-{rp2_id}'
     key = f'{health}-{region}.txt'
-    queue = f'{health}.fifo'
+    queue = f'{health}-{rp2_id}.fifo'
 
     metadata = {
         'RequestId': request_id,

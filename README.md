@@ -11,6 +11,9 @@ decision-making process managed by API consumers that allows for the
 acceptance, rejection, cancellation, and re-drive of data processing
 workflows with failover across AWS regions.
 
+Read [this blog post](https://bit.ly/iso20022blog) for additional data points
+such as architecture choices and cost considerations.
+
 ## Event-Driven Architecture
 
 ![Architecture Diagram](./docs/architecture.png "Event-Driven Architecture")

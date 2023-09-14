@@ -425,7 +425,7 @@ def auth2token(url, client_id, client_secret):
 
 def connect2rmq(host, port, user, pwd):
     credentials = pika.PlainCredentials(user, pwd)
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     parameters = pika.ConnectionParameters(
         host=host, port=port, credentials=credentials,
         ssl_options=pika.SSLOptions(context), virtual_host='/')

@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "this" {
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values   = [format("arn:aws:sns:%s:%s:rp2-release", data.aws_region.this.name, data.aws_caller_identity.this.account_id)]
+      values   = [format("arn:aws:sns:%s:%s:rp2-release-%s", data.aws_region.this.name, data.aws_caller_identity.this.account_id, local.rp2_id)]
     }
   }
 }

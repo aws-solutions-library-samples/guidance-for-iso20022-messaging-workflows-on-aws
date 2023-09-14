@@ -25,3 +25,7 @@ output "region" {
 output "object_name" {
   value = local.object_name
 }
+
+output "rp2_id" {
+  value = local.rp2_id
+}

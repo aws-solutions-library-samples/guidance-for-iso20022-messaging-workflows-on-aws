@@ -14,16 +14,8 @@ q = {
 
 # Not Supported Regions for DynamoDB Global Tables
 # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GlobalTables.html#GlobalTablesReplicate
+# https://aws.amazon.com/about-aws/whats-new/2023/09/dynamodb-global-tables-all-aws-regions/ (2023-09-28)
 
 r = [
-  "ap-east-1",
-  "ap-south-2",
-  "ap-southeast-3",
-  "ap-southeast-4",
-  "eu-north-1",
-  "eu-south-1",
-  "eu-south-2",
-  "eu-central-2",
-  "me-south-1",
-  "me-central-1"
+  # "il-central-1",
 ]

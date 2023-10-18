@@ -6,10 +6,10 @@ as a proxy in front of your existing payments infrastructure, on-prem or
 in the cloud, or use it as the foundational building block to modernize
 existing payments systems.
 
-This solution provides multi-region, tunable consistency with the
-decision-making process managed by API consumers that allows for the
-acceptance, rejection, cancellation, and re-drive of data processing
-workflows with failover across AWS regions.
+This solution enables API consumers to control ISO 20022 messaging workflows
+across multiple AWS regions by prioritizing either consistency or availability,
+as well as by handling failover through rejection, cancellation, and re-drive
+of data processing across AWS regions in case of regional failures.
 
 Read [this blog post](https://bit.ly/iso20022blog) for additional data points
 such as architecture choices and cost considerations.

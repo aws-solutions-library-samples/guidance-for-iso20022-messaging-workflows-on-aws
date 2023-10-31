@@ -23,7 +23,7 @@ RUN mkdir -p /opt
 RUN unzip layer.zip -d /opt
 RUN rm layer.zip
 
-FROM public.ecr.aws/lambda/python:3.10-arm64 AS base
+FROM public.ecr.aws/lambda/python:3.11-arm64 AS base
 
 WORKDIR /opt
 COPY --from=layer /opt/ .

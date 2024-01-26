@@ -45,7 +45,7 @@ ENV VIRTUAL_ENV=${LAMBDA_TASK_ROOT}/venv \
 
 ENV PATH=${VIRTUAL_ENV}/bin:/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin:${PATH}
 
-RUN yum update -y
+RUN dnf update -y
 
 COPY . .
 

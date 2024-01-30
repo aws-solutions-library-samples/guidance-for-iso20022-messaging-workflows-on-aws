@@ -23,7 +23,7 @@ RUN mkdir -p /opt
 RUN unzip layer.zip -d /opt
 RUN rm layer.zip
 
-FROM public.ecr.aws/lambda/python:3.11-arm64 AS base
+FROM public.ecr.aws/lambda/python:3.12-arm64 AS base
 
 WORKDIR /opt
 COPY --from=layer /opt/ .
@@ -45,7 +45,7 @@ ENV VIRTUAL_ENV=${LAMBDA_TASK_ROOT}/venv \
 
 ENV PATH=${VIRTUAL_ENV}/bin:/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin:${PATH}
 
-RUN yum update -y
+RUN dnf update -y
 
 COPY . .
 

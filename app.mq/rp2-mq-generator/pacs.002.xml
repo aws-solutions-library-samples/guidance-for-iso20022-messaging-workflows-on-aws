@@ -24,7 +24,7 @@
             <StsId>AB/8568</StsId>
             <OrgnlEndToEndId>VA060327/0123</OrgnlEndToEndId>
             <OrgnlTxId>AAAAUS29/100628/ad458</OrgnlTxId>
-            <TxSts>ACCP</TxSts>
+            <TxSts>ACSC</TxSts>
             <OrgnlTxRef>
                 <IntrBkSttlmAmt Ccy="USD">92406.00</IntrBkSttlmAmt>
                 <IntrBkSttlmDt>2023-05-05</IntrBkSttlmDt>

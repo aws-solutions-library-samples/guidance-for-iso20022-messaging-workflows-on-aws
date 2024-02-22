@@ -1,6 +1,6 @@
 q = {
   name                        = "rp2-release"
-  fifo_queue                  = true
+  fifo_queue                  = false
   fifo_throughput_limit       = "perQueue" # "perMessageGroupId"
   content_based_deduplication = false
   deduplication_scope         = "queue" # "messageGroup"

@@ -1,6 +1,6 @@
 q = {
   name                        = "rp2-inbox"
-  fifo_queue                  = false
+  fifo_queue                  = true
   fifo_throughput_limit       = "perQueue" # "perMessageGroupId"
   content_based_deduplication = false
   deduplication_scope         = "queue" # "messageGroup"

@@ -1,9 +1,9 @@
 q = {
   name                        = "rp2-process"
-  fifo_queue                  = true
+  fifo_queue                  = false
   fifo_throughput_limit       = "perQueue" # "perMessageGroupId"
   content_based_deduplication = false
-  deduplication_scope         = "queue" # "messageGroup"
+  deduplication_scope         = null # "queue" # "messageGroup"
   sqs_managed_sse_enabled     = true
   redrive_permission          = "byQueue"
 }

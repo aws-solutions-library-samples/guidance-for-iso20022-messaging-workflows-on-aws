@@ -130,7 +130,8 @@ RP2_TOKEN=${RP2_TOKEN//\"/}
 RP2_UUID=$(curl ${RP2_API_URL}/uuid \
   --http1.1 --location --request GET \
   --header "Authorization: Bearer ${RP2_TOKEN}" \
-  --header "Content-Type: application/json")
+  --header "Content-Type: application/json" \
+  --header "X-Message-Type: pacs.008")
 
 if [ -z "${RP2_UUID}" ] || [ -z "${RP2_UUID##*error*}" ]; then
   echo "[DEBUG] RP2_UUID: ${RP2_UUID}"

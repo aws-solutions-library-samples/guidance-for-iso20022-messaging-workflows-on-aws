@@ -37,6 +37,11 @@ locals {
       value = local.rp2_id
     },
     {
+      name  = "ACCOUNT"
+      type  = "PLAINTEXT"
+      value = data.aws_caller_identity.this.account_id
+    },
+    {
       name  = "APP_ARN"
       type  = "PLAINTEXT"
       value = var.app_arn

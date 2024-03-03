@@ -37,9 +37,9 @@ locals {
       value = local.rp2_id
     },
     {
-      name  = "APP_ID"
+      name  = "APP_ARN"
       type  = "PLAINTEXT"
-      value = var.app_id
+      value = var.app_arn
     },
   ]
 }

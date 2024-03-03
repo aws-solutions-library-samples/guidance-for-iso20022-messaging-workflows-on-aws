@@ -82,6 +82,14 @@ fi
 WORKDIR="$( cd "$(dirname "$0")/../" > /dev/null 2>&1 || exit 1; pwd -P )"
 OPTIONS="-var custom_domain=${RP2_DOMAIN} -var backend_bucket=${RP2_BACKEND}"
 
+if [ ! -z "${ACCOUNT}" ]; then
+  OPTIONS="${OPTIONS} -var account=${ACCOUNT}"
+fi
+
+if [ ! -z "${APP_ARN}" ]; then
+  OPTIONS="${OPTIONS} -var app_arn=${APP_ARN}"
+fi
+
 if [ ! -z "${RP2_ID}" ]; then
   OPTIONS="${OPTIONS} -var rp2_id=${RP2_ID}"
 fi

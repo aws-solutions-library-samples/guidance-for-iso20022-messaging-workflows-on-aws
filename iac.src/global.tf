@@ -12,12 +12,7 @@ provider "aws" {
       UniqueId       = var.rp2_id
       Domain         = var.custom_domain
       Contact        = "github.com/eistrati"
-      awsApplication = var.app_id == null ? null : format(
-        "arn:aws:resource-groups:%s:%s:group/%s",
-        data.aws_region.this.name,
-        data.aws_caller_identity.this.account_id,
-        var.app_id
-      )
+      awsApplication = try(var.app_arn, null)
     }
   }
 }
@@ -28,12 +23,17 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.37.0"
+      version = "5.39.0"
     }
   }
 }
 
 variable "account" {
+  type    = string
+  default = null
+}
+
+variable "app_arn" {
   type    = string
   default = null
 }
@@ -57,11 +57,6 @@ variable "custom_domain" {
 }
 
 variable "rp2_id" {
-  type    = string
-  default = null
-}
-
-variable "app_id" {
   type    = string
   default = null
 }

@@ -13,4 +13,8 @@ q = {
 
   sqs_managed_sse_enabled = true
   secrets_manager_ttl     = 300
+
+  cw_group_name_prefix = "/aws/lambda"
+  retention_in_days    = 5
+  skip_destroy         = true
 }

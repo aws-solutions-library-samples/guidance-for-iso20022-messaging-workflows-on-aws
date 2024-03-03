@@ -41,7 +41,7 @@ resource "aws_codebuild_project" "this" {
 
   logs_config {
     cloudwatch_logs {
-      group_name = format("%s/%s", var.q.group_name_prefix, var.q.name)
+      group_name = aws_cloudwatch_log_group.this.name
     }
 
     s3_logs {
@@ -49,4 +49,12 @@ resource "aws_codebuild_project" "this" {
       location = format("%s/%s", var.backend_bucket[data.aws_region.this.name], var.q.s3_logs_location)
     }
   }
+}
+
+resource "aws_cloudwatch_log_group" "this" {
+  #checkov:skip=CKV_AWS_158:This solution leverages CloudWatch logs (false positive)
+
+  name              = format("%s/%s-%s", var.q.cw_group_name_prefix, var.q.name, local.rp2_id)
+  retention_in_days = var.q.retention_in_days
+  skip_destroy      = var.q.skip_destroy
 }

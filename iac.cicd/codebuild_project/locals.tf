@@ -36,5 +36,10 @@ locals {
       type  = "PLAINTEXT"
       value = local.rp2_id
     },
+    {
+      name  = "APP_ID"
+      type  = "PLAINTEXT"
+      value = var.app_id
+    },
   ]
 }

@@ -22,6 +22,14 @@ resource "aws_mq_broker" "this" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "this" {
+  #checkov:skip=CKV_AWS_158:This solution leverages CloudWatch logs (false positive)
+
+  name              = format("%s/%s-%s", var.q.cw_group_name_prefix, var.q.name, local.rp2_id)
+  retention_in_days = var.q.retention_in_days
+  skip_destroy      = var.q.skip_destroy
+}
+
 resource "random_password" "this" {
   length  = 16
   lower   = true

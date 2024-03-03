@@ -7,11 +7,17 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "rp2"
-      Environment = "default"
-      UniqueId    = var.rp2_id
-      Domain      = var.custom_domain
-      Contact     = "github.com/eistrati"
+      Project        = "rp2"
+      Environment    = "default"
+      UniqueId       = var.rp2_id
+      Domain         = var.custom_domain
+      Contact        = "github.com/eistrati"
+      awsApplication = var.app_id == null ? null : format(
+        "arn:aws:resource-groups:%s:%s:group/%s",
+        data.aws_region.this.name,
+        data.aws_caller_identity.this.account_id,
+        var.app_id
+      )
     }
   }
 }
@@ -51,6 +57,11 @@ variable "custom_domain" {
 }
 
 variable "rp2_id" {
+  type    = string
+  default = null
+}
+
+variable "app_id" {
   type    = string
   default = null
 }

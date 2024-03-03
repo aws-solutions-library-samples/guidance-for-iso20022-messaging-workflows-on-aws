@@ -78,7 +78,7 @@ def s3_put_object(region, bucket, prefix, name, ext, body, time):
     key = f'{prefix}/{time.year}/{time.month:02d}/{time.day:02d}'
     key += f'/{time.hour:02d}/{time.minute:02d}/{time.second:02d}'
     key += f'/{name}.{ext}'
-    retain = datetime(time.year+10, time.month, time.day)
+    retain = datetime(time.year+12, time.month, time.day)
     object = s3.Object(bucket, key)
     return {
         'path': key,

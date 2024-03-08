@@ -49,7 +49,7 @@ resource "aws_api_gateway_stage" "this" {
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.this.arn
-    format          = var.q.cloudwatch_log_format
+    format          = var.q.format
   }
 }
 
@@ -74,7 +74,7 @@ resource "aws_api_gateway_account" "this" {
 resource "aws_cloudwatch_log_group" "this" {
   #checkov:skip=CKV_AWS_158:This solution leverages CloudWatch logs (false positive)
 
-  name              = format(var.q.cloudwatch_group_name, aws_api_gateway_rest_api.this.id, var.q.stage)
+  name              = format("%s_%s/%s", var.q.cw_group_name_prefix, aws_api_gateway_rest_api.this.id, var.q.stage)
   retention_in_days = var.q.retention_in_days
   skip_destroy      = var.q.skip_destroy
 }

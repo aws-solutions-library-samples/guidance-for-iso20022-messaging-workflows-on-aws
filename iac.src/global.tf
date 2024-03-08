@@ -7,11 +7,12 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "rp2"
-      Environment = "default"
-      UniqueId    = var.rp2_id
-      Domain      = var.custom_domain
-      Contact     = "github.com/eistrati"
+      Project        = "rp2"
+      Environment    = "default"
+      UniqueId       = var.rp2_id
+      Domain         = var.custom_domain
+      Contact        = "github.com/eistrati"
+      awsApplication = try(var.app_arn, null)
     }
   }
 }
@@ -22,12 +23,17 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.37.0"
+      version = "5.39.0"
     }
   }
 }
 
 variable "account" {
+  type    = string
+  default = null
+}
+
+variable "app_arn" {
   type    = string
   default = null
 }

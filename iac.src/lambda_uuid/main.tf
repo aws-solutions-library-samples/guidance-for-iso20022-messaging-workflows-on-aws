@@ -55,3 +55,11 @@ resource "aws_sqs_queue" "this" {
   name                    = format("%s-lambda-dlq-%s", var.q.name, local.rp2_id)
   sqs_managed_sse_enabled = var.q.sqs_managed_sse_enabled
 }
+
+resource "aws_cloudwatch_log_group" "this" {
+  #checkov:skip=CKV_AWS_158:This solution leverages CloudWatch logs (false positive)
+
+  name              = format("%s/%s-%s", var.q.cw_group_name_prefix, var.q.name, local.rp2_id)
+  retention_in_days = var.q.retention_in_days
+  skip_destroy      = var.q.skip_destroy
+}

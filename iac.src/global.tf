@@ -18,12 +18,12 @@ provider "aws" {
 }
 
 terraform {
-  required_version = ">= 1.2.0, <1.8.0"
+  required_version = ">= 1.2.0, <1.9.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.39.0"
+      version = "5.46.0"
     }
   }
 }
@@ -35,7 +35,7 @@ variable "account" {
 
 variable "app_arn" {
   type    = string
-  default = null
+  default = ""
 }
 
 variable "backend_bucket" {

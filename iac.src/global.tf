@@ -35,7 +35,7 @@ variable "account" {
 
 variable "app_arn" {
   type    = string
-  default = null
+  default = ""
 }
 
 variable "backend_bucket" {

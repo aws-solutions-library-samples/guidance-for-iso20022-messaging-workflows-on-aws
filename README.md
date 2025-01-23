@@ -16,7 +16,7 @@ such as architecture choices and cost considerations.
 
 ## Event-Driven Architecture
 
-![Architecture Diagram](./docs/architecture.png "Event-Driven Architecture")
+![Event-Driven Architecture](./docs/architecture.png "Event-Driven Architecture")
 
 ### Step-by-Step Guidance
 
@@ -76,6 +76,7 @@ to cloud-based MQ (see the preceding Steps 1, 2, and 9).
 
 * an [AWS account](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-creating.html)
 * already installed [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html),
+[JQ](https://jqlang.github.io/jq/download/),
 [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli), and
 [Terragrunt](https://terragrunt.gruntwork.io/docs/getting-started/install/)
 * [AWS access keys](https://docs.aws.amazon.com/accounts/latest/reference/credentials-access-keys-best-practices.html)
@@ -97,9 +98,9 @@ to a valid A record (e.g., *example.com* A alias to *8.8.8.8*)
 
 Starting at the ROOT level of this repository, run the following command:
 
-  ```sh
-  /bin/bash ./bin/validate.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
-  ```
+```sh
+/bin/bash ./bin/validate.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
+```
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,
 *us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
@@ -112,9 +113,9 @@ to the next step.
 
 Starting at the ROOT level of this repository, run the following command:
 
-  ```sh
-  /bin/bash ./bin/deploy.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
-  ```
+```sh
+/bin/bash ./bin/deploy.sh -q example.com -r us-east-1 -t rp2-backend-us-east-1
+```
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,
 *us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
@@ -132,20 +133,20 @@ successfully.
 
 Using CI/CD pipeline created in the previous step, run the following commands:
 
-  ```sh
-  aws codebuild list-projects --region us-east-1 \
-      --query 'projects[?contains(@, `rp2-cicd-pipeline`) == `true`]'
-  ```
+```sh
+aws codebuild list-projects --region us-east-1 \
+    --query 'projects[?contains(@, `rp2-cicd-pipeline`) == `true`]'
+```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region.
 
-The output from the previous command should be used as the `project_name` input
+The output from the previous command should be used as the `project-name` input
 in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 
-  ```sh
-  aws codebuild start-build --region us-east-1 \
-      --project_name rp2-cicd-pipeline-abcd1234
-  ```
+```sh
+aws codebuild start-build --region us-east-1 \
+    --project-name rp2-cicd-pipeline-abcd1234
+```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *rp2-cicd-pipeline-abcd1234* with the value from the previous command.
@@ -156,19 +157,19 @@ Once the build execution is successful, you need to retrieve newly created
 custom domain names to update your DNS provider. Next, we will describe how to
 retrieve them directly from Cognito and API Gateway using AWS CLI.
 
-  ```sh
-  aws cognito-idp describe-user-pool-domain --region us-east-1 \
-      --domain auth-us-east-1.example.com \
-      --query 'DomainDescription.{domain: Domain, target: CloudFrontDistribution}'
-  ```
+```sh
+aws cognito-idp describe-user-pool-domain --region us-east-1 \
+    --domain auth-us-east-1.example.com \
+    --query 'DomainDescription.{domain: Domain, target: CloudFrontDistribution}'
+```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *auth-us-east-1.example.com* with your auth subdomain.
 
-  ```sh
-  aws apigateway get-domain-names --region us-east-1 \
-      --query 'items[?contains(domainName, `example.com`) == `true`].{domain: domainName, target: regionalDomainName}'
-  ```
+```sh
+aws apigateway get-domain-names --region us-east-1 \
+    --query 'items[?contains(domainName, `example.com`) == `true`].{domain: domainName, target: regionalDomainName}'
+```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and
 *example.com* with your custom domain.
@@ -189,9 +190,9 @@ installed locally before executing below described command...
 
 Starting at the ROOT level of this repository, run the following command:
 
-  ```sh
-  /bin/bash ./bin/test.sh -q example.com -r us-east-1 -i abcd1234
-  ```
+```sh
+/bin/bash ./bin/test.sh -q example.com -r us-east-1 -i abcd1234
+```
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,
 *us-east-1* with your target AWS region and *abcd1234* with your solution
@@ -247,24 +248,29 @@ If you decide to clean up your AWS environment and remove all AWS resources
 deployed by this solution, this can be easily achieved by running the following
 two commands:
 
-  ```sh
-  /bin/bash ./bin/deploy.sh -c true -d iac.src -q example.com -r us-east-1 -t rp2-backend-us-east-1
-  ```
+```sh
+/bin/bash ./bin/deploy.sh -c true -d iac.src -q example.com -r us-east-1 -t rp2-backend-us-east-1
+```
 
-  ```sh
-  /bin/bash ./bin/deploy.sh -c true -d iac.cicd -q example.com -r us-east-1 -t rp2-backend-us-east-1
-  ```
+```sh
+/bin/bash ./bin/deploy.sh -c true -d iac.cicd -q example.com -r us-east-1 -t rp2-backend-us-east-1
+```
 
 > REMINDER: Make sure to replace *example.com* with your custom domain,
 *us-east-1* with your target AWS region and *rp2-backend-us-east-1* with
 your S3 bucket.
 
+## Contributing
+
+See the [CONTRIBUTING](./CONTRIBUTING.md) for more information.
+
 ## Security
 
-See [CONTRIBUTING](./CONTRIBUTING.md#security-issue-notifications) for more
-information.
+See the
+[Security Issue Notifications](./CONTRIBUTING.md#security-issue-notifications)
+for more information.
 
 ## License
 
 This library is licensed under the MIT-0 License. See the [LICENSE](./LICENSE)
-file.
+for more information.

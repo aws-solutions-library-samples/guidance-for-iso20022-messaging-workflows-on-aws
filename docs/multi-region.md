@@ -137,12 +137,12 @@ Using CI/CD pipeline created in the previous step, run the following commands:
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region.
 
-The output from the previous command should be used as the `project_name` input
+The output from the previous command should be used as the `project-name` input
 in the next command (just replace *rp2-cicd-pipeline-abcd1234* with new value):
 
   ```sh
   aws codebuild start-build --region us-east-1 \
-      --project_name rp2-cicd-pipeline-abcd1234
+      --project-name rp2-cicd-pipeline-abcd1234
   ```
 
 > REMINDER: Make sure to replace *us-east-1* with your target AWS region and

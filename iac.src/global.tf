@@ -2,7 +2,7 @@ data "aws_region" "this" {}
 data "aws_caller_identity" "this" {}
 
 provider "aws" {
-  allowed_account_ids    = try(split(",", var.account), null)
+  allowed_account_ids    = try(trimspace(var.account), "") != "" ? split(",", var.account) : null
   skip_region_validation = true
 
   default_tags {
@@ -12,18 +12,18 @@ provider "aws" {
       UniqueId       = var.rp2_id
       Domain         = var.custom_domain
       Contact        = "github.com/eistrati"
-      awsApplication = try(var.app_arn, null)
+      awsApplication = try(trimspace(var.app_arn), "") != "" ? var.app_arn : null
     }
   }
 }
 
 terraform {
-  required_version = ">= 1.2.0, <1.8.0"
+  required_version = ">= 1.2.0, <1.11.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "5.39.0"
+      version = "5.84.0"
     }
   }
 }
